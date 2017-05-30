@@ -6,6 +6,13 @@ import java.net.NetworkInterface;
 import java.util.Enumeration;
 
 public class AppUtils {
+	
+	
+	/**
+	 * this function searches for available static IP of the being-used network
+	 * the IP will be of version-4 address. 
+	 * @return
+	 */
 	public static String getCurrentIP() {
 		try {
 			Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
