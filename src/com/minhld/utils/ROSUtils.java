@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -41,7 +42,7 @@ public class ROSUtils {
 	 */
 	public static TreeMap<String, TopicSystemState> topics;
 	
-	public static List<String> displayingTopics = new ArrayList<>(); 
+	public static HashMap<String, NodeMain> displayingTopics = new HashMap<String, NodeMain>(); 
 	
 	/**
 	 * store a node executor instance
@@ -79,18 +80,29 @@ public class ROSUtils {
 	
 	/**
 	 * create a new node for subscribing/publishing
-	 * @param name
+	 * @param nodeName
 	 * @param node
 	 */
-	public static void execute(String name, NodeMain node) {
+	public static void execute(String nodeName, NodeMain node) {
 		NodeConfiguration config = NodeConfiguration.newPrivate();
 	    try {
 			config.setMasterUri(new URI("http://" + ROSUtils.rosServerIP + ":11311"));
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
-	    config.setNodeName(name);
-	    executor.execute(node, config);
+	    config.setNodeName(nodeName);
+	    ROSUtils.executor.execute(node, config);
+	    
+	    // add node to the watching list
+	    ROSUtils.displayingTopics.put(nodeName, node);
+	}
+	
+	public static void shutdownNode(String nodeName) {
+		NodeMain currentNode = ROSUtils.displayingTopics.get(nodeName);
+		ROSUtils.executor.shutdownNodeMain(currentNode);
+	    
+		// remove node to the watching list
+	    ROSUtils.displayingTopics.remove(nodeName);
 	}
 	
 	/**
@@ -98,16 +110,13 @@ public class ROSUtils {
 	 * if it is opened, it wont be opened again to avoid complexity 
 	 * and memory consumption.
 	 * 
-	 * @param title
+	 * @param name
 	 * @return
 	 */
-	public static boolean addDisplayTopic(String title) {
-		if (!ROSUtils.displayingTopics.contains(title)) {
-			ROSUtils.displayingTopics.add(title);
-			return true;
-		}
-		return false;
+	public static boolean checkWatchingTopic(String name) {
+		return ROSUtils.displayingTopics.containsKey(name);
 	}
+	
 	
 	/**
 	 * get list of current topics. The list will be stored in the topic tree-map
@@ -170,5 +179,10 @@ public class ROSUtils {
 	public static void endRosCore(String rosServerIP) {
 		rosCore = RosCore.newPublic(rosServerIP, ROSUtils.ROS_SVR_PORT);
 		rosCore.shutdown();
+	}
+	
+	
+	public static String getNodeName(String title) {
+		return "monitor/w_" + title;
 	}
 }

@@ -208,9 +208,10 @@ public class RosController extends Thread {
 		return controller;
 	}
 	
-	private void createFrame(String title, int index) {
-		if (ROSUtils.addDisplayTopic(title)) {
-			ROSInnerFrame f = new ROSInnerFrame(title);
+	private void createFrame(String topicTitle, int index) {
+		String nodeName = ROSUtils.getNodeName(topicTitle);
+		if (!ROSUtils.checkWatchingTopic(nodeName)) {
+			ROSInnerFrame f = new ROSInnerFrame(topicTitle);
 			frameContainer.add(f, index);
 		} else {
 			JOptionPane.showMessageDialog(mainFrame, "This topic has been added", "Monitor", JOptionPane.WARNING_MESSAGE);

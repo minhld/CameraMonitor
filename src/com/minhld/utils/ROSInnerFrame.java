@@ -16,7 +16,7 @@ public class ROSInnerFrame extends JInternalFrame {
 	
 	private static final long serialVersionUID = 1L;
 	private JPanel canvas;
-	
+	private Thread nodeThread;
 
 	public ROSInnerFrame(String title) {
 		super(title, true, true, true);
@@ -33,12 +33,23 @@ public class ROSInnerFrame extends JInternalFrame {
 		startListening(title);
 	}
 	
+
+	@Override
+	public void dispose() {
+		super.dispose();
+		
+		// remove the topic out of the watching list
+		String nodeName = ROSUtils.getNodeName(title);
+		ROSUtils.shutdownNode(nodeName);
+		nodeThread.interrupt();
+	}
+	
 	private void startListening(final String title) {
-		new Thread() {
+		nodeThread = new Thread() {
 			@Override
 			public void run() {
 				// this will be the name of the subscriber to this topic
-				String graphName = "minh_monitor/w_" + title;
+				String graphName = ROSUtils.getNodeName(title);
 				
 				if (title.equals("/rrbot/camera1/image_raw")) {
 					ROSUtils.execute(graphName, new CameraListener(graphName, title, new CameraListener.ImageListener() {
@@ -47,14 +58,16 @@ public class ROSInnerFrame extends JInternalFrame {
 						public void imageArrived(BufferedImage bImage) {
 							Graphics g = canvas.getGraphics();
 							if (g != null) {
-								g.drawImage(bImage, 0, 0, WINDOW_DEF_WIDTH, WINDOW_DEF_HEIGHT, null);
+								int w = canvas.getWidth(), h = canvas.getHeight();
+								g.drawImage(bImage, 0, 0, w, h, null);
 								
 							}
 						}
 					}));
 				}
 			}
-		}.start();
+		};
+		nodeThread.start();
 		
 	}
 }
