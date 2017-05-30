@@ -1,9 +1,13 @@
 package com.minhld.ros.controller;
+import java.awt.image.BufferedImage;
+
 import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Subscriber;
+
+import com.minhld.utils.ROSUtils;
 
 public class CameraListener extends AbstractNodeMain {
 	private String subscriberName;
@@ -27,14 +31,14 @@ public class CameraListener extends AbstractNodeMain {
 	    subscriber.addMessageListener(new MessageListener<sensor_msgs.Image>() {
 			@Override
 			public void onNewMessage(sensor_msgs.Image image) {
-				byte[] bytes = image.toRawMessage().getChannelBuffer("data").array();
-				listener.imageArrived(bytes);
+				BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+				listener.imageArrived(bImage);
 			}
 		});
 
 	}
 
 	public interface ImageListener {
-		public void imageArrived(byte[] imageData);
+		public void imageArrived(BufferedImage bImage);
 	}
 }

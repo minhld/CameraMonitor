@@ -1,5 +1,11 @@
 package com.minhld.utils;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.ComponentSampleModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
+import java.awt.image.SampleModel;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -17,6 +23,8 @@ import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMain;
 import org.ros.node.NodeMainExecutor;
+
+import sensor_msgs.Image;
 
 public class ROSUtils {
 	static final int ROS_SVR_PORT = 11311;
@@ -40,7 +48,40 @@ public class ROSUtils {
 	 */
 	private static NodeMainExecutor executor = DefaultNodeMainExecutor.newDefault();
 	
+	public static BufferedImage messageToBufferedImage(Image imgMsg){
+        int width = (int) imgMsg.getWidth();
+        int height = (int) imgMsg.getHeight();       
+        DataBuffer buffer = new DataBufferByte(imgMsg.getData().array(), width * height);
+        SampleModel sampleModel = new ComponentSampleModel(DataBuffer.TYPE_BYTE, width, height, 3, width*3, new int[]{2,1,0});
+        Raster raster = Raster.createRaster(sampleModel, buffer, null);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+        image.setData(raster);
+        return image;
+    }
 	
+	public static String getTopicInfo(String topicName) {
+		StringBuffer topicInfo = new StringBuffer();
+		TopicSystemState topicState = topics.get(topicName);
+		
+		topicInfo.append("Info of " + topicName + "\n");
+		topicInfo.append("Publishers: \n");
+		for (String pubName : topicState.getPublishers()) {
+			topicInfo.append("\t" + pubName + "\n");
+		}
+		
+		topicInfo.append("Subscribers: \n");
+		for (String subName : topicState.getSubscribers()) {
+			topicInfo.append("\t" + subName + "\n");
+		}
+		
+		return topicInfo.toString();
+	}
+	
+	/**
+	 * create a new node for subscribing/publishing
+	 * @param name
+	 * @param node
+	 */
 	public static void execute(String name, NodeMain node) {
 		NodeConfiguration config = NodeConfiguration.newPrivate();
 	    try {
@@ -52,6 +93,14 @@ public class ROSUtils {
 	    executor.execute(node, config);
 	}
 	
+	/**
+	 * check if a topic is opened in the inner frame or not.
+	 * if it is opened, it wont be opened again to avoid complexity 
+	 * and memory consumption.
+	 * 
+	 * @param title
+	 * @return
+	 */
 	public static boolean addDisplayTopic(String title) {
 		if (!ROSUtils.displayingTopics.contains(title)) {
 			ROSUtils.displayingTopics.add(title);
