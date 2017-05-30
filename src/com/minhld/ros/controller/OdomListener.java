@@ -20,7 +20,7 @@ public class OdomListener extends AbstractNodeMain {
 	    subscriber.addMessageListener(new MessageListener<Odometry>() {
 			@Override
 			public void onNewMessage(Odometry pos) {
-				System.out.println("current velocity: " + pos.getTwist().getTwist().getLinear().getX());
+				System.out.println("velocity: " + pos.getTwist().getTwist().getLinear().getX() + ", rotate: " + pos.getTwist().getTwist().getAngular().getZ());
 			}
 		});
 

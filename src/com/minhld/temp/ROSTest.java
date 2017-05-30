@@ -1,6 +1,5 @@
 package com.minhld.temp;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -34,7 +33,7 @@ public class ROSTest extends Thread {
 	private void execute(String name, NodeMain node) {
 		NodeConfiguration config = NodeConfiguration.newPrivate();
 	    try {
-			config.setMasterUri(new URI("http://129.123.7.100:11311"));
+			config.setMasterUri(new URI("http://129.123.7.41:11311"));
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
