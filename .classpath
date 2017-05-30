@@ -17,5 +17,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/liquidlnf.jar"/>
+	<classpathentry kind="lib" path="libs/sensor_msgs-1.10.6.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
