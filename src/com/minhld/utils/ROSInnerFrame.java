@@ -28,7 +28,13 @@ public class ROSInnerFrame extends JInternalFrame {
 				String graphName = "minh_monitor/w_" + title;
 				
 				if (title.equals("/rrbot/camera1/image_raw")) {
-					ROSUtils.execute(graphName, new CameraListener(graphName, title));
+					ROSUtils.execute(graphName, new CameraListener(graphName, title, new CameraListener.ImageListener() {
+						
+						@Override
+						public void imageArrived(byte[] imageData) {
+							
+						}
+					}));
 				}
 			}
 		}.start();

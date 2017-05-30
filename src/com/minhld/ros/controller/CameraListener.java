@@ -8,10 +8,12 @@ import org.ros.node.topic.Subscriber;
 public class CameraListener extends AbstractNodeMain {
 	private String subscriberName;
 	private String topicTitle;
+	private ImageListener listener;
 	
-	public CameraListener(String subscriberName, String topicTitle) {
+	public CameraListener(String subscriberName, String topicTitle, ImageListener listener) {
 		this.subscriberName = subscriberName;
 		this.topicTitle = topicTitle;
+		this.listener = listener;
 	}
 	
 	@Override
@@ -25,11 +27,14 @@ public class CameraListener extends AbstractNodeMain {
 	    subscriber.addMessageListener(new MessageListener<sensor_msgs.Image>() {
 			@Override
 			public void onNewMessage(sensor_msgs.Image image) {
-				
-				System.out.println("velocity: " + image.getWidth() + "," + image.getHeight());
+				byte[] bytes = image.toRawMessage().getChannelBuffer("data").array();
+				listener.imageArrived(bytes);
 			}
 		});
 
 	}
 
+	public interface ImageListener {
+		public void imageArrived(byte[] imageData);
+	}
 }
