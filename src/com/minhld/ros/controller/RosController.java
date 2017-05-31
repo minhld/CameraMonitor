@@ -86,6 +86,16 @@ public class RosController extends Thread {
 		});
 		toolbar.add(refreshBtn);
 		toolbar.addSeparator();
+		
+		JButton findPadBtn = new JButton("Find Pad");
+		findPadBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		toolbar.add(refreshBtn);
+		
 		return toolbar;
 	}
 	
@@ -215,6 +225,11 @@ public class RosController extends Thread {
 		controller.add(infoPanel, BorderLayout.SOUTH);
 
 		return controller;
+	}
+	
+	private void createFrame(String title) {
+		ROSInnerFrame f = new ROSInnerFrame(title);
+		frameContainer.add(f, 1000);
 	}
 	
 	private void createFrame(String topicTitle, int index) {

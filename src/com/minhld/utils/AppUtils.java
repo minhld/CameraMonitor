@@ -7,6 +7,9 @@ import java.util.Enumeration;
 
 public class AppUtils {
 	
+	public static void saveImage() {
+		
+	}
 	
 	/**
 	 * this function searches for available static IP of the being-used network
