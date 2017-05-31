@@ -68,6 +68,10 @@ public class RosController extends Thread {
 		mainFrame.setVisible(true);
 	}
 	
+	/**
+	 * add a tool-bar with buttons are on it
+	 * @return
+	 */
 	private JToolBar buildToolBar() {
 		JToolBar toolbar = new JToolBar(JToolBar.HORIZONTAL);
 //      toolbar.setBorderPainted(true);
@@ -85,6 +89,11 @@ public class RosController extends Thread {
 		return toolbar;
 	}
 	
+	/**
+	 * build the container to contain the inner frames
+	 * 
+	 * @return
+	 */
 	private JDesktopPane buildViewPanel() {
 		frameContainer = new JDesktopPane();
 		frameContainer.setBackground(new Color(220, 220, 220));

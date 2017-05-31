@@ -8,10 +8,8 @@ import java.awt.image.Raster;
 import java.awt.image.SampleModel;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.TreeMap;
 
 import org.ros.RosCore;
@@ -42,6 +40,9 @@ public class ROSUtils {
 	 */
 	public static TreeMap<String, TopicSystemState> topics;
 	
+	/**
+	 * list of displaying topics, including node information
+	 */
 	public static HashMap<String, NodeMain> displayingTopics = new HashMap<String, NodeMain>(); 
 	
 	/**
@@ -49,6 +50,13 @@ public class ROSUtils {
 	 */
 	private static NodeMainExecutor executor = DefaultNodeMainExecutor.newDefault();
 	
+	/**
+	 * convert a ROS compressed Image to a 8-bit RGB image 
+	 * in the BufferedImage format
+	 * 
+	 * @param imgMsg
+	 * @return
+	 */
 	public static BufferedImage messageToBufferedImage(Image imgMsg){
         int width = (int) imgMsg.getWidth();
         int height = (int) imgMsg.getHeight();       
@@ -60,6 +68,12 @@ public class ROSUtils {
         return image;
     }
 	
+	/**
+	 * get info of a topic including name, list of publishers and subscribers
+	 * 
+	 * @param topicName
+	 * @return
+	 */
 	public static String getTopicInfo(String topicName) {
 		StringBuffer topicInfo = new StringBuffer();
 		TopicSystemState topicState = topics.get(topicName);
@@ -97,6 +111,11 @@ public class ROSUtils {
 	    ROSUtils.displayingTopics.put(nodeName, node);
 	}
 	
+	/**
+	 * shutdown a node by its name
+	 * 
+	 * @param nodeName
+	 */
 	public static void shutdownNode(String nodeName) {
 		NodeMain currentNode = ROSUtils.displayingTopics.get(nodeName);
 		ROSUtils.executor.shutdownNodeMain(currentNode);
@@ -139,6 +158,12 @@ public class ROSUtils {
 		return topics.keySet().toArray(new String[] {});
 	}
 	
+	/**
+	 * get list of available topics that are currently in ROS system
+	 * 
+	 * @param rosServerIP
+	 * @throws Exception
+	 */
 	public static void getTopics(String rosServerIP) throws Exception {
 		topics = new TreeMap<String, TopicSystemState>();
 		
@@ -155,7 +180,7 @@ public class ROSUtils {
 	}
 	
 	/**
-	 * start a ROS core
+	 * start a ROS core - temporarily disabled
 	 * @param rosServerIP
 	 */
 	public static void startRosCore(String rosServerIP) {
@@ -172,7 +197,7 @@ public class ROSUtils {
 	}
 	
 	/**
-	 * shutdown a ROS core
+	 * shutdown a ROS core - temporarily disabled
 	 * 
 	 * @param rosServerIP
 	 */
@@ -182,6 +207,13 @@ public class ROSUtils {
 	}
 	
 	
+	/**
+	 * get node name from topic title. I added a prefix to the title
+	 * so that it will reflect the nodes that made by this software
+	 * 
+	 * @param title
+	 * @return
+	 */
 	public static String getNodeName(String title) {
 		return "monitor/w_" + title;
 	}
