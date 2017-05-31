@@ -9,6 +9,8 @@ import org.ros.node.NodeMain;
 import org.ros.node.NodeMainExecutor;
 
 import com.minhld.ros.controller.OdomListener;
+import com.minhld.ros.controller.VelocityTalker;
+import com.minhld.utils.ROSUtils;
 
 public class ROSTest extends Thread {
 	
@@ -26,9 +28,15 @@ public class ROSTest extends Thread {
 //			e.printStackTrace();
 //		}
 		
-		execute("odomListener", new OdomListener());
-		
+//		execute("odomListener", new OdomListener());
+		String nodeName = ROSUtils.getTalkerName("/cmd_vel");
+		VelocityTalker talker = new VelocityTalker(nodeName, "cmd_vel");
+		execute(nodeName, talker);
+		sleepA(1000);
+		talker.move(0, 0.2);
 	}
+	
+	
 	
 	private void execute(String name, NodeMain node) {
 		NodeConfiguration config = NodeConfiguration.newPrivate();
@@ -39,6 +47,12 @@ public class ROSTest extends Thread {
 		}
 	    config.setNodeName(name);
 	    executor.execute(node, config);
+	}
+	
+	private void sleepA(long time) {
+		try {
+			sleep(time);
+		} catch (Exception e) { }
 	}
 	
 	public static void main(String args[]) {

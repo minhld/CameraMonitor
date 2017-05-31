@@ -18,5 +18,10 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="libs/liquidlnf.jar"/>
 	<classpathentry kind="lib" path="libs/sensor_msgs-1.10.6.jar"/>
+	<classpathentry kind="lib" path="libs/opencv-320.jar">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="RosController/opencv"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

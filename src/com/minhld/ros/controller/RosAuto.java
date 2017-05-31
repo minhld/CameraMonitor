@@ -5,14 +5,15 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -26,19 +27,27 @@ import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.plaf.DesktopPaneUI;
+
+import org.opencv.core.Core;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.utils.AppUtils;
-import com.minhld.utils.ROSInnerFrame;
+import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 
-public class RosController extends Thread {
+import sensor_msgs.Image;
+
+public class RosAuto extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
 	JTextArea infoText;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
+	JPanel cameraPanel, processPanel;
+	Thread nodeThread;
+	
+	VelocityTalker mover;
+	boolean isAuto = false;
 	
 	public void run() {
 		mainFrame = new JFrame("Robot Monitor v1.0");
@@ -61,11 +70,17 @@ public class RosController extends Thread {
 		} catch (Exception e) { }
 		
 		// set window size
-		mainFrame.setSize(1280, 860);
-		mainFrame.setMinimumSize(new Dimension(1280, 860));
+		mainFrame.setSize(1500, 860);
+		mainFrame.setMinimumSize(new Dimension(1500, 860));
 		mainFrame.setLocationRelativeTo(null);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setVisible(true);
+		
+		// load OpenCV
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
+		// start listening to the camera topic
+		startListening();
 	}
 	
 	/**
@@ -74,7 +89,6 @@ public class RosController extends Thread {
 	 */
 	private JToolBar buildToolBar() {
 		JToolBar toolbar = new JToolBar(JToolBar.HORIZONTAL);
-//      toolbar.setBorderPainted(true);
 		toolbar.setFloatable(false);
 
 		JButton refreshBtn = new JButton("Refresh");
@@ -91,7 +105,8 @@ public class RosController extends Thread {
 		findPadBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
+				RosAuto.this.isAuto = !RosAuto.this.isAuto;
+				infoText.setText("AUTOMATION IS " + (RosAuto.this.isAuto ? "SET" : "CLEARED"));
 			}
 		});
 		toolbar.add(findPadBtn);
@@ -104,25 +119,85 @@ public class RosController extends Thread {
 	 * 
 	 * @return
 	 */
-	private JDesktopPane buildViewPanel() {
-		frameContainer = new JDesktopPane();
-		frameContainer.setBackground(new Color(220, 220, 220));
-		frameContainer.setAutoscrolls(true);
+	private JPanel buildViewPanel() {
+		JPanel viewer = new JPanel(new FlowLayout());
+		cameraPanel = new JPanel();
+		cameraPanel.setPreferredSize(new Dimension(500, 500));
+		cameraPanel.setBackground(new Color(150, 150, 150));
+		viewer.add(cameraPanel);
 		
-		frameContainer.setUI(new DesktopPaneUI() {
-		    @Override
-		        public void installUI(JComponent c) {
-		            try {
-		            	LiquidLookAndFeel liquid = new LiquidLookAndFeel();
-		                UIManager.setLookAndFeel(liquid);
-		            } catch (Exception e) {
-		                e.printStackTrace();
-		            }
-		            super.installUI(c);
-		        }   
-		    });
-
-		return frameContainer;
+		processPanel = new JPanel();
+		processPanel.setPreferredSize(new Dimension(500, 500));
+		processPanel.setBackground(new Color(200, 200, 200));
+		viewer.add(processPanel);
+		
+		
+		return viewer;
+	}
+	
+	
+	
+	private void startListening() {
+	
+		final String topicTitle = "/rrbot/camera1/image_raw";
+		
+		nodeThread = new Thread() {
+			@Override
+			public void run() {
+				// this will be the name of the subscriber to this topic
+				String graphName = ROSUtils.getNodeName(topicTitle);
+				
+				ROSUtils.execute(graphName, new CameraListener3(graphName, topicTitle, new CameraListener3.ImageListener() {
+					@Override
+					public void imageArrived(Image image) {
+						BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+						
+						// draw on the LEFT canvas the original camera image
+						drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
+						
+						// draw on the RIGHT canvas the modify image
+//						Object[] results = OpenCVUtils.processImage(bImage);
+//						long start = System.currentTimeMillis();
+						Object[] results = OpenCVUtils.processImage(image);
+//						System.out.println("processing time = " + (System.currentTimeMillis() - start));
+						BufferedImage bImage2 = (BufferedImage) results[0];
+						boolean isAtCenter = (Boolean) results[1];
+						drawImage(processPanel, bImage2, processPanel.getWidth(), processPanel.getHeight());
+						
+						
+						if (RosAuto.this.isAuto) {
+							// only automatically moving when flag isAuto is set
+							
+							if (isAtCenter) {
+								// stop and move toward
+								infoText.setText("FOUND THE PAD. MOVING AHEAD");
+								CameraListener3.move(0.15, 0);
+							} else {
+								// continue rotating
+								infoText.setText("SEARCHING THE PAD...");
+								CameraListener3.move(0, 0.2);
+							}
+						}
+					}
+				}));
+				
+//				// start the velocity talker
+//				String talkerTopic = "/cmd_vel";
+//				String talkerNodeName = ROSUtils.getTalkerName(talkerTopic);
+//				mover = new VelocityTalker(talkerNodeName, talkerTopic);
+//				ROSUtils.execute(talkerNodeName, mover);
+			}
+		};
+		nodeThread.start();
+		
+		
+	}
+	
+	private void drawImage(JPanel panel, BufferedImage img, int w, int h) {
+		Graphics g = panel.getGraphics();
+		if (g != null) {
+			g.drawImage(img, 0, 0, w, h, null);
+		}
 	}
 	
 	/**
@@ -130,7 +205,6 @@ public class RosController extends Thread {
 	 * 
 	 * @return
 	 */
-	@SuppressWarnings({ "rawtypes" })
 	private JPanel buildControlPanel() {
 		JPanel controller = new JPanel(new BorderLayout());
 
@@ -141,29 +215,18 @@ public class RosController extends Thread {
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(20); 
-		String currentIP = "129.123.7.100"; // AppUtils.getCurrentIP();
+//		String currentIP = "129.123.7.100";
+		String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);
 
 		JPanel p2 = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		JButton startROSButton = new JButton("Start");
-//		startROSButton.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				ROSUtils.startRosCore(ipText.getText());
-//			}
-//		});
 		startROSButton.setEnabled(false);
 		p2.add(startROSButton);
 		JButton endROSButton = new JButton("End");
 		endROSButton.setEnabled(false);
-//		endROSButton.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				ROSUtils.endRosCore(ipText.getText());
-//			}
-//		});
 		p2.add(endROSButton);
 		
 		networkConfig.add(p2, BorderLayout.CENTER);
@@ -180,18 +243,13 @@ public class RosController extends Thread {
 		topicList.setLayoutOrientation(JList.VERTICAL);
 		topicList.setVisibleRowCount(-1);
 		topicList.addMouseListener(new MouseAdapter() {
+			@SuppressWarnings("rawtypes")
 			@Override
 			public void mouseClicked(MouseEvent e) {
-		        JList list = (JList) e.getSource();
+				JList list = (JList) e.getSource();
 	            
 	            String selectedTopic = (String) list.getSelectedValue();
-		        if (e.getClickCount() == 2) {
-		        	// Double-click detected
-		        	int index = list.locationToIndex(e.getPoint());
-		            
-		        	// open corresponding window for a topic
-		            createFrame(selectedTopic, index);
-		        } else if (e.getClickCount() == 1) {
+		        if (e.getClickCount() == 1) {
 		        	// single-click detected
 		        	String topicInfo = ROSUtils.getTopicInfo(selectedTopic);
 		        	infoText.setText(topicInfo);
@@ -219,7 +277,6 @@ public class RosController extends Thread {
 		JScrollPane infoScroller = new JScrollPane(infoText, 
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-//		infoScroller.setPreferredSize(new Dimension(300, 250));
 		infoPanel.add(infoScroller, BorderLayout.CENTER);
 
 		controller.add(infoPanel, BorderLayout.SOUTH);
@@ -227,20 +284,6 @@ public class RosController extends Thread {
 		return controller;
 	}
 	
-	private void createFrame(String title) {
-		ROSInnerFrame f = new ROSInnerFrame(title);
-		frameContainer.add(f, 1000);
-	}
-	
-	private void createFrame(String topicTitle, int index) {
-		String nodeName = ROSUtils.getNodeName(topicTitle);
-		if (!ROSUtils.checkWatchingTopic(nodeName)) {
-			ROSInnerFrame f = new ROSInnerFrame(topicTitle);
-			frameContainer.add(f, index);
-		} else {
-			JOptionPane.showMessageDialog(mainFrame, "This topic has been added", "Monitor", JOptionPane.WARNING_MESSAGE);
-		}
-	}
 
 	/**
 	 * add a topic list to the swing list
@@ -255,7 +298,8 @@ public class RosController extends Thread {
 		topicList.setListData(topics);
 	}
 	
+	
 	public static void main(String args[]) {
-		new RosController().start();
+		new RosAuto().start();
 	}
 }

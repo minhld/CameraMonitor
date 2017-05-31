@@ -208,7 +208,7 @@ public class ROSUtils {
 	
 	
 	/**
-	 * get node name from topic title. I added a prefix to the title
+	 * get watcher node name from topic title. I added a prefix to the title
 	 * so that it will reflect the nodes that made by this software
 	 * 
 	 * @param title
@@ -216,5 +216,15 @@ public class ROSUtils {
 	 */
 	public static String getNodeName(String title) {
 		return "monitor/w_" + title;
+	}
+	
+	/**
+	 * get talker node name from topic title
+	 * 
+	 * @param title
+	 * @return
+	 */
+	public static String getTalkerName(String title) {
+		return "monitor/t_" + title;
 	}
 }
