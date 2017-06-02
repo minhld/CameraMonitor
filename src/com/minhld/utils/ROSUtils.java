@@ -144,8 +144,6 @@ public class ROSUtils {
 		return ROSUtils.displayingTopics.containsKey(name);
 	}
 	
-	
-	
 	/**
 	 * get info of a topic including name, list of publishers and subscribers
 	 * 

@@ -11,6 +11,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -31,6 +32,10 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.plaf.DesktopPaneUI;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.utils.AppUtils;
@@ -44,6 +49,7 @@ public class RosController extends Thread {
 	JTextArea infoText;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
+	JTree topicInfoTree;
 	
 	public void run() {
 		mainFrame = new JFrame("Robot Monitor v1.0");
@@ -216,32 +222,42 @@ public class RosController extends Thread {
 		        JList list = (JList) e.getSource();
 	            
 	            String selectedTopic = (String) list.getSelectedValue();
+	            if (selectedTopic == null || selectedTopic.equals("")) {
+	            	JOptionPane.showMessageDialog(mainFrame, "Please enter a ROS Server IP and subscribe to that server.", "Info", JOptionPane.INFORMATION_MESSAGE);
+	            	ipText.grabFocus();
+	            	ipText.selectAll();
+	            	return;
+	            }
+	            
+	            TopicInfo topicInfo = ROSUtils.topics.get(selectedTopic);
 		        if (e.getClickCount() == 2) {
 		        	// Double-click detected
 		        	int index = list.locationToIndex(e.getPoint());
 		            
 		        	// open corresponding window for a topic
-		        	TopicInfo topicInfo = ROSUtils.topics.get(selectedTopic);
 		            createFrame(topicInfo, index);
 		        } else if (e.getClickCount() == 1) {
 		        	// single-click detected
-		        	String topicInfo = ROSUtils.getTopicInfo(selectedTopic);
-		        	infoText.setText(topicInfo);
+		        	String topicInfoText = ROSUtils.getTopicInfo(selectedTopic);
+		        	infoText.setText(topicInfoText);
+		        	
+		        	// add info to the tree 
+		        	getTopicInfoTree(topicInfo);
 		        }
 			}
 		});
 		JScrollPane listScroller = new JScrollPane(topicList, 
-							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+								JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+								JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		listScroller.setPreferredSize(new Dimension(300, 250));
 		topicPanel.add(listScroller, BorderLayout.CENTER);
 		
 		// ------ add ROS Topic Info panel  ------
-		JTree topicInfo = new JTree();
+		topicInfoTree = new JTree();
 		
-		JScrollPane topicInfoScroller = new JScrollPane(topicInfo, 
-							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane topicInfoScroller = new JScrollPane(topicInfoTree, 
+								JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+								JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		topicInfoScroller.setPreferredSize(new Dimension(300, 150));
 		topicPanel.add(topicInfoScroller, BorderLayout.SOUTH);
 		
@@ -300,6 +316,55 @@ public class RosController extends Thread {
 		}
 	}
 	
+	private void getTopicInfoTree(TopicInfo topicInfo) {
+		// // clear the tree before adding the new info
+		// topicInfoTree.setModel(null);
+		
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode(topicInfo.name);
+		
+	    //fetching publisher list
+		DefaultMutableTreeNode publishers = new DefaultMutableTreeNode("Publishers");
+		root.add(publishers);
+	    DefaultMutableTreeNode leaf;
+	    for (String pubName : topicInfo.topicState.getPublishers()) {
+	    	leaf = new DefaultMutableTreeNode(pubName);
+	    	publishers.add(leaf);
+		}
+	    
+	    // fetching subscriber list
+	    DefaultMutableTreeNode subscribers = new DefaultMutableTreeNode("Subscribers");
+	    root.add(subscribers);
+	    for (String pubName : topicInfo.topicState.getSubscribers()) {
+	    	leaf = new DefaultMutableTreeNode(pubName);
+	    	subscribers.add(leaf);
+		}
+	    
+	    DefaultTreeModel model = (DefaultTreeModel) topicInfoTree.getModel();
+	    model.setRoot(root);
+	    topicInfoTree.setModel(model);
+	    expandAll(topicInfoTree);
+	    
+	}
+	
+	
+	public void expandAll(JTree tree) {
+		TreeNode root = (TreeNode) tree.getModel().getRoot();
+		expandAll(tree, new TreePath(root));
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private void expandAll(JTree tree, TreePath parent) {
+	    TreeNode node = (TreeNode) parent.getLastPathComponent();
+	    if (node.getChildCount() >= 0) {
+	      for (Enumeration e = node.children(); e.hasMoreElements();) {
+	        TreeNode n = (TreeNode) e.nextElement();
+	        TreePath path = parent.pathByAddingChild(n);
+	        expandAll(tree, path);
+	      }
+	    }
+	    tree.expandPath(parent);
+	  }
+
 	/**
 	 * add a topic list to the swing list
 	 */

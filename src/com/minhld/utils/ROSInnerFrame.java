@@ -56,7 +56,7 @@ public class ROSInnerFrame extends JInternalFrame {
 				// this will be the name of the subscriber to this topic
 				String graphName = ROSUtils.getNodeName(title);
 				
-				if (title.equals("/rrbot/camera1/image_raw")) {
+				if (topicInfo.type.equals("sensor_msgs/Image")) {
 					initImageNode(graphName);
 				}
 			}
