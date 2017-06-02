@@ -10,6 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 
 import org.ros.RosCore;
@@ -17,6 +18,7 @@ import org.ros.internal.node.client.MasterClient;
 import org.ros.internal.node.response.Response;
 import org.ros.master.client.SystemState;
 import org.ros.master.client.TopicSystemState;
+import org.ros.master.client.TopicType;
 import org.ros.namespace.GraphName;
 import org.ros.node.DefaultNodeMainExecutor;
 import org.ros.node.NodeConfiguration;
@@ -28,6 +30,8 @@ import sensor_msgs.Image;
 public class ROSUtils {
 	static final int ROS_SVR_PORT = 11311;
 	
+	private static MasterClient masterClient;
+	
 	/**
 	 * ROS core - usage suspended
 	 */
@@ -38,7 +42,7 @@ public class ROSUtils {
 	/**
 	 * list of current topics - used for outer references
 	 */
-	public static TreeMap<String, TopicSystemState> topics;
+	public static TreeMap<String, TopicInfo> topics;
 	
 	/**
 	 * list of displaying topics, including node information
@@ -49,6 +53,18 @@ public class ROSUtils {
 	 * store a node executor instance
 	 */
 	private static NodeMainExecutor executor = DefaultNodeMainExecutor.newDefault();
+	
+	/**
+	 * entry point of a server. This function should be called first
+	 * and foremost when user chooses to connect with a new server. 
+	 * 
+	 * @param serverIP
+	 */
+	public static void startWithServer(String serverIP) throws Exception {
+		ROSUtils.rosServerIP = serverIP;
+		String rosURI = "http://" + ROSUtils.rosServerIP + ":" + ROSUtils.ROS_SVR_PORT;
+		masterClient = new MasterClient(new URI(rosURI));
+	}
 	
 	/**
 	 * convert a ROS compressed Image to a 8-bit RGB image 
@@ -68,29 +84,6 @@ public class ROSUtils {
         return image;
     }
 	
-	/**
-	 * get info of a topic including name, list of publishers and subscribers
-	 * 
-	 * @param topicName
-	 * @return
-	 */
-	public static String getTopicInfo(String topicName) {
-		StringBuffer topicInfo = new StringBuffer();
-		TopicSystemState topicState = topics.get(topicName);
-		
-		topicInfo.append("Info of " + topicName + "\n");
-		topicInfo.append("Publishers: \n");
-		for (String pubName : topicState.getPublishers()) {
-			topicInfo.append("\t" + pubName + "\n");
-		}
-		
-		topicInfo.append("Subscribers: \n");
-		for (String subName : topicState.getSubscribers()) {
-			topicInfo.append("\t" + subName + "\n");
-		}
-		
-		return topicInfo.toString();
-	}
 	
 	/**
 	 * create a new node for subscribing/publishing
@@ -109,6 +102,21 @@ public class ROSUtils {
 	    
 	    // add node to the watching list
 	    ROSUtils.displayingTopics.put(nodeName, node);
+	}
+	
+	/**
+	 * shutdown all nodes that relevant to a server
+	 */
+	public static void shutdownAllNodes() {
+		// disconnect all current opening nodes
+		NodeMain node;
+		for (String nodeName : ROSUtils.displayingTopics.keySet()) {
+			node = ROSUtils.displayingTopics.get(nodeName);
+			ROSUtils.executor.shutdownNodeMain(node);
+		}
+		
+		// remove information of all opening nodes
+		ROSUtils.displayingTopics.clear();
 	}
 	
 	/**
@@ -137,6 +145,47 @@ public class ROSUtils {
 	}
 	
 	
+	
+	/**
+	 * get info of a topic including name, list of publishers and subscribers
+	 * 
+	 * @param topicName
+	 * @return
+	 */
+	public static String getTopicInfo(String topicName) {
+		
+		StringBuffer topicInfo = new StringBuffer();
+		TopicInfo topic = topics.get(topicName);
+		TopicSystemState topicState = topic.topicState;
+		
+		topicInfo.append("Info of " + topicName + "\n");
+		topicInfo.append("Type: " + topic.type + "\n\n");
+		topicInfo.append("Publishers: \n");
+		for (String pubName : topicState.getPublishers()) {
+			topicInfo.append("\t" + pubName + "\n");
+		}
+		
+		topicInfo.append("Subscribers: \n");
+		for (String subName : topicState.getSubscribers()) {
+			topicInfo.append("\t" + subName + "\n");
+		}
+		
+		return topicInfo.toString();
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @param serverIP
+	 * @param refresh
+	 * @return
+	 */
+	public static String[] getTopicNameList(String serverIP, boolean refresh) {
+		ROSUtils.rosServerIP = serverIP;
+		return getTopicNameList(refresh);
+	}
+	
+	
 	/**
 	 * get list of current topics. The list will be stored in the topic tree-map
 	 * for sorting by title.
@@ -145,13 +194,12 @@ public class ROSUtils {
 	 * @param refresh
 	 * @return
 	 */
-	public static String[] getTopicNameList(String rosServerIP, boolean refresh) {
+	public static String[] getTopicNameList(boolean refresh) {
 		if (refresh || topics == null) {
 			// update the topic list again
 			try {
-				getTopics(rosServerIP);
+				getTopics();
 			} catch(Exception e) {
-//				e.printStackTrace();
 				return new String[0];
 			}
 		}
@@ -164,19 +212,29 @@ public class ROSUtils {
 	 * @param rosServerIP
 	 * @throws Exception
 	 */
-	public static void getTopics(String rosServerIP) throws Exception {
-		topics = new TreeMap<String, TopicSystemState>();
+	public static void getTopics() throws Exception {
+		topics = new TreeMap<String, TopicInfo>();
 		
-		String rosURI = "http://" + rosServerIP + ":" + ROSUtils.ROS_SVR_PORT;
-		MasterClient masterClient = new MasterClient(new URI(rosURI));
-		Response<SystemState> systemState = masterClient.getSystemState(GraphName.of("hello"));
+		GraphName anyName = GraphName.of("any");
+		Response<SystemState> systemState = masterClient.getSystemState(anyName);
+		Response<List<TopicType>> topicType = masterClient.getTopicTypes(anyName);
 		Collection<TopicSystemState> topicSystemStateList = systemState.getResult().getTopics();
 		
-		for (TopicSystemState topic : topicSystemStateList) {
-			topics.put(topic.getTopicName(), topic);
+		// get list of topic types
+		List<TopicType> topicTypeList = topicType.getResult();
+		HashMap<String, String> typeList = new HashMap<>();
+		for (TopicType type : topicTypeList) {
+			typeList.put(type.getName(), type.getMessageType());
 		}
 		
-		ROSUtils.rosServerIP = rosServerIP;
+		// 
+		TopicInfo topicInfo;
+		String topicName;
+		for (TopicSystemState topic : topicSystemStateList) {
+			topicName = topic.getTopicName();
+			topicInfo = new TopicInfo(topicName, typeList.get(topicName), topic);
+			topics.put(topicName, topicInfo);
+		}
 	}
 	
 	/**

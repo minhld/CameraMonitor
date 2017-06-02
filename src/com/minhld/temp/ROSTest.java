@@ -8,7 +8,6 @@ import org.ros.node.NodeConfiguration;
 import org.ros.node.NodeMain;
 import org.ros.node.NodeMainExecutor;
 
-import com.minhld.ros.controller.OdomListener;
 import com.minhld.ros.controller.VelocityTalker;
 import com.minhld.utils.ROSUtils;
 

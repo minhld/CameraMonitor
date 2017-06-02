@@ -17,9 +17,14 @@ public class ROSInnerFrame extends JInternalFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel canvas;
 	private Thread nodeThread;
-
-	public ROSInnerFrame(String title) {
-		super(title, true, true, true);
+	private TopicInfo topicInfo;
+	
+	public ROSInnerFrame(TopicInfo topicInfo) {
+		super("", true, true, true);
+		this.setTitle(topicInfo.name); 
+		
+		this.topicInfo = topicInfo;
+		
 		Container contentPane = getContentPane();
 		
 		setPreferredSize(new Dimension(WINDOW_DEF_WIDTH, WINDOW_DEF_HEIGHT));
@@ -30,7 +35,7 @@ public class ROSInnerFrame extends JInternalFrame {
 		contentPane.add(canvas);
 		
 		// start listening to a topic
-		startListening(title);
+		startListening(this.topicInfo.name);
 	}
 	
 
@@ -39,7 +44,7 @@ public class ROSInnerFrame extends JInternalFrame {
 		super.dispose();
 		
 		// remove the topic out of the watching list
-		String nodeName = ROSUtils.getNodeName(title);
+		String nodeName = ROSUtils.getNodeName(this.topicInfo.name);
 		ROSUtils.shutdownNode(nodeName);
 		nodeThread.interrupt();
 	}
@@ -52,22 +57,25 @@ public class ROSInnerFrame extends JInternalFrame {
 				String graphName = ROSUtils.getNodeName(title);
 				
 				if (title.equals("/rrbot/camera1/image_raw")) {
-					ROSUtils.execute(graphName, new CameraListener(graphName, title, new CameraListener.ImageListener() {
-						
-						@Override
-						public void imageArrived(BufferedImage bImage) {
-							Graphics g = canvas.getGraphics();
-							if (g != null) {
-								int w = canvas.getWidth(), h = canvas.getHeight();
-								g.drawImage(bImage, 0, 0, w, h, null);
-								
-							}
-						}
-					}));
+					initImageNode(graphName);
 				}
 			}
 		};
 		nodeThread.start();
 		
+	}
+	
+	private void initImageNode(String graphName) {
+		ROSUtils.execute(graphName, new CameraListener(graphName, title, new CameraListener.ImageListener() {
+			@Override
+			public void imageArrived(BufferedImage bImage) {
+				Graphics g = canvas.getGraphics();
+				if (g != null) {
+					int w = canvas.getWidth(), h = canvas.getHeight();
+					g.drawImage(bImage, 0, 0, w, h, null);
+					
+				}
+			}
+		}));
 	}
 }

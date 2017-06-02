@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -23,15 +25,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.BevelBorder;
 import javax.swing.plaf.DesktopPaneUI;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSInnerFrame;
 import com.minhld.utils.ROSUtils;
+import com.minhld.utils.TopicInfo;
 
 public class RosController extends Thread {
 	JFrame mainFrame;
@@ -61,10 +66,35 @@ public class RosController extends Thread {
 		} catch (Exception e) { }
 		
 		// set window size
-		mainFrame.setSize(1280, 860);
+		mainFrame.setSize(1390, 980);
 		mainFrame.setMinimumSize(new Dimension(1280, 860));
 		mainFrame.setLocationRelativeTo(null);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mainFrame.addWindowListener(new WindowListener() {
+			@Override
+			public void windowOpened(WindowEvent e) { }
+			
+			@Override
+			public void windowIconified(WindowEvent e) { }
+			
+			@Override
+			public void windowDeiconified(WindowEvent e) { }
+			
+			@Override
+			public void windowDeactivated(WindowEvent e) { }
+			
+			@Override
+			public void windowClosing(WindowEvent e) {
+				// close all nodes 
+				ROSUtils.shutdownAllNodes();
+			}
+			
+			@Override
+			public void windowClosed(WindowEvent e) { }
+			
+			@Override
+			public void windowActivated(WindowEvent e) { }
+		});
 		mainFrame.setVisible(true);
 	}
 	
@@ -74,7 +104,6 @@ public class RosController extends Thread {
 	 */
 	private JToolBar buildToolBar() {
 		JToolBar toolbar = new JToolBar(JToolBar.HORIZONTAL);
-//      toolbar.setBorderPainted(true);
 		toolbar.setFloatable(false);
 
 		JButton refreshBtn = new JButton("Refresh");
@@ -87,14 +116,14 @@ public class RosController extends Thread {
 		toolbar.add(refreshBtn);
 		toolbar.addSeparator();
 		
-		JButton findPadBtn = new JButton("Find Pad");
-		findPadBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-			}
-		});
-		toolbar.add(findPadBtn);
+//		JButton findPadBtn = new JButton("Find Pad");
+//		findPadBtn.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				
+//			}
+//		});
+//		toolbar.add(findPadBtn);
 		
 		return toolbar;
 	}
@@ -107,6 +136,7 @@ public class RosController extends Thread {
 	private JDesktopPane buildViewPanel() {
 		frameContainer = new JDesktopPane();
 		frameContainer.setBackground(new Color(220, 220, 220));
+		frameContainer.setBorder(new javax.swing.border.BevelBorder(BevelBorder.LOWERED));
 		frameContainer.setAutoscrolls(true);
 		
 		frameContainer.setUI(new DesktopPaneUI() {
@@ -141,29 +171,30 @@ public class RosController extends Thread {
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(20); 
-		String currentIP = "129.123.7.100"; // AppUtils.getCurrentIP();
+		String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);
 
 		JPanel p2 = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton startROSButton = new JButton("Start");
-//		startROSButton.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				ROSUtils.startRosCore(ipText.getText());
-//			}
-//		});
-		startROSButton.setEnabled(false);
-		p2.add(startROSButton);
+		JButton connectROSButton = new JButton("Start");
+		connectROSButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				initServer();
+			}
+		});
+		// connectROSButton.setEnabled(false);
+		p2.add(connectROSButton);
+		
 		JButton endROSButton = new JButton("End");
 		endROSButton.setEnabled(false);
-//		endROSButton.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				ROSUtils.endRosCore(ipText.getText());
-//			}
-//		});
+		endROSButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
 		p2.add(endROSButton);
 		
 		networkConfig.add(p2, BorderLayout.CENTER);
@@ -190,7 +221,8 @@ public class RosController extends Thread {
 		        	int index = list.locationToIndex(e.getPoint());
 		            
 		        	// open corresponding window for a topic
-		            createFrame(selectedTopic, index);
+		        	TopicInfo topicInfo = ROSUtils.topics.get(selectedTopic);
+		            createFrame(topicInfo, index);
 		        } else if (e.getClickCount() == 1) {
 		        	// single-click detected
 		        	String topicInfo = ROSUtils.getTopicInfo(selectedTopic);
@@ -203,16 +235,26 @@ public class RosController extends Thread {
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		listScroller.setPreferredSize(new Dimension(300, 250));
 		topicPanel.add(listScroller, BorderLayout.CENTER);
+		
+		// ------ add ROS Topic Info panel  ------
+		JTree topicInfo = new JTree();
+		
+		JScrollPane topicInfoScroller = new JScrollPane(topicInfo, 
+							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		topicInfoScroller.setPreferredSize(new Dimension(300, 150));
+		topicPanel.add(topicInfoScroller, BorderLayout.SOUTH);
+		
 		controller.add(topicPanel, BorderLayout.CENTER);
 
-		// crawl topic list and add to the swing view list
-		addTopicsToList();
+		// // crawl topic list and add to the swing view list
+		// addTopicsToList();
 		
 		// ------ add Network Info panel ------ 
 		JPanel infoPanel = new JPanel();
 		infoPanel.setBorder(BorderFactory.createTitledBorder("Network Log"));
 
-		infoText = new JTextArea(25, 46);
+		infoText = new JTextArea(20, 46);
 		infoText.setBorder(BorderFactory.createLineBorder(Color.gray));
 		infoText.setFont(new Font("courier", Font.PLAIN, 11));
 		infoText.setEditable(false);
@@ -227,15 +269,15 @@ public class RosController extends Thread {
 		return controller;
 	}
 	
-	private void createFrame(String title) {
-		ROSInnerFrame f = new ROSInnerFrame(title);
-		frameContainer.add(f, 1000);
-	}
+//	private void createFrame(String title) {
+//		ROSInnerFrame f = new ROSInnerFrame(title);
+//		frameContainer.add(f, 1000);
+//	}
 	
-	private void createFrame(String topicTitle, int index) {
-		String nodeName = ROSUtils.getNodeName(topicTitle);
+	private void createFrame(TopicInfo topicInfo, int index) {
+		String nodeName = ROSUtils.getNodeName(topicInfo.name);
 		if (!ROSUtils.checkWatchingTopic(nodeName)) {
-			ROSInnerFrame f = new ROSInnerFrame(topicTitle);
+			ROSInnerFrame f = new ROSInnerFrame(topicInfo);
 			frameContainer.add(f, index);
 		} else {
 			JOptionPane.showMessageDialog(mainFrame, "This topic has been added", "Monitor", JOptionPane.WARNING_MESSAGE);
@@ -243,10 +285,29 @@ public class RosController extends Thread {
 	}
 
 	/**
+	 * call this when user wants to connect to a new server
+	 */
+	private void initServer() {
+		try {
+			String serverIP = ipText.getText();
+			// initiate server
+			ROSUtils.startWithServer(serverIP);
+			
+			// add topics to the list
+			addTopicsToList();
+		} catch (Exception e) {
+			infoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
+		}
+	}
+	
+	/**
 	 * add a topic list to the swing list
 	 */
 	private void addTopicsToList() {
-		String[] topics = ROSUtils.getTopicNameList(ipText.getText(), true);
+		// update the main frame title
+		mainFrame.setTitle("ROS Monitor v1.0 - " + ipText.getText());
+		
+		String[] topics = ROSUtils.getTopicNameList(true);
 		
 		if (topics.length == 0) {
 			JOptionPane.showMessageDialog(mainFrame, "ROS Server is unable to connect.");
@@ -254,6 +315,8 @@ public class RosController extends Thread {
 		topicList.removeAll();
 		topicList.setListData(topics);
 	}
+	
+	
 	
 	public static void main(String args[]) {
 		new RosController().start();
