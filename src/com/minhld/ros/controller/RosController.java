@@ -1,6 +1,7 @@
 package com.minhld.ros.controller;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -14,6 +15,8 @@ import java.awt.event.WindowListener;
 import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
@@ -33,9 +36,11 @@ import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.plaf.DesktopPaneUI;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.utils.AppUtils;
@@ -177,7 +182,8 @@ public class RosController extends Thread {
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(20); 
-		String currentIP = AppUtils.getCurrentIP();
+		// String currentIP = AppUtils.getCurrentIP();
+		String currentIP = "129.123.7.100"; // AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);
@@ -254,7 +260,11 @@ public class RosController extends Thread {
 		
 		// ------ add ROS Topic Info panel  ------
 		topicInfoTree = new JTree();
+		topicInfoTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		
+		// decorate the topic tree
+		topicInfoTree.setCellRenderer(new TopicCellRenderer());
+        
 		JScrollPane topicInfoScroller = new JScrollPane(topicInfoTree, 
 								JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 								JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -285,10 +295,6 @@ public class RosController extends Thread {
 		return controller;
 	}
 	
-//	private void createFrame(String title) {
-//		ROSInnerFrame f = new ROSInnerFrame(title);
-//		frameContainer.add(f, 1000);
-//	}
 	
 	private void createFrame(TopicInfo topicInfo, int index) {
 		String nodeName = ROSUtils.getNodeName(topicInfo.name);
@@ -324,18 +330,22 @@ public class RosController extends Thread {
 		
 	    //fetching publisher list
 		DefaultMutableTreeNode publishers = new DefaultMutableTreeNode("Publishers");
+		publishers.setUserObject("Publishers");
 		root.add(publishers);
 	    DefaultMutableTreeNode leaf;
 	    for (String pubName : topicInfo.topicState.getPublishers()) {
 	    	leaf = new DefaultMutableTreeNode(pubName);
+	    	leaf.setUserObject("Publisher-Node");
 	    	publishers.add(leaf);
 		}
 	    
 	    // fetching subscriber list
 	    DefaultMutableTreeNode subscribers = new DefaultMutableTreeNode("Subscribers");
+	    subscribers.setUserObject("Subscribers");
 	    root.add(subscribers);
 	    for (String pubName : topicInfo.topicState.getSubscribers()) {
 	    	leaf = new DefaultMutableTreeNode(pubName);
+	    	leaf.setUserObject("Subscriber-Node");
 	    	subscribers.add(leaf);
 		}
 	    
@@ -346,7 +356,48 @@ public class RosController extends Thread {
 	    
 	}
 	
+	/**
+	 * this class is to decorate the Pub-Sub Tree with new icon
+	 * to distinguish the publisher, subscriber and the root.
+	 * 
+	 * @author lee
+	 *
+	 */
+	@SuppressWarnings("serial")
+	class TopicCellRenderer extends DefaultTreeCellRenderer {
+		Icon topicIcon = new ImageIcon("images/topic.png");
+		Icon publishIcon = new ImageIcon("images/publish.png");
+		Icon subscribeIcon = new ImageIcon("images/subscribe.png");
+		Icon subPubIcon = new ImageIcon("images/sub_pub.png");
+		Icon subSubIcon = new ImageIcon("images/sub_sub.png");
+
+		@Override
+		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, 
+							boolean expanded, boolean leaf, int row, boolean hasFocus) {
+			super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+			
+			DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) value;
+			String nodeName = (String) ((DefaultMutableTreeNode) value).getUserObject();
+	        if (tree.getModel().getRoot().equals(nodo)) {
+	            setIcon(topicIcon);
+	        } else if (nodeName.equals("Publishers")) {
+	            setIcon(publishIcon);
+	        } else if (nodeName.equals("Subscribers")) {
+	        	setIcon(subscribeIcon);
+	        } else if (nodeName.equals("Publisher-Node")) {
+	        	setIcon(subPubIcon);
+	        } else if (nodeName.equals("Subscriber-Node")) {
+	        	setIcon(subSubIcon);
+	        }	
+	        return this;
+		}
+	}
 	
+	/**
+	 * this is to expand all nodes of a tree (tree is very annoying)
+	 * 
+	 * @param tree
+	 */
 	public void expandAll(JTree tree) {
 		TreeNode root = (TreeNode) tree.getModel().getRoot();
 		expandAll(tree, new TreePath(root));
