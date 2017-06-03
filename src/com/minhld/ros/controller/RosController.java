@@ -1,4 +1,5 @@
 package com.minhld.ros.controller;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -43,7 +44,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
-import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSInnerFrame;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.TopicInfo;
@@ -58,6 +58,9 @@ public class RosController extends Thread {
 	
 	public void run() {
 		mainFrame = new JFrame("Robot Monitor v1.0");
+		ImageIcon mainIcon = new ImageIcon("images/monitor.png");
+		mainFrame.setIconImage(mainIcon.getImage());
+		
 		Container contentPane = mainFrame.getContentPane();
 		
 		// ------ set Tool-bar and Buttons ------ 
@@ -118,6 +121,7 @@ public class RosController extends Thread {
 		toolbar.setFloatable(false);
 
 		JButton refreshBtn = new JButton("Refresh");
+		refreshBtn.setIcon(new ImageIcon("images/refresh.png"));
 		refreshBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -183,7 +187,7 @@ public class RosController extends Thread {
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(20); 
 		// String currentIP = AppUtils.getCurrentIP();
-		String currentIP = "129.123.7.100"; // AppUtils.getCurrentIP();
+		String currentIP = "129.123.7.100"; 
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);
@@ -261,6 +265,7 @@ public class RosController extends Thread {
 		// ------ add ROS Topic Info panel  ------
 		topicInfoTree = new JTree();
 		topicInfoTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+		topicInfoTree.setModel(null);
 		
 		// decorate the topic tree
 		topicInfoTree.setCellRenderer(new TopicCellRenderer());
@@ -273,8 +278,6 @@ public class RosController extends Thread {
 		
 		controller.add(topicPanel, BorderLayout.CENTER);
 
-		// // crawl topic list and add to the swing view list
-		// addTopicsToList();
 		
 		// ------ add Network Info panel ------ 
 		JPanel infoPanel = new JPanel();
@@ -287,7 +290,6 @@ public class RosController extends Thread {
 		JScrollPane infoScroller = new JScrollPane(infoText, 
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-//		infoScroller.setPreferredSize(new Dimension(300, 250));
 		infoPanel.add(infoScroller, BorderLayout.CENTER);
 
 		controller.add(infoPanel, BorderLayout.SOUTH);
@@ -349,8 +351,8 @@ public class RosController extends Thread {
 	    	subscribers.add(leaf);
 		}
 	    
-	    DefaultTreeModel model = (DefaultTreeModel) topicInfoTree.getModel();
-	    model.setRoot(root);
+	    DefaultTreeModel model = new DefaultTreeModel(root);// (DefaultTreeModel) topicInfoTree.getModel();
+	    // model.setRoot(root);
 	    topicInfoTree.setModel(model);
 	    expandAll(topicInfoTree);
 	    
