@@ -37,7 +37,16 @@ public class ROSUtils {
 	 */
 	static RosCore rosCore;
 	
+	/**
+	 * IP address of a remote ROS server
+	 */
 	static String rosServerIP = "";
+	
+	/**
+	 * IP address of the current computer
+	 */
+	public static String myIP = "";
+	
 	
 	/**
 	 * list of current topics - used for outer references
@@ -271,7 +280,9 @@ public class ROSUtils {
 	 * @return
 	 */
 	public static String getNodeName(String title) {
-		return "monitor/w_" + title;
+		// return ROSUtils.myIP.replaceAll(".", "_") + "/sub" + title;
+		String appId = AppUtils.getAppID();
+		return "/" + appId + "/sub" + title;
 	}
 	
 	/**
@@ -281,6 +292,7 @@ public class ROSUtils {
 	 * @return
 	 */
 	public static String getTalkerName(String title) {
-		return "monitor/t_" + title;
+		String appId = AppUtils.getAppID();
+		return "/" + appId + "/pub" + title;
 	}
 }

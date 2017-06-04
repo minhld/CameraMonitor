@@ -11,8 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.util.Enumeration;
 
 import javax.swing.BorderFactory;
@@ -24,8 +24,10 @@ import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -44,6 +46,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
+import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSInnerFrame;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.TopicInfo;
@@ -83,32 +86,52 @@ public class RosController extends Thread {
 		mainFrame.setSize(1390, 980);
 		mainFrame.setMinimumSize(new Dimension(1280, 860));
 		mainFrame.setLocationRelativeTo(null);
-		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		mainFrame.addWindowListener(new WindowListener() {
-			@Override
-			public void windowOpened(WindowEvent e) { }
-			
-			@Override
-			public void windowIconified(WindowEvent e) { }
-			
-			@Override
-			public void windowDeiconified(WindowEvent e) { }
-			
-			@Override
-			public void windowDeactivated(WindowEvent e) { }
-			
+		// mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		mainFrame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				// close all nodes 
-				ROSUtils.shutdownAllNodes();
+				int response = JOptionPane.showConfirmDialog(RosController.this.mainFrame, 
+									"Are you sure you want to quit?", "Confirm", 
+									JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+                if (response == JOptionPane.YES_OPTION) {
+                	// close all nodes 
+                	ROSUtils.shutdownAllNodes();
+                	System.exit(0);
+                }
 			}
-			
-			@Override
-			public void windowClosed(WindowEvent e) { }
-			
-			@Override
-			public void windowActivated(WindowEvent e) { }
 		});
+//		mainFrame.addWindowListener(new WindowListener() {
+//			@Override
+//			public void windowOpened(WindowEvent e) { }
+//			
+//			@Override
+//			public void windowIconified(WindowEvent e) { }
+//			
+//			@Override
+//			public void windowDeiconified(WindowEvent e) { }
+//			
+//			@Override
+//			public void windowDeactivated(WindowEvent e) { }
+//			
+//			@Override
+//			public void windowClosing(WindowEvent e) {
+//				int response = JOptionPane.showConfirmDialog(RosController.this.mainFrame, 
+//									"Are you sure you want to quit?", "Confirm", 
+//									JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+//                if (response == JOptionPane.YES_OPTION) {
+//                	// close all nodes 
+//                	ROSUtils.shutdownAllNodes();
+//                	System.exit(0);
+//                }
+//			}
+//			
+//			@Override
+//			public void windowClosed(WindowEvent e) { }
+//			
+//			@Override
+//			public void windowActivated(WindowEvent e) { }
+//		});
 		mainFrame.setVisible(true);
 	}
 	
@@ -233,7 +256,8 @@ public class RosController extends Thread {
 	            
 	            String selectedTopic = (String) list.getSelectedValue();
 	            if (selectedTopic == null || selectedTopic.equals("")) {
-	            	JOptionPane.showMessageDialog(mainFrame, "Please enter a ROS Server IP and subscribe to that server.", "Info", JOptionPane.INFORMATION_MESSAGE);
+	            	JOptionPane.showMessageDialog(mainFrame, "Please enter a ROS Server IP and subscribe to that server.", 
+	            						"Info", JOptionPane.INFORMATION_MESSAGE);
 	            	ipText.grabFocus();
 	            	ipText.selectAll();
 	            	return;
@@ -246,6 +270,9 @@ public class RosController extends Thread {
 		            
 		        	// open corresponding window for a topic
 		            createFrame(topicInfo, index);
+		            
+		            // update the node list of the topic - temporarily removed  
+		            // addTopicsToList();
 		        } else if (e.getClickCount() == 1) {
 		        	// single-click detected
 		        	String topicInfoText = ROSUtils.getTopicInfo(selectedTopic);
@@ -263,12 +290,7 @@ public class RosController extends Thread {
 		topicPanel.add(listScroller, BorderLayout.CENTER);
 		
 		// ------ add ROS Topic Info panel  ------
-		topicInfoTree = new JTree();
-		topicInfoTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		topicInfoTree.setModel(null);
-		
-		// decorate the topic tree
-		topicInfoTree.setCellRenderer(new TopicCellRenderer());
+		topicInfoTree = new TopicTree();
         
 		JScrollPane topicInfoScroller = new JScrollPane(topicInfoTree, 
 								JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -304,7 +326,7 @@ public class RosController extends Thread {
 			ROSInnerFrame f = new ROSInnerFrame(topicInfo);
 			frameContainer.add(f, index);
 		} else {
-			JOptionPane.showMessageDialog(mainFrame, "This topic has been added", "Monitor", JOptionPane.WARNING_MESSAGE);
+			JOptionPane.showMessageDialog(mainFrame, "This topic has been added", "Info", JOptionPane.WARNING_MESSAGE);
 		}
 	}
 
@@ -313,6 +335,9 @@ public class RosController extends Thread {
 	 */
 	private void initServer() {
 		try {
+			// get IP of the current computer
+			ROSUtils.myIP = AppUtils.getCurrentIP();
+			
 			String serverIP = ipText.getText();
 			// initiate server
 			ROSUtils.startWithServer(serverIP);
@@ -337,7 +362,7 @@ public class RosController extends Thread {
 	    DefaultMutableTreeNode leaf;
 	    for (String pubName : topicInfo.topicState.getPublishers()) {
 	    	leaf = new DefaultMutableTreeNode(pubName);
-	    	leaf.setUserObject("Publisher-Node");
+	    	// leaf.setUserObject("Publisher-Node");
 	    	publishers.add(leaf);
 		}
 	    
@@ -347,7 +372,7 @@ public class RosController extends Thread {
 	    root.add(subscribers);
 	    for (String pubName : topicInfo.topicState.getSubscribers()) {
 	    	leaf = new DefaultMutableTreeNode(pubName);
-	    	leaf.setUserObject("Subscriber-Node");
+	    	// leaf.setUserObject("Subscriber-Node");
 	    	subscribers.add(leaf);
 		}
 	    
@@ -358,42 +383,6 @@ public class RosController extends Thread {
 	    
 	}
 	
-	/**
-	 * this class is to decorate the Pub-Sub Tree with new icon
-	 * to distinguish the publisher, subscriber and the root.
-	 * 
-	 * @author lee
-	 *
-	 */
-	@SuppressWarnings("serial")
-	class TopicCellRenderer extends DefaultTreeCellRenderer {
-		Icon topicIcon = new ImageIcon("images/topic.png");
-		Icon publishIcon = new ImageIcon("images/publish.png");
-		Icon subscribeIcon = new ImageIcon("images/subscribe.png");
-		Icon subPubIcon = new ImageIcon("images/sub_pub.png");
-		Icon subSubIcon = new ImageIcon("images/sub_sub.png");
-
-		@Override
-		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, 
-							boolean expanded, boolean leaf, int row, boolean hasFocus) {
-			super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-			
-			DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) value;
-			String nodeName = (String) ((DefaultMutableTreeNode) value).getUserObject();
-	        if (tree.getModel().getRoot().equals(nodo)) {
-	            setIcon(topicIcon);
-	        } else if (nodeName.equals("Publishers")) {
-	            setIcon(publishIcon);
-	        } else if (nodeName.equals("Subscribers")) {
-	        	setIcon(subscribeIcon);
-	        } else if (nodeName.equals("Publisher-Node")) {
-	        	setIcon(subPubIcon);
-	        } else if (nodeName.equals("Subscriber-Node")) {
-	        	setIcon(subSubIcon);
-	        }	
-	        return this;
-		}
-	}
 	
 	/**
 	 * this is to expand all nodes of a tree (tree is very annoying)
@@ -407,16 +396,16 @@ public class RosController extends Thread {
 	
 	@SuppressWarnings("rawtypes")
 	private void expandAll(JTree tree, TreePath parent) {
-	    TreeNode node = (TreeNode) parent.getLastPathComponent();
-	    if (node.getChildCount() >= 0) {
-	      for (Enumeration e = node.children(); e.hasMoreElements();) {
-	        TreeNode n = (TreeNode) e.nextElement();
-	        TreePath path = parent.pathByAddingChild(n);
-	        expandAll(tree, path);
-	      }
-	    }
-	    tree.expandPath(parent);
-	  }
+		TreeNode node = (TreeNode) parent.getLastPathComponent();
+		if (node.getChildCount() >= 0) {
+			for (Enumeration e = node.children(); e.hasMoreElements();) {
+				TreeNode n = (TreeNode) e.nextElement();
+				TreePath path = parent.pathByAddingChild(n);
+				expandAll(tree, path);
+			}
+		}
+		tree.expandPath(parent);
+	}
 
 	/**
 	 * add a topic list to the swing list
@@ -428,12 +417,107 @@ public class RosController extends Thread {
 		String[] topics = ROSUtils.getTopicNameList(true);
 		
 		if (topics.length == 0) {
-			JOptionPane.showMessageDialog(mainFrame, "ROS Server is unable to connect.");
+			JOptionPane.showMessageDialog(mainFrame, "ROS Server is unable to connect.", "Warning", JOptionPane.WARNING_MESSAGE);
 		} 
 		topicList.removeAll();
 		topicList.setListData(topics);
 	}
 	
+	/**
+	 * <b>TopicTree</b> customizes the JTree to support displaying topic
+	 * information with a context menu to control the items
+	 * 
+	 * @author lee
+	 *
+	 */
+	private class TopicTree extends JTree implements ActionListener {
+		private static final long serialVersionUID = 1L;
+		JPopupMenu popup;
+		
+		public TopicTree() {
+			getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+			setModel(null);
+			addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent e) {
+					if (e.isPopupTrigger()) {
+						popup.show((JComponent) e.getSource(), e.getX(), e.getY());
+					}
+				}
+				
+			});
+			// decorate the topic tree
+			setCellRenderer(new TopicCellRenderer());
+			
+			// add the context menu
+			addTopicTreeContextMenu();
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (e.getActionCommand().equals("refresh")) {
+				
+		    } else if (e.getActionCommand().equals("delete")) {
+		    	
+		    }
+		}
+		
+		private void addTopicTreeContextMenu() {
+			popup = new JPopupMenu();
+			JMenuItem item = new JMenuItem("Refresh");
+			item.setActionCommand("refresh");
+			item.setIcon(new ImageIcon("images/refresh.png"));
+			popup.add(item);
+			popup.addSeparator();
+			item = new JMenuItem("Delete Node");
+			item.setActionCommand("delete");
+			item.setIcon(new ImageIcon("images/remove.png"));
+			popup.add(item);
+			item = new JMenuItem("Delete Node");
+			item.setIcon(new ImageIcon("images/remove.png"));
+			popup.add(item);
+		}
+		
+		/**
+		 * this class is to decorate the Pub-Sub Tree with new icon
+		 * to distinguish the publisher, subscriber and the root.
+		 * 
+		 * @author lee
+		 *
+		 */
+		@SuppressWarnings("serial")
+		class TopicCellRenderer extends DefaultTreeCellRenderer {
+			Icon topicIcon = new ImageIcon("images/topic.png");
+			Icon publishIcon = new ImageIcon("images/publish.png");
+			Icon subscribeIcon = new ImageIcon("images/subscribe.png");
+			Icon subPubIcon = new ImageIcon("images/sub_pub.png");
+			Icon subSubIcon = new ImageIcon("images/sub_sub.png");
+			Icon anyIcon = new ImageIcon("images/any.png");
+			
+			@Override
+			public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, 
+								boolean expanded, boolean leaf, int row, boolean hasFocus) {
+				super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+				
+				DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) value;
+				String nodeName = (String) ((DefaultMutableTreeNode) value).getUserObject();
+		        if (tree.getModel().getRoot().equals(nodo)) {
+		            setIcon(topicIcon);
+		        } else if (nodeName.equals("Publishers")) {
+		            setIcon(publishIcon);
+		        } else if (nodeName.equals("Subscribers")) {
+		        	setIcon(subscribeIcon);
+		        } else if (nodeName.contains("/pub/")) {
+		        	setIcon(subPubIcon);
+		        } else if (nodeName.contains("/sub/")) {
+		        	setIcon(subSubIcon);
+		        } else if (nodo.isLeaf()) {
+		        	setIcon(anyIcon);
+		        }
+		        return this;
+			}
+		}
+	}
 	
 	
 	public static void main(String args[]) {

@@ -1,13 +1,39 @@
 package com.minhld.utils;
 
+import java.awt.image.BufferedImage;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.nio.ByteBuffer;
 import java.util.Enumeration;
+import java.util.UUID;
 
 public class AppUtils {
 	
-	public static void saveImage() {
+	/**
+	 * hold the application ID
+	 */
+	private static String appID = "";
+
+	public static String getAppID() {
+		if (AppUtils.appID.equals("")) {
+			AppUtils.appID = AppUtils.getCurrentIP().replaceAll("\\.", "_");
+		}
+		return AppUtils.appID;
+	}
+	
+	protected static String shortUUID() {
+		UUID uuid = UUID.randomUUID();
+		long l = ByteBuffer.wrap(uuid.toString().getBytes()).getLong();
+		return Long.toString(l, Character.MAX_RADIX);
+	}
+	
+	/**
+	 * save image in the format of buffered binary to file
+	 *  
+	 * @param imageData
+	 */
+	public static void saveImage(BufferedImage imageData) {
 		
 	}
 	
