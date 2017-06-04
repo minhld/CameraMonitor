@@ -10,9 +10,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -40,7 +43,7 @@ import sensor_msgs.Image;
 public class RosAuto extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
-	JTextArea infoText;
+	JTextArea infoText, controlInfoText;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JPanel cameraPanel, processPanel;
@@ -50,7 +53,10 @@ public class RosAuto extends Thread {
 	boolean isAuto = false;
 	
 	public void run() {
-		mainFrame = new JFrame("Robot Monitor v1.0");
+		mainFrame = new JFrame("Wheelchair Controller v1.0");
+		ImageIcon mainIcon = new ImageIcon("images/monitor2.png");
+		mainFrame.setIconImage(mainIcon.getImage());
+		
 		Container contentPane = mainFrame.getContentPane();
 		
 		// ------ set Tool-bar and Buttons ------ 
@@ -70,17 +76,29 @@ public class RosAuto extends Thread {
 		} catch (Exception e) { }
 		
 		// set window size
-		mainFrame.setSize(1500, 860);
-		mainFrame.setMinimumSize(new Dimension(1500, 860));
+		mainFrame.setSize(1390, 860);
+		mainFrame.setResizable(false);
+		// mainFrame.setMinimumSize(new Dimension(1380, 860));
 		mainFrame.setLocationRelativeTo(null);
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mainFrame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				int response = JOptionPane.showConfirmDialog(RosAuto.this.mainFrame, 
+									"Are you sure you want to quit?", "Confirm", 
+									JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+			    if (response == JOptionPane.YES_OPTION) {
+			    	// close all nodes 
+			    	ROSUtils.shutdownAllNodes();
+			    	System.exit(0);
+			    }
+			}
+		});
 		mainFrame.setVisible(true);
 		
 		// load OpenCV
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-		// start listening to the camera topic
-		startListening();
 	}
 	
 	/**
@@ -92,6 +110,7 @@ public class RosAuto extends Thread {
 		toolbar.setFloatable(false);
 
 		JButton refreshBtn = new JButton("Refresh");
+		refreshBtn.setIcon(new ImageIcon("images/refresh.png"));
 		refreshBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -102,6 +121,7 @@ public class RosAuto extends Thread {
 		toolbar.addSeparator();
 		
 		JButton findPadBtn = new JButton("Find Pad");
+		findPadBtn.setIcon(new ImageIcon("images/search.png"));
 		findPadBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -120,7 +140,13 @@ public class RosAuto extends Thread {
 	 * @return
 	 */
 	private JPanel buildViewPanel() {
+		JPanel totalView = new JPanel(new BorderLayout());
+		
+		// ------ Viewer panel ------
 		JPanel viewer = new JPanel(new FlowLayout());
+		// viewer.setPreferredSize(new Dimension(900, 550));
+		viewer.setBorder(BorderFactory.createTitledBorder("Camera View"));
+
 		cameraPanel = new JPanel();
 		cameraPanel.setPreferredSize(new Dimension(500, 500));
 		cameraPanel.setBackground(new Color(150, 150, 150));
@@ -131,8 +157,35 @@ public class RosAuto extends Thread {
 		processPanel.setBackground(new Color(200, 200, 200));
 		viewer.add(processPanel);
 		
+		totalView.add(viewer, BorderLayout.CENTER);
 		
-		return viewer;
+		// ------ Control + Control Info panel ------
+		JPanel control = new JPanel(new BorderLayout()); 
+		
+		JPanel controller = new JPanel();
+		controller.setBorder(BorderFactory.createTitledBorder("Controller"));
+		controller.setPreferredSize(new Dimension(300, 300));
+		control.add(controller, BorderLayout.WEST);
+		
+		JPanel controlInfo = new JPanel();
+		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
+		// controlInfo.setPreferredSize(new Dimension(600, 300));
+		
+		controlInfoText = new JTextArea(19, 102);
+		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
+		controlInfoText.setFont(new Font("courier", Font.PLAIN, 11));
+		controlInfoText.setEditable(false);
+		JScrollPane infoScroller = new JScrollPane(controlInfoText, 
+							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		controlInfo.add(infoScroller, BorderLayout.CENTER);
+
+		
+		control.add(controlInfo, BorderLayout.EAST);
+		
+		totalView.add(control, BorderLayout.SOUTH);
+		
+		return totalView;
 	}
 	
 	
@@ -206,7 +259,7 @@ public class RosAuto extends Thread {
 	 * @return
 	 */
 	private JPanel buildControlPanel() {
-		JPanel controller = new JPanel(new BorderLayout());
+		JPanel config = new JPanel(new BorderLayout());
 
 		// ------ add Network Configuration panel ------ 
 		JPanel networkConfig = new JPanel(new BorderLayout());
@@ -215,24 +268,30 @@ public class RosAuto extends Thread {
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(20); 
-//		String currentIP = "129.123.7.100";
-		String currentIP = AppUtils.getCurrentIP();
+		String currentIP = "129.123.7.100";
+		// String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);
 
 		JPanel p2 = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton startROSButton = new JButton("Start");
-		startROSButton.setEnabled(false);
-		p2.add(startROSButton);
-		JButton endROSButton = new JButton("End");
+		JButton connectROSButton = new JButton("Connect");
+		connectROSButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				initServer();
+			}
+		});
+		p2.add(connectROSButton);
+		
+		JButton endROSButton = new JButton("Stop");
 		endROSButton.setEnabled(false);
 		p2.add(endROSButton);
 		
 		networkConfig.add(p2, BorderLayout.CENTER);
 
 		
-		controller.add(networkConfig, BorderLayout.NORTH);
+		config.add(networkConfig, BorderLayout.NORTH);
 
 		// ------ add ROS Topic List panel ------
 		JPanel topicPanel = new JPanel(new BorderLayout());
@@ -261,10 +320,10 @@ public class RosAuto extends Thread {
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		listScroller.setPreferredSize(new Dimension(300, 250));
 		topicPanel.add(listScroller, BorderLayout.CENTER);
-		controller.add(topicPanel, BorderLayout.CENTER);
+		config.add(topicPanel, BorderLayout.CENTER);
 
 		// crawl topic list and add to the swing view list
-		addTopicsToList();
+		// addTopicsToList();
 		
 		// ------ add Network Info panel ------ 
 		JPanel infoPanel = new JPanel();
@@ -279,12 +338,33 @@ public class RosAuto extends Thread {
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		infoPanel.add(infoScroller, BorderLayout.CENTER);
 
-		controller.add(infoPanel, BorderLayout.SOUTH);
+		config.add(infoPanel, BorderLayout.SOUTH);
 
-		return controller;
+		return config;
 	}
 	
-
+	/**
+	 * call this when user wants to connect to a new server
+	 */
+	private void initServer() {
+		try {
+			// get IP of the current computer
+			ROSUtils.myIP = AppUtils.getCurrentIP();
+			
+			String serverIP = ipText.getText();
+			// initiate server
+			ROSUtils.startWithServer(serverIP);
+			
+			// start listening to the camera topic
+			startListening();
+			
+			// add topics to the list
+			addTopicsToList();
+		} catch (Exception e) {
+			infoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
+		}
+	}
+	
 	/**
 	 * add a topic list to the swing list
 	 */

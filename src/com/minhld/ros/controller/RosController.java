@@ -486,10 +486,15 @@ public class RosController extends Thread {
 			    	ROSUtils.shutdownNode(selectedTopicText);
 			    	
 			    	// find and remove the frame
-			    	int frameIndex = AppUtils.innerFramesInfo.get(selectedTopicText);
-			    	frameContainer.remove(frameIndex);
-			    	frameContainer.validate();
-			    	frameContainer.repaint();
+			    	Integer frameIndex = AppUtils.innerFramesInfo.get(selectedTopicText);
+			    	// int frameIndex = AppUtils.innerFramesInfo.get(selectedTopicText);
+			    	
+			    	// frame index can be null, when attempt deleting external nodes
+			    	if (frameIndex != null) {
+			    		frameContainer.remove(frameIndex);
+				    	frameContainer.validate();
+				    	frameContainer.repaint();
+			    	}
 			    	
 			    	// refresh the list
 			    	refreshTopicInfoTree();
