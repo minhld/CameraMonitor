@@ -58,7 +58,9 @@ public class RosController extends Thread {
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JTree topicInfoTree;
+	
 	String selectedTopic;
+	// int selectedTopicIndex;
 	
 	public void run() {
 		mainFrame = new JFrame("Robot Monitor v1.0");
@@ -257,6 +259,8 @@ public class RosController extends Thread {
 	            
 	            // String selectedTopic = (String) list.getSelectedValue();
 	            RosController.this.selectedTopic = (String) list.getSelectedValue();
+	            // RosController.this.selectedTopicIndex = list.getSelectedIndex();
+	            
 	            if (RosController.this.selectedTopic == null || RosController.this.selectedTopic.equals("")) {
 	            	JOptionPane.showMessageDialog(mainFrame, "Please enter a ROS Server IP and subscribe to that server.", 
 	            						"Info", JOptionPane.INFORMATION_MESSAGE);
@@ -268,10 +272,11 @@ public class RosController extends Thread {
 	            TopicInfo topicInfo = ROSUtils.topics.get(RosController.this.selectedTopic);
 		        if (e.getClickCount() == 2) {
 		        	// Double-click detected
-		        	int index = list.locationToIndex(e.getPoint());
+		        	// int index = list.locationToIndex(e.getPoint());
 		            
 		        	// open corresponding window for a topic
-		            createFrame(topicInfo, index);
+		            // createFrame(topicInfo, RosController.this.selectedTopicIndex);
+		        	createFrame(topicInfo);
 		            
 		            // update the node list of the topic - temporarily removed  
 		            // addTopicsToList();
@@ -321,12 +326,18 @@ public class RosController extends Thread {
 		return controller;
 	}
 	
-	
-	private void createFrame(TopicInfo topicInfo, int index) {
+	// private void createFrame(TopicInfo topicInfo, int index) {
+	private void createFrame(TopicInfo topicInfo) {
 		String nodeName = ROSUtils.getNodeName(topicInfo.name);
 		if (!ROSUtils.checkWatchingTopic(nodeName)) {
 			ROSInnerFrame f = new ROSInnerFrame(topicInfo);
-			frameContainer.add(f, index);
+			
+			// add to the desktop pane
+			frameContainer.add(f);
+			
+			// add to the frame list managed by our application
+			AppUtils.innerFramesInfo.put(nodeName, frameContainer.getComponentCount() - 1);
+			
 		} else {
 			JOptionPane.showMessageDialog(mainFrame, "This topic has been added", "Info", JOptionPane.WARNING_MESSAGE);
 		}
@@ -473,6 +484,12 @@ public class RosController extends Thread {
 			    if (response == JOptionPane.YES_OPTION) {
 			    	// yes, i am sure 
 			    	ROSUtils.shutdownNode(selectedTopicText);
+			    	
+			    	// find and remove the frame
+			    	int frameIndex = AppUtils.innerFramesInfo.get(selectedTopicText);
+			    	frameContainer.remove(frameIndex);
+			    	frameContainer.validate();
+			    	frameContainer.repaint();
 			    	
 			    	// refresh the list
 			    	refreshTopicInfoTree();

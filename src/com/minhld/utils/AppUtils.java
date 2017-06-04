@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.nio.ByteBuffer;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class AppUtils {
@@ -15,6 +16,8 @@ public class AppUtils {
 	 */
 	private static String appID = "";
 
+	public static HashMap<String, Integer> innerFramesInfo = new HashMap<>();
+	
 	public static String getAppID() {
 		if (AppUtils.appID.equals("")) {
 			AppUtils.appID = AppUtils.getCurrentIP().replaceAll("\\.", "_");
