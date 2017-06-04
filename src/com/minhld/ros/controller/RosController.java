@@ -58,6 +58,7 @@ public class RosController extends Thread {
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JTree topicInfoTree;
+	String selectedTopic;
 	
 	public void run() {
 		mainFrame = new JFrame("Robot Monitor v1.0");
@@ -254,8 +255,9 @@ public class RosController extends Thread {
 			public void mouseClicked(MouseEvent e) {
 		        JList list = (JList) e.getSource();
 	            
-	            String selectedTopic = (String) list.getSelectedValue();
-	            if (selectedTopic == null || selectedTopic.equals("")) {
+	            // String selectedTopic = (String) list.getSelectedValue();
+	            RosController.this.selectedTopic = (String) list.getSelectedValue();
+	            if (RosController.this.selectedTopic == null || RosController.this.selectedTopic.equals("")) {
 	            	JOptionPane.showMessageDialog(mainFrame, "Please enter a ROS Server IP and subscribe to that server.", 
 	            						"Info", JOptionPane.INFORMATION_MESSAGE);
 	            	ipText.grabFocus();
@@ -263,7 +265,7 @@ public class RosController extends Thread {
 	            	return;
 	            }
 	            
-	            TopicInfo topicInfo = ROSUtils.topics.get(selectedTopic);
+	            TopicInfo topicInfo = ROSUtils.topics.get(RosController.this.selectedTopic);
 		        if (e.getClickCount() == 2) {
 		        	// Double-click detected
 		        	int index = list.locationToIndex(e.getPoint());
@@ -275,7 +277,7 @@ public class RosController extends Thread {
 		            // addTopicsToList();
 		        } else if (e.getClickCount() == 1) {
 		        	// single-click detected
-		        	String topicInfoText = ROSUtils.getTopicInfo(selectedTopic);
+		        	String topicInfoText = ROSUtils.getTopicInfo(RosController.this.selectedTopic);
 		        	infoText.setText(topicInfoText);
 		        	
 		        	// add info to the tree 
@@ -456,26 +458,47 @@ public class RosController extends Thread {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e.getActionCommand().equals("refresh")) {
+				// refresh the list
+		    	refreshTopicInfoTree();
 				
 		    } else if (e.getActionCommand().equals("delete")) {
+		    	// delete a topic
+		    	DefaultMutableTreeNode selectedTopic = (DefaultMutableTreeNode) topicInfoTree.getSelectionPath().getLastPathComponent();
+		    	String selectedTopicText = selectedTopic.getUserObject().toString();
 		    	
+		    	// confirm deletion
+		    	int response = JOptionPane.showConfirmDialog(RosController.this.mainFrame, 
+								"Deleting topic \"" + selectedTopicText + "\"?", "Confirm", 
+								JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+			    if (response == JOptionPane.YES_OPTION) {
+			    	// yes, i am sure 
+			    	ROSUtils.shutdownNode(selectedTopicText);
+			    	
+			    	// refresh the list
+			    	refreshTopicInfoTree();
+			    }
 		    }
 		}
 		
+		/**
+		 * add the context menu
+		 */
 		private void addTopicTreeContextMenu() {
 			popup = new JPopupMenu();
 			JMenuItem item = new JMenuItem("Refresh");
+			item.addActionListener(this);
 			item.setActionCommand("refresh");
 			item.setIcon(new ImageIcon("images/refresh.png"));
 			popup.add(item);
 			popup.addSeparator();
 			item = new JMenuItem("Delete Node");
+			item.addActionListener(this);
 			item.setActionCommand("delete");
 			item.setIcon(new ImageIcon("images/remove.png"));
 			popup.add(item);
-			item = new JMenuItem("Delete Node");
-			item.setIcon(new ImageIcon("images/remove.png"));
-			popup.add(item);
+//			item = new JMenuItem("Delete Node");
+//			item.setIcon(new ImageIcon("images/remove.png"));
+//			popup.add(item);
 		}
 		
 		/**
@@ -516,6 +539,15 @@ public class RosController extends Thread {
 		        }
 		        return this;
 			}
+		}
+		
+		private void refreshTopicInfoTree() {
+			// refresh the topic list
+			addTopicsToList();
+			
+			// reload the topic tree
+			TopicInfo topicInfo = ROSUtils.topics.get(RosController.this.selectedTopic);
+			getTopicInfoTree(topicInfo);
 		}
 	}
 	

@@ -28,14 +28,6 @@ public class AppUtils {
 		return Long.toString(l, Character.MAX_RADIX);
 	}
 	
-	/**
-	 * save image in the format of buffered binary to file
-	 *  
-	 * @param imageData
-	 */
-	public static void saveImage(BufferedImage imageData) {
-		
-	}
 	
 	/**
 	 * this function searches for available static IP of the being-used network
@@ -63,6 +55,23 @@ public class AppUtils {
 		} catch(Exception e) {
 			e.printStackTrace();
 			return "";
+		}
+	}
+	
+	/**
+	 * save image in the format of buffered binary to file
+	 *  
+	 * @param imageData
+	 */
+	public static void saveImage(BufferedImage imageData) {
+		
+	}
+	
+	public static void sleep(long millis) {
+		try {
+			Thread.sleep(millis);
+		} catch (Exception e) {
+			// silently passes
 		}
 	}
 }
