@@ -7,19 +7,22 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
+import com.minhld.utils.ROSUtils;
+
 import geometry_msgs.Twist;
 import sensor_msgs.Image;
 
 public class CameraNode extends AbstractNodeMain {
+	// public static String topicTitle = "/rrbot/camera1/image_raw";
+	public static String topicTitle = "/camera/image_raw";
+	
 	private static Publisher<geometry_msgs.Twist> pub;
 	
 	private String subscriberName;
-	private String topicTitle;
 	private ImageListener listener;
 	
-	public CameraNode(String subscriberName, String topicTitle, ImageListener listener) {
-		this.subscriberName = subscriberName;
-		this.topicTitle = topicTitle;
+	public CameraNode(ImageListener listener) {
+		this.subscriberName = ROSUtils.getNodeName(CameraNode.topicTitle);
 		this.listener = listener;
 	}
 	
@@ -30,7 +33,7 @@ public class CameraNode extends AbstractNodeMain {
 	
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-	    Subscriber<sensor_msgs.Image> subscriber = connectedNode.newSubscriber(this.topicTitle, sensor_msgs.Image._TYPE);
+	    Subscriber<sensor_msgs.Image> subscriber = connectedNode.newSubscriber(CameraNode.topicTitle, sensor_msgs.Image._TYPE);
 	    subscriber.addMessageListener(new MessageListener<sensor_msgs.Image>() {
 			@Override
 			public void onNewMessage(sensor_msgs.Image image) {

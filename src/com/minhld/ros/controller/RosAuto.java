@@ -142,6 +142,19 @@ public class RosAuto extends Thread {
 		});
 		toolbar.add(findPadBtn);
 		
+		toolbar.addSeparator();
+		
+		JButton settingsBtn = new JButton("Settings");
+		settingsBtn.setIcon(new ImageIcon("images/settings.png"));
+		settingsBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		toolbar.add(settingsBtn);
+		
+		
 		return toolbar;
 	}
 	
@@ -159,7 +172,7 @@ public class RosAuto extends Thread {
 		viewer.setBorder(BorderFactory.createTitledBorder("Camera View"));
 
 		cameraPanel = new JPanel();
-		cameraPanel.setPreferredSize(new Dimension(500, 500));
+		cameraPanel.setPreferredSize(new Dimension(640, 480));
 		cameraPanel.setBackground(new Color(150, 150, 150));
 		viewer.add(cameraPanel);
 		
@@ -179,7 +192,7 @@ public class RosAuto extends Thread {
 		
 		this.buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(3, 3));
-		buttonPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
+		buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50));
 		buttonPanel.setFocusable(true);
 		buttonPanel.requestFocusInWindow();
 		buttonPanel.addKeyListener(new KeyAdapter() {
@@ -286,15 +299,13 @@ public class RosAuto extends Thread {
 	
 	private void startListening() {
 	
-		final String topicTitle = "/rrbot/camera1/image_raw";
-		
 		nodeThread = new Thread() {
 			@Override
 			public void run() {
 				// this will be the name of the subscriber to this topic
-				String graphName = ROSUtils.getNodeName(topicTitle);
+				String graphName = ROSUtils.getNodeName(CameraNode.topicTitle);
 				
-				ROSUtils.execute(graphName, new CameraNode(graphName, topicTitle, new CameraNode.ImageListener() {
+				ROSUtils.execute(graphName, new CameraNode(new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
 						BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
@@ -410,6 +421,15 @@ public class RosAuto extends Thread {
 				JList list = (JList) e.getSource();
 	            
 	            String selectedTopic = (String) list.getSelectedValue();
+	            
+	            if (selectedTopic == null || selectedTopic.equals("")) {
+	            	JOptionPane.showMessageDialog(mainFrame, "Please enter a ROS Server IP and subscribe to that server.", 
+	            						"Info", JOptionPane.INFORMATION_MESSAGE);
+	            	ipText.grabFocus();
+	            	ipText.selectAll();
+	            	return;
+	            }
+	            
 		        if (e.getClickCount() == 1) {
 		        	// single-click detected
 		        	String topicInfo = ROSUtils.getTopicInfo(selectedTopic);
