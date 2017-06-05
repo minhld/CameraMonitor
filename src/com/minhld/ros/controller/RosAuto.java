@@ -2,6 +2,7 @@ package com.minhld.ros.controller;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -50,13 +51,16 @@ public class RosAuto extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
 	JTextArea infoText, controlInfoText;
+	JButton connectROSButton, stopROSButton;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JPanel cameraPanel, processPanel, buttonPanel;
+	JLabel keyFocusLabel;
 	Thread nodeThread;
 	
 	VelocityTalker mover;
 	boolean isAuto = false;
+	boolean isServerInUsed = false;
 	
 	public void run() {
 		mainFrame = new JFrame("Wheelchair Controller v1.0");
@@ -86,7 +90,7 @@ public class RosAuto extends Thread {
 		mainFrame.setResizable(false);
 		// mainFrame.setMinimumSize(new Dimension(1380, 860));
 		mainFrame.setLocationRelativeTo(null);
-		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		mainFrame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
@@ -192,13 +196,15 @@ public class RosAuto extends Thread {
 		buttonPanel.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				System.out.println("focus lost");
-				RosAuto.this.buttonPanel.requestFocusInWindow();
+				switchKeyFocus(false);
+				if (RosAuto.this.isServerInUsed) {
+					RosAuto.this.buttonPanel.requestFocusInWindow();
+				}
 			}
 			
 			@Override
 			public void focusGained(FocusEvent e) {
-				System.out.println("focus gain");
+				switchKeyFocus(true);
 			}
 		});
 		
@@ -237,6 +243,20 @@ public class RosAuto extends Thread {
 		buttonPanel.add(new JLabel(""));
 		
 		controller.add(buttonPanel, BorderLayout.CENTER);
+		
+		keyFocusLabel = new JLabel("Key Focus");
+		keyFocusLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		keyFocusLabel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (RosAuto.this.isServerInUsed) {
+					RosAuto.this.buttonPanel.requestFocusInWindow();
+				}
+			}
+		});
+		switchKeyFocus(false);
+		controller.add(keyFocusLabel, BorderLayout.SOUTH);
+		
 		control.add(controller, BorderLayout.WEST);
 		
 		JPanel controlInfo = new JPanel();
@@ -348,7 +368,7 @@ public class RosAuto extends Thread {
 		networkConfig.add(p1, BorderLayout.NORTH);
 
 		JPanel p2 = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton connectROSButton = new JButton("Connect");
+		connectROSButton = new JButton("Connect");
 		connectROSButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -357,9 +377,15 @@ public class RosAuto extends Thread {
 		});
 		p2.add(connectROSButton);
 		
-		JButton endROSButton = new JButton("Stop");
-		endROSButton.setEnabled(false);
-		p2.add(endROSButton);
+		stopROSButton = new JButton("Stop");
+		stopROSButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				stopServer();
+			}
+		});
+		stopROSButton.setEnabled(false);
+		p2.add(stopROSButton);
 		
 		networkConfig.add(p2, BorderLayout.CENTER);
 
@@ -433,9 +459,32 @@ public class RosAuto extends Thread {
 			
 			// add topics to the list
 			addTopicsToList();
+			
+			// update the controls & variables
+			this.isServerInUsed = true;
+			ipText.setEditable(false);
+			connectROSButton.setEnabled(false);
+			stopROSButton.setEnabled(true);
+			RosAuto.this.buttonPanel.requestFocusInWindow();
+			
 		} catch (Exception e) {
 			infoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
 		}
+	}
+	
+	/**
+	 * call this when user wants to disconnect from the current server
+	 */
+	private void stopServer() {
+		// disable current server 
+		ROSUtils.shutdownAllNodes();
+		
+		// update the controls & variables
+		this.isServerInUsed = false;
+		ipText.setEditable(true);
+		connectROSButton.setEnabled(true);
+		stopROSButton.setEnabled(false);
+		
 	}
 	
 	/**
@@ -451,6 +500,10 @@ public class RosAuto extends Thread {
 		topicList.setListData(topics);
 	}
 	
+	private void switchKeyFocus(boolean isFocused) {
+		keyFocusLabel.setIcon(isFocused ? new ImageIcon("images/smile-yellow.png") : 
+										new ImageIcon("images/smile-gray.png"));
+	}
 	
 	public static void main(String args[]) {
 		new RosAuto().start();
