@@ -6,8 +6,13 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -30,6 +35,7 @@ import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 
 import org.opencv.core.Core;
 
@@ -46,7 +52,7 @@ public class RosAuto extends Thread {
 	JTextArea infoText, controlInfoText;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
-	JPanel cameraPanel, processPanel;
+	JPanel cameraPanel, processPanel, buttonPanel;
 	Thread nodeThread;
 	
 	VelocityTalker mover;
@@ -94,6 +100,7 @@ public class RosAuto extends Thread {
 			    }
 			}
 		});
+		
 		mainFrame.setVisible(true);
 		
 		// load OpenCV
@@ -162,16 +169,81 @@ public class RosAuto extends Thread {
 		// ------ Control + Control Info panel ------
 		JPanel control = new JPanel(new BorderLayout()); 
 		
-		JPanel controller = new JPanel();
+		JPanel controller = new JPanel(new BorderLayout());
 		controller.setBorder(BorderFactory.createTitledBorder("Controller"));
-		controller.setPreferredSize(new Dimension(300, 300));
+		controller.setPreferredSize(new Dimension(300, 280));
+		
+		this.buttonPanel = new JPanel();
+		buttonPanel.setLayout(new GridLayout(3, 3));
+		buttonPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
+		buttonPanel.setFocusable(true);
+		buttonPanel.requestFocusInWindow();
+		buttonPanel.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				System.out.println("Key " + e.getKeyChar() + " pressed");
+			}
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				
+			}
+		});
+		buttonPanel.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				System.out.println("focus lost");
+				RosAuto.this.buttonPanel.requestFocusInWindow();
+			}
+			
+			@Override
+			public void focusGained(FocusEvent e) {
+				System.out.println("focus gain");
+			}
+		});
+		
+		buttonPanel.add(new JLabel(""));
+		
+		JButton upBtn = new JButton();
+		upBtn.setSize(50, 50);
+		upBtn.setIcon(new ImageIcon("images/up.png"));
+		upBtn.setFocusable(false);
+		buttonPanel.add(upBtn);
+		
+		buttonPanel.add(new JLabel(""));
+		
+		JButton leftBtn = new JButton();
+		leftBtn.setSize(50, 50);
+		leftBtn.setIcon(new ImageIcon("images/left.png"));
+		leftBtn.setFocusable(false);
+		buttonPanel.add(leftBtn, BorderLayout.WEST);
+		
+		buttonPanel.add(new JLabel(""));
+		
+		JButton rightBtn = new JButton();
+		rightBtn.setSize(50, 50);
+		rightBtn.setIcon(new ImageIcon("images/right.png"));
+		rightBtn.setFocusable(false);
+		buttonPanel.add(rightBtn, BorderLayout.SOUTH);
+		
+		buttonPanel.add(new JLabel(""));
+		
+		JButton downBtn = new JButton();
+		downBtn.setSize(50, 50);
+		downBtn.setIcon(new ImageIcon("images/down.png"));
+		downBtn.setFocusable(false);
+		buttonPanel.add(downBtn, BorderLayout.SOUTH);
+		
+		buttonPanel.add(new JLabel(""));
+		
+		controller.add(buttonPanel, BorderLayout.CENTER);
 		control.add(controller, BorderLayout.WEST);
 		
 		JPanel controlInfo = new JPanel();
 		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
 		// controlInfo.setPreferredSize(new Dimension(600, 300));
 		
-		controlInfoText = new JTextArea(19, 102);
+		controlInfoText = new JTextArea(18, 102);
 		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
 		controlInfoText.setFont(new Font("courier", Font.PLAIN, 11));
 		controlInfoText.setEditable(false);
@@ -267,7 +339,8 @@ public class RosAuto extends Thread {
 		
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
-		ipText = new JTextField(20); 
+		ipText = new JTextField(20);
+		ipText.grabFocus();
 		String currentIP = "129.123.7.100";
 		// String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
