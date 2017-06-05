@@ -10,14 +10,14 @@ import org.ros.node.topic.Subscriber;
 import geometry_msgs.Twist;
 import sensor_msgs.Image;
 
-public class CameraListener3 extends AbstractNodeMain {
+public class CameraNode extends AbstractNodeMain {
 	private static Publisher<geometry_msgs.Twist> pub;
 	
 	private String subscriberName;
 	private String topicTitle;
 	private ImageListener listener;
 	
-	public CameraListener3(String subscriberName, String topicTitle, ImageListener listener) {
+	public CameraNode(String subscriberName, String topicTitle, ImageListener listener) {
 		this.subscriberName = subscriberName;
 		this.topicTitle = topicTitle;
 		this.listener = listener;

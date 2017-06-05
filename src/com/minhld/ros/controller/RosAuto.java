@@ -55,7 +55,7 @@ public class RosAuto extends Thread {
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JPanel cameraPanel, processPanel, buttonPanel;
-	JLabel keyFocusLabel;
+	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
 	
 	VelocityTalker mover;
@@ -259,11 +259,10 @@ public class RosAuto extends Thread {
 		
 		control.add(controller, BorderLayout.WEST);
 		
-		JPanel controlInfo = new JPanel();
+		JPanel controlInfo = new JPanel(new BorderLayout());
 		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
-		// controlInfo.setPreferredSize(new Dimension(600, 300));
 		
-		controlInfoText = new JTextArea(18, 102);
+		controlInfoText = new JTextArea(17, 102);
 		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
 		controlInfoText.setFont(new Font("courier", Font.PLAIN, 11));
 		controlInfoText.setEditable(false);
@@ -272,6 +271,9 @@ public class RosAuto extends Thread {
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		controlInfo.add(infoScroller, BorderLayout.CENTER);
 
+		processTimeLabel = new JLabel("Processing Time");
+		processTimeLabel.setIcon(new ImageIcon("images/settings.png"));
+		controlInfo.add(processTimeLabel, BorderLayout.SOUTH);
 		
 		control.add(controlInfo, BorderLayout.EAST);
 		
@@ -292,7 +294,7 @@ public class RosAuto extends Thread {
 				// this will be the name of the subscriber to this topic
 				String graphName = ROSUtils.getNodeName(topicTitle);
 				
-				ROSUtils.execute(graphName, new CameraListener3(graphName, topicTitle, new CameraListener3.ImageListener() {
+				ROSUtils.execute(graphName, new CameraNode(graphName, topicTitle, new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
 						BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
@@ -301,10 +303,11 @@ public class RosAuto extends Thread {
 						drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						
 						// draw on the RIGHT canvas the modify image
-//						Object[] results = OpenCVUtils.processImage(bImage);
-//						long start = System.currentTimeMillis();
+						// Object[] results = OpenCVUtils.processImage(bImage);
+						long start = System.currentTimeMillis();
 						Object[] results = OpenCVUtils.processImage(image);
-//						System.out.println("processing time = " + (System.currentTimeMillis() - start));
+						RosAuto.this.processTimeLabel.setText("Processing Time: " + (System.currentTimeMillis() - start) + "ms");
+						
 						BufferedImage bImage2 = (BufferedImage) results[0];
 						boolean isAtCenter = (Boolean) results[1];
 						drawImage(processPanel, bImage2, processPanel.getWidth(), processPanel.getHeight());
@@ -316,11 +319,11 @@ public class RosAuto extends Thread {
 							if (isAtCenter) {
 								// stop and move toward
 								infoText.setText("FOUND THE PAD. MOVING AHEAD");
-								CameraListener3.move(0.15, 0);
+								CameraNode.move(0.15, 0);
 							} else {
 								// continue rotating
 								infoText.setText("SEARCHING THE PAD...");
-								CameraListener3.move(0, 0.2);
+								CameraNode.move(0, 0.2);
 							}
 						}
 					}
