@@ -15,8 +15,8 @@ public class TemplateMatching {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		Mat source=null;
 		Mat template=null;
-		source = Imgcodecs.imread("samples/realcam2.jpg");
-		template=Imgcodecs.imread("samples/design6.png");
+		source = Imgcodecs.imread("samples/realimage1.png");
+		template=Imgcodecs.imread("samples/tpl.png");
 	
 		Mat outputImage=new Mat();	
 		int machMethod=Imgproc.TM_CCOEFF;

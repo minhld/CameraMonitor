@@ -308,16 +308,21 @@ public class RosAuto extends Thread {
 				ROSUtils.execute(graphName, new CameraNode(new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
-						BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+						long start = System.currentTimeMillis();
+						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+						BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
+						long loadImageTime = System.currentTimeMillis() - start;
 						
 						// draw on the LEFT canvas the original camera image
 						drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						
 						// draw on the RIGHT canvas the modify image
 						// Object[] results = OpenCVUtils.processImage(bImage);
-						long start = System.currentTimeMillis();
-						Object[] results = OpenCVUtils.processImage(image);
-						RosAuto.this.processTimeLabel.setText("Processing Time: " + (System.currentTimeMillis() - start) + "ms");
+						start = System.currentTimeMillis();
+						// Object[] results = OpenCVUtils.processImage(image);
+						// Object[] results = OpenCVUtils.processImage2(image);
+						Object[] results = OpenCVUtils.processImage3(image);
+						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | Processing Time: " + (System.currentTimeMillis() - start) + "ms");
 						
 						BufferedImage bImage2 = (BufferedImage) results[0];
 						boolean isAtCenter = (Boolean) results[1];
