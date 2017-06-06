@@ -39,12 +39,12 @@ public class FindPadTest extends Thread {
 	}
 	
 	private void processImage() {
-		String imagePath = "/home/lee/matlab_ws/multiobjects.png";
+		String imagePath = "samples/realcam2.jpg";
 		long startTime = System.currentTimeMillis();
 		
 		Mat img = Imgcodecs.imread(imagePath, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
 		Mat binImg = new Mat(img.rows(), img.cols(), img.type());
-		Imgproc.threshold(img, binImg, 235, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
+		Imgproc.threshold(img, binImg, 220, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
 
 		Mat loc = new Mat();
 		Core.findNonZero(binImg, loc);

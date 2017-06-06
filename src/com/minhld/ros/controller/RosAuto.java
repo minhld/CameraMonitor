@@ -172,7 +172,7 @@ public class RosAuto extends Thread {
 		viewer.setBorder(BorderFactory.createTitledBorder("Camera View"));
 
 		cameraPanel = new JPanel();
-		cameraPanel.setPreferredSize(new Dimension(640, 480));
+		cameraPanel.setPreferredSize(new Dimension(500, 500));
 		cameraPanel.setBackground(new Color(150, 150, 150));
 		viewer.add(cameraPanel);
 		
