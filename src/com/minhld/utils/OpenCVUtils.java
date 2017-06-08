@@ -52,7 +52,7 @@ public class OpenCVUtils {
         Imgproc.rectangle(img, mmr.minLoc, mmr.maxLoc, new Scalar(255, 255, 255));
         System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         
-        BufferedImage resultImage = createAwtImage(img);
+        BufferedImage resultImage = createAwtImage(srcMat);
         
         return new Object[] { resultImage, false };
 	}
