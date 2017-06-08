@@ -322,6 +322,7 @@ public class RosAuto extends Thread {
 						// Object[] results = OpenCVUtils.processImage(image);
 						// Object[] results = OpenCVUtils.processImage2(image);
 						Object[] results = OpenCVUtils.processImage3(image);
+						// Object[] results = OpenCVUtils.processImage6(image);
 						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | Processing Time: " + (System.currentTimeMillis() - start) + "ms");
 						
 						BufferedImage bImage2 = (BufferedImage) results[0];
@@ -454,7 +455,7 @@ public class RosAuto extends Thread {
 		
 		// ------ add Network Info panel ------ 
 		JPanel infoPanel = new JPanel();
-		infoPanel.setBorder(BorderFactory.createTitledBorder("Network Log"));
+		infoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
 
 		infoText = new JTextArea(25, 46);
 		infoText.setBorder(BorderFactory.createLineBorder(Color.gray));
