@@ -3,13 +3,17 @@ package com.minhld.utils;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.core.Core.MinMaxLocResult;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -17,7 +21,9 @@ import org.opencv.imgproc.Imgproc;
 import sensor_msgs.Image;
 
 public class OpenCVUtils {
-	private static Mat tplMat = Imgcodecs.imread("samples/tpl3.png");
+	private static Scalar drawColor = new Scalar(255, 255, 255);
+	
+	private static Mat tplMat = Imgcodecs.imread("samples/design6.png");
 	// private static Mat tplMat = Imgcodecs.imread("samples/tpl8.png");
 	
 	private static Mat srcTpl;
@@ -26,52 +32,69 @@ public class OpenCVUtils {
 	 * prematurely load template before processing 
 	 */
 	static {
-		Mat binTplMat = new Mat(tplMat.rows(), tplMat.cols(), CvType.CV_8UC1);
-		Imgproc.cvtColor(tplMat, binTplMat, Imgproc.COLOR_BGR2GRAY);
+		Mat grayTplMat = new Mat(tplMat.rows(), tplMat.cols(), CvType.CV_8UC1);
+		Imgproc.cvtColor(tplMat, grayTplMat, Imgproc.COLOR_BGR2GRAY);
 		srcTpl = new Mat(tplMat.rows(), tplMat.cols(), CvType.CV_8UC1);
-		Imgproc.threshold(binTplMat, srcTpl, 230, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
+		Imgproc.threshold(grayTplMat, srcTpl, 230, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
 	}
 	
-//	public static Object[] processImage6(Image source) {
-//		Mat img = openImage(source);
-//		Mat binImg = new Mat(img.rows(), img.cols(), CvType.CV_8UC1);
-//		Imgproc.cvtColor(img, binImg, Imgproc.COLOR_BGR2GRAY);
-//		    
-//        MinMaxLocResult mmr = Core.minMaxLoc(outputImage);
-//        
-//        // Point matchLoc = mmr.maxLoc;
-//        // Imgproc.rectangle(img, matchLoc, new Point(matchLoc.x + srcTpl.cols(), matchLoc.y + srcTpl.rows()), 
-//        // 											new Scalar(255, 255, 255));
-//
-//        Imgproc.rectangle(img, mmr.minLoc, mmr.maxLoc, new Scalar(255, 255, 255));
-//        System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
-//        
-//        BufferedImage resultImage = createAwtImage(srcTpl);
-//        
-//        return new Object[] { resultImage, false };
-//	}
+	public static Object[] processImage6(Image source) {
+		Mat img = openImage(source);
+		Mat grayMat = new Mat(img.rows(), img.cols(), CvType.CV_8UC1);
+		Imgproc.cvtColor(img, grayMat, Imgproc.COLOR_BGR2GRAY);
+//		
+//		Mat blurMat = new Mat();
+//		
+//		Imgproc.GaussianBlur(grayMat, blurMat, new Size(3, 3), 12);
+        
+		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+		Mat hierarchy = new Mat();
+		Imgproc.findContours(grayMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+
+		hierarchy.release();
+		
+		if (contours.size() > 0) {
+			for(int i = 0; i < contours.size(); i++) {
+				// Imgproc.drawContours(blurMat, contours, i, drawColor, 3);
+	            Rect rect = Imgproc.boundingRect(contours.get(i));
+	            Imgproc.rectangle(grayMat, new Point(rect.x,rect.height), new Point(rect.y,rect.width), drawColor);
+			}
+		}
+		
+		
+        // Point matchLoc = mmr.maxLoc;
+        // Imgproc.rectangle(img, matchLoc, new Point(matchLoc.x + srcTpl.cols(), matchLoc.y + srcTpl.rows()), 
+        // 											new Scalar(255, 255, 255));
+
+        // Imgproc.rectangle(img, mmr.minLoc, mmr.maxLoc, new Scalar(255, 255, 255));
+        // System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
+        
+        BufferedImage resultImage = createAwtImage(grayMat);
+        
+        return new Object[] { resultImage, false };
+	}
 	
 	public static Object[] processImage3(Image source) {
 		Mat img = openImage(source);
-		Mat binImg = new Mat(img.rows(), img.cols(), CvType.CV_8UC1);
-		Imgproc.cvtColor(img, binImg, Imgproc.COLOR_BGR2GRAY);
-		Mat srcMat = new Mat(img.rows(), img.cols(), CvType.CV_8UC1);
-		Imgproc.threshold(binImg, srcMat, 100, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
+		Mat grayMat = new Mat(img.rows(), img.cols(), CvType.CV_8UC1);
+		Imgproc.cvtColor(img, grayMat, Imgproc.COLOR_BGR2GRAY);
+		Mat binMat = new Mat(img.rows(), img.cols(), CvType.CV_8UC1);
+		Imgproc.threshold(grayMat, binMat, 120, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
 		
 		Mat outputImage = new Mat();	
    	
-        Imgproc.matchTemplate(srcMat, srcTpl, outputImage, Imgproc.TM_CCOEFF);
+        Imgproc.matchTemplate(binMat, srcTpl, outputImage, Imgproc.TM_CCOEFF);
         
         MinMaxLocResult mmr = Core.minMaxLoc(outputImage);
         
-         Point matchLoc = mmr.maxLoc;
-         Imgproc.rectangle(img, matchLoc, new Point(matchLoc.x + srcTpl.cols(), matchLoc.y + srcTpl.rows()), 
+        Point matchLoc = mmr.maxLoc;
+        Imgproc.rectangle(binMat, matchLoc, new Point(matchLoc.x + srcTpl.cols(), matchLoc.y + srcTpl.rows()), 
          											new Scalar(255, 255, 255));
 
 //        Imgproc.rectangle(img, mmr.minLoc, mmr.maxLoc, new Scalar(255, 255, 255));
         System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         
-        BufferedImage resultImage = createAwtImage(srcMat);
+        BufferedImage resultImage = createAwtImage(binMat);
         
         return new Object[] { resultImage, false };
 	}
