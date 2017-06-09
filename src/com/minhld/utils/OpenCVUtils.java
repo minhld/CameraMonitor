@@ -10,6 +10,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
@@ -21,7 +22,8 @@ import org.opencv.imgproc.Imgproc;
 import sensor_msgs.Image;
 
 public class OpenCVUtils {
-	private static Scalar drawColor = new Scalar(255, 255, 255);
+	private static Scalar BORDER_COLOR = new Scalar(255, 255, 255);
+	private static int THRESHOLD_MIN_AREA = 200;
 	
 	private static ArrayList<MatOfPoint> tplContours;
 	
@@ -31,8 +33,20 @@ public class OpenCVUtils {
 	 * prematurely load template before processing 
 	 */
 	static {
-		preProcess();
+		// preProcess();
 		// preProcess2();
+		preProcess6();
+	}
+	
+	protected static void preProcess6() {
+		Mat orgTplMat = Imgcodecs.imread("samples/design6.png");
+		Mat grayOrgTplMat = new Mat(orgTplMat.rows(), orgTplMat.cols(), CvType.CV_8UC1);
+		Imgproc.cvtColor(orgTplMat, grayOrgTplMat, Imgproc.COLOR_BGR2GRAY);
+		
+		Mat blurGrayTplMat = new Mat();
+		Imgproc.GaussianBlur(grayOrgTplMat, blurGrayTplMat, new Size(3, 3), 0);
+		srcTpl = new Mat();
+		Imgproc.Canny(blurGrayTplMat, srcTpl, 80, 100);
 	}
 	
 	protected static void preProcess2() {
@@ -72,12 +86,19 @@ public class OpenCVUtils {
 	
 	public static Object[] processImage7(Image source) {
 		Mat orgMat = openImage(source);
-		Mat grayOrgMat = new Mat(orgMat.rows(), orgMat.cols(), CvType.CV_8UC1);
+		
+		// Mat grayOrgMat = new Mat(orgMat.rows(), orgMat.cols(), CvType.CV_8UC1);
+		Mat grayOrgMat = new Mat();
 		Imgproc.cvtColor(orgMat, grayOrgMat, Imgproc.COLOR_BGR2GRAY);
 
 		Mat blurOrgMat = new Mat();
 		Imgproc.medianBlur(grayOrgMat, blurOrgMat, 3);
-        BufferedImage resultImage = createAwtImage(blurOrgMat);
+		
+		Mat grayEdgeMat = new Mat();
+		Imgproc.Canny(blurOrgMat, grayEdgeMat, 100, 300);
+
+		
+        BufferedImage resultImage = createAwtImage(grayEdgeMat);
         
         return new Object[] { resultImage, false };
 
@@ -85,33 +106,58 @@ public class OpenCVUtils {
 	
 	public static Object[] processImage6(Image source) {
 		Mat orgMat = openImage(source);
-		Mat grayOrgMat = new Mat(orgMat.rows(), orgMat.cols(), CvType.CV_8UC1);
+		
+		Mat grayOrgMat = new Mat();
 		Imgproc.cvtColor(orgMat, grayOrgMat, Imgproc.COLOR_BGR2GRAY);
-		Mat binOrgMat = new Mat(orgMat.rows(), orgMat.cols(), CvType.CV_8UC1);
-		Imgproc.threshold(grayOrgMat, binOrgMat, 220, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
 
-		// Mat blurGrayMat = new Mat();
-		// Imgproc.GaussianBlur(grayOrgMat, blurGrayMat, new Size(3, 3), 100, 100);
+		Mat blurGrayMat = new Mat();
+		Imgproc.GaussianBlur(grayOrgMat, blurGrayMat, new Size(3, 3), 0);
+		
 		Mat cannyBlurGrayMat = new Mat();
-		Imgproc.Canny(binOrgMat, cannyBlurGrayMat, 80, 100);
+		Imgproc.Canny(blurGrayMat, cannyBlurGrayMat, 10, 250);
+		
+		Mat closedMat = new Mat();
+		Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7, 7));
+		Imgproc.morphologyEx(cannyBlurGrayMat, closedMat, Imgproc.MORPH_CLOSE, kernel);
 		
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
-		Imgproc.findContours(cannyBlurGrayMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+		Imgproc.findContours(closedMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 		hierarchy.release();
 		
 		if (contours.size() > 0) {
+			MatOfPoint2f c = new MatOfPoint2f();
+			MatOfPoint2f approxC = new MatOfPoint2f();
+			
 			for(int i = 0; i < contours.size(); i++) {
-				// Imgproc.drawContours(blurGrayMat, contours, i, drawColor, 3);
-	            Rect rect = Imgproc.boundingRect(contours.get(i));
-	            // Imgproc.rectangle(grayMat, new Point(rect.x,rect.height), new Point(rect.y,rect.width), drawColor);
+				contours.get(i).convertTo(c, CvType.CV_32F);
+				double cArea = Imgproc.arcLength(c, true);
+				Imgproc.approxPolyDP(c, approxC, 0.02 * cArea, true);
+
+				System.out.println(approxC.elemSize());
+				if (approxC.elemSize() >= 9) {
+					Imgproc.drawContours(orgMat, contours, i, BORDER_COLOR, 3);
+					System.out.println("here!");
+//		            Rect rect = Imgproc.boundingRect(contours.get(i));
+//		            Imgproc.rectangle(grayOrgMat, new Point(rect.x,rect.height), new Point(rect.y,rect.width), BORDER_COLOR);
+				}
+//	            // Imgproc.rectangle(grayMat, new Point(rect.x,rect.height), new Point(rect.y,rect.width), drawColor);
+//	            // System.out.println("area " + i + ": " + area);
 			}
 		}
+//
+//		System.out.println("image contours: " + contours.size());
 		
-				
-		System.out.println("image contours: " + contours.size());
-		
-        BufferedImage resultImage = createAwtImage(binOrgMat);
+//		Mat matchedMat = new Mat();	
+//        Imgproc.matchTemplate(cannyBlurGrayMat, srcTpl, matchedMat, Imgproc.TM_CCOEFF);
+//        
+//        MinMaxLocResult mmr = Core.minMaxLoc(matchedMat);
+//     
+//        // Point matchLoc = mmr.maxLoc;
+//        // Imgproc.rectangle(cannyBlurGrayMat, matchLoc, new Point(matchLoc.x + srcTpl.cols(), matchLoc.y + srcTpl.rows()), BORDER_COLOR);
+//        Imgproc.rectangle(cannyBlurGrayMat, mmr.maxLoc, mmr.minLoc, BORDER_COLOR);
+        
+        BufferedImage resultImage = createAwtImage(closedMat);
         
         return new Object[] { resultImage, false };
 	}
@@ -129,7 +175,7 @@ public class OpenCVUtils {
         MinMaxLocResult mmr = Core.minMaxLoc(matchedMat);
      
         Point matchLoc = mmr.maxLoc;
-        Imgproc.rectangle(binOrgMat, matchLoc, new Point(matchLoc.x + srcTpl.cols(), matchLoc.y + srcTpl.rows()), drawColor);
+        Imgproc.rectangle(binOrgMat, matchLoc, new Point(matchLoc.x + srcTpl.cols(), matchLoc.y + srcTpl.rows()), BORDER_COLOR);
 
 //        Imgproc.rectangle(img, mmr.minLoc, mmr.maxLoc, new Scalar(255, 255, 255));
         System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
@@ -154,7 +200,7 @@ public class OpenCVUtils {
         
         MinMaxLocResult mmr = Core.minMaxLoc(outputImage);
 
-        Imgproc.rectangle(srcMat, mmr.maxLoc, new Point(mmr.maxLoc.x + srcTpl.cols(), mmr.maxLoc.y + srcTpl.rows()), drawColor);
+        Imgproc.rectangle(srcMat, mmr.maxLoc, new Point(mmr.maxLoc.x + srcTpl.cols(), mmr.maxLoc.y + srcTpl.rows()), BORDER_COLOR);
         // Imgproc.rectangle(srcMat, mmr.minLoc, mmr.maxLoc, new Scalar(255, 255, 255));
         System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         

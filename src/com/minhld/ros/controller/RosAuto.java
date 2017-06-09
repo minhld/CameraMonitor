@@ -87,7 +87,8 @@ public class RosAuto extends Thread {
 		} catch (Exception e) { }
 		
 		// set window size
-		mainFrame.setSize(1390, 860);
+		// mainFrame.setSize(1390, 860);
+		mainFrame.setSize(1660, 1060);
 		mainFrame.setResizable(false);
 		// mainFrame.setMinimumSize(new Dimension(1380, 860));
 		mainFrame.setLocationRelativeTo(null);
@@ -173,12 +174,12 @@ public class RosAuto extends Thread {
 		viewer.setBorder(BorderFactory.createTitledBorder("Camera View"));
 
 		cameraPanel = new JPanel();
-		cameraPanel.setPreferredSize(new Dimension(500, 500));
+		cameraPanel.setPreferredSize(new Dimension(250, 188));
 		cameraPanel.setBackground(new Color(150, 150, 150));
 		viewer.add(cameraPanel);
 		
 		processPanel = new JPanel();
-		processPanel.setPreferredSize(new Dimension(500, 500));
+		processPanel.setPreferredSize(new Dimension(1024, 720));
 		processPanel.setBackground(new Color(200, 200, 200));
 		viewer.add(processPanel);
 		
@@ -323,8 +324,8 @@ public class RosAuto extends Thread {
 						// Object[] results = OpenCVUtils.processImage(image);
 						// Object[] results = OpenCVUtils.processImage2(image);
 						// Object[] results = OpenCVUtils.processImage3(image);
-						// Object[] results = OpenCVUtils.processImage6(image);
-						Object[] results = OpenCVUtils.processImage7(image);
+						Object[] results = OpenCVUtils.processImage6(image);
+						// Object[] results = OpenCVUtils.processImage7(image);
 						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | Processing Time: " + (System.currentTimeMillis() - start) + "ms");
 						
 						BufferedImage bImage2 = (BufferedImage) results[0];
