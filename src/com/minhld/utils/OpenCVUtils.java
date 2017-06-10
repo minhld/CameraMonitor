@@ -32,8 +32,8 @@ import org.opencv.imgproc.Imgproc;
 import sensor_msgs.Image;
 
 public class OpenCVUtils {
-	private static Scalar BORDER_COLOR = new Scalar(0, 255, 0);
-	private static Scalar BORDER_RED_COLOR = new Scalar(255, 0, 0);
+	public static Scalar BORDER_COLOR = new Scalar(0, 255, 0);
+	public static Scalar BORDER_RED_COLOR = new Scalar(255, 0, 0);
 	// private static int THRESHOLD_MIN_AREA = 200;
 	
 	private static ArrayList<MatOfPoint> tplContours;
@@ -44,10 +44,9 @@ public class OpenCVUtils {
 	 * prematurely load template before processing 
 	 */
 	static {
-		preProcess();
+		// preProcess();
 		// preProcess2();
 		// preProcess6();
-		// preProcess8();
 	}
 	
 	protected static void preProcess6() {
@@ -95,82 +94,6 @@ public class OpenCVUtils {
 	// http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_feature2d/py_feature_homography/py_feature_homography.html
 	// Android: Face detection: http://www.embedded.com/design/programming-languages-and-tools/4406164/Developing-OpenCV-computer-vision-apps-for-the-Android-platform
 	// Android: https://developer.sonymobile.com/knowledge-base/tutorials/android_tutorial/get-started-with-opencv-on-android/
-	
-	static FeatureDetector detector;
-	static DescriptorExtractor descriptor;
-	static DescriptorMatcher matcher;
-	static Mat grayTpl, descriptors1;
-	static MatOfKeyPoint keypoints1;
-	
-	protected static void preProcess8() {
-        detector = FeatureDetector.create(FeatureDetector.ORB);
-        descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-        matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
-
-		Mat tpl = Imgcodecs.imread("samples/design6.png");
-		grayTpl = new Mat();
-		Imgproc.cvtColor(tpl, grayTpl, Imgproc.COLOR_BGR2GRAY);
-		descriptors1 = new Mat();
-        keypoints1 = new MatOfKeyPoint();
-        detector.detect(grayTpl, keypoints1);
-        descriptor.compute(grayTpl, keypoints1, descriptors1);
-	}
-	
-	public static Object[] processImage8(Image source) {
-		Mat orgMat = openImage(source);
-		try {
-			
-			Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
-			Mat descriptors2 = new Mat();
-			MatOfKeyPoint keypoints2 = new MatOfKeyPoint();
-	        detector.detect(orgMat, keypoints2);
-	        descriptor.compute(orgMat, keypoints2, descriptors2);
-	
-	        // Matching
-	        MatOfDMatch matches = new MatOfDMatch();
-	        if (grayTpl.type() == orgMat.type()) {
-	            matcher.match(descriptors1, descriptors2, matches);
-	        } 
-	        List<DMatch> matchesList = matches.toList();
-	
-	        Double max_dist = 0.0;
-	        Double min_dist = 100.0;
-	
-	        for (int i = 0; i < matchesList.size(); i++) {
-	            Double dist = (double) matchesList.get(i).distance;
-	            if (dist < min_dist)
-	                min_dist = dist;
-	            if (dist > max_dist)
-	                max_dist = dist;
-	        }
-	
-	        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
-	        for (int i = 0; i < matchesList.size(); i++) {
-	            if (matchesList.get(i).distance <= (1.1 * min_dist))
-	                good_matches.addLast(matchesList.get(i));
-	        }
-	
-	        MatOfDMatch goodMatches = new MatOfDMatch();
-	        goodMatches.fromList(good_matches);
-	        Mat outputImg = new Mat();
-	        MatOfByte drawnMatches = new MatOfByte();
-	//        if (orgMat.empty() || orgMat.cols() < 1 || orgMat.rows() < 1) {
-	//            return aInputFrame;
-	//        }
-	        Features2d.drawMatches(grayTpl, keypoints1, orgMat, keypoints2, goodMatches, outputImg, BORDER_COLOR, BORDER_RED_COLOR, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
-	        Imgproc.resize(outputImg, outputImg, orgMat.size());
-	
-			
-	        
-	        BufferedImage resultImage = createAwtImage(outputImg);
-	        return new Object[] { resultImage, false };
-
-		}catch (Exception e) {
-			System.err.println(e.getMessage());
-			return new Object[] { createAwtImage(orgMat), false };
-		}
-        
-	}
 	
 	public static Object[] processImage7(Image source) {
 		Mat orgMat = openImage(source);
@@ -361,7 +284,7 @@ public class OpenCVUtils {
 		
 		boolean isCenter = avgX > centerX - 50 && avgX < centerX + 50;
 		
-		resultImage = createAwtImage(binImg);
+		resultImage = createAwtImage(binImg2);
 		
 		return new Object[] { resultImage, isCenter };
 	}
@@ -396,7 +319,7 @@ public class OpenCVUtils {
 //		return new Object[] { resultImage, isCenter };
 //	}
 	
-	private static BufferedImage createAwtImage(Mat mat) {
+	public static BufferedImage createAwtImage(Mat mat) {
 
 	    int type = 0;
 	    if (mat.channels() == 1) {

@@ -42,6 +42,8 @@ import javax.swing.border.EmptyBorder;
 import org.opencv.core.Core;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
+import com.minhld.opencv.FeatureExtractor;
+import com.minhld.opencv.ObjectDetector;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
@@ -312,26 +314,29 @@ public class RosAuto extends Thread {
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
 						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
-						BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
+						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
 						long loadImageTime = System.currentTimeMillis() - start;
 						
-						// draw on the LEFT canvas the original camera image
-						drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
+						// // draw on the LEFT canvas the original camera image
+						// drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						
 						// draw on the RIGHT canvas the modify image
 						// Object[] results = OpenCVUtils.processImage(bImage);
 						start = System.currentTimeMillis();
-						Object[] results = OpenCVUtils.processImage(image);
+						// Object[] results = OpenCVUtils.processImage(image);
 						// Object[] results = OpenCVUtils.processImage2(image);
 						// Object[] results = OpenCVUtils.processImage3(image);
 						// Object[] results = OpenCVUtils.processImage6(image);
 						// Object[] results = OpenCVUtils.processImage7(image);
-						// Object[] results = OpenCVUtils.processImage8(image);
+						// Object[] results = FeatureExtractor.processImage(image);
+						Object[] results = ObjectDetector.processImage(image);
 						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | Processing Time: " + (System.currentTimeMillis() - start) + "ms");
 						
-						BufferedImage bImage2 = (BufferedImage) results[0];
-						boolean isAtCenter = (Boolean) results[1];
-						drawImage(processPanel, bImage2, processPanel.getWidth(), processPanel.getHeight());
+						BufferedImage processImage = (BufferedImage) results[0];
+						BufferedImage resultImage = (BufferedImage) results[1];
+						boolean isAtCenter = (Boolean) results[2];
+						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
+						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
 						
 						
 						if (RosAuto.this.isAuto) {
