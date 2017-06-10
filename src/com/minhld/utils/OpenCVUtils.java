@@ -5,16 +5,26 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
+import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.core.MatOfDMatch;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.features2d.DescriptorExtractor;
+import org.opencv.features2d.DescriptorMatcher;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.Features2d;
 import org.opencv.core.Core.MinMaxLocResult;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -23,7 +33,8 @@ import sensor_msgs.Image;
 
 public class OpenCVUtils {
 	private static Scalar BORDER_COLOR = new Scalar(0, 255, 0);
-	private static int THRESHOLD_MIN_AREA = 100;
+	private static Scalar BORDER_RED_COLOR = new Scalar(255, 0, 0);
+	// private static int THRESHOLD_MIN_AREA = 200;
 	
 	private static ArrayList<MatOfPoint> tplContours;
 	
@@ -33,9 +44,10 @@ public class OpenCVUtils {
 	 * prematurely load template before processing 
 	 */
 	static {
-		// preProcess();
+		preProcess();
 		// preProcess2();
-		preProcess6();
+		// preProcess6();
+		// preProcess8();
 	}
 	
 	protected static void preProcess6() {
@@ -84,80 +96,85 @@ public class OpenCVUtils {
 	// Android: Face detection: http://www.embedded.com/design/programming-languages-and-tools/4406164/Developing-OpenCV-computer-vision-apps-for-the-Android-platform
 	// Android: https://developer.sonymobile.com/knowledge-base/tutorials/android_tutorial/get-started-with-opencv-on-android/
 	
+	static FeatureDetector detector;
+	static DescriptorExtractor descriptor;
+	static DescriptorMatcher matcher;
+	static Mat grayTpl, descriptors1;
+	static MatOfKeyPoint keypoints1;
+	
+	protected static void preProcess8() {
+        detector = FeatureDetector.create(FeatureDetector.ORB);
+        descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
+        matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+
+		Mat tpl = Imgcodecs.imread("samples/design6.png");
+		grayTpl = new Mat();
+		Imgproc.cvtColor(tpl, grayTpl, Imgproc.COLOR_BGR2GRAY);
+		descriptors1 = new Mat();
+        keypoints1 = new MatOfKeyPoint();
+        detector.detect(grayTpl, keypoints1);
+        descriptor.compute(grayTpl, keypoints1, descriptors1);
+	}
+	
 	public static Object[] processImage8(Image source) {
 		Mat orgMat = openImage(source);
-
-//		// make it gray
-//		Mat grayOrgMat = new Mat();
-//		Imgproc.cvtColor(orgMat, grayOrgMat, Imgproc.COLOR_BGR2GRAY);
-
-//		// make it blur - to remove noise
-//		Mat blurGrayMat = new Mat();
-//		Imgproc.GaussianBlur(grayOrgMat, blurGrayMat, new Size(3, 3), 6);
-
-//		// make it binary - to avoid many objects
-//		Mat binOrgMat = new Mat();
-		Imgproc.threshold(orgMat, orgMat, 1, 255, Imgproc.THRESH_BINARY);
-
-		Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7, 7));
-		Imgproc.dilate(orgMat, orgMat, kernel);
-		
-//		// find edges of the image
-//		Mat cannyBlurGrayMat = new Mat();
-//		Imgproc.Canny(binOrgMat, cannyBlurGrayMat, 10, 250);
-		
-//		Mat closedMat = new Mat();
-//		Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7, 7));
-		
-		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		Mat hierarchy = new Mat();
-		Imgproc.findContours(orgMat, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_SIMPLE);
-		hierarchy.release();
-		
-		if (contours.size() > 0) {
-			MatOfPoint2f c = new MatOfPoint2f();
-			MatOfPoint2f approxC = new MatOfPoint2f();
+		try {
 			
-			for(int i = 0; i < contours.size(); i++) {
-				contours.get(i).convertTo(c, CvType.CV_32F);
-				double cArea = Imgproc.arcLength(c, true);
-				Imgproc.approxPolyDP(c, approxC, 0.02 * cArea, true);
+			Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
+			Mat descriptors2 = new Mat();
+			MatOfKeyPoint keypoints2 = new MatOfKeyPoint();
+	        detector.detect(orgMat, keypoints2);
+	        descriptor.compute(orgMat, keypoints2, descriptors2);
+	
+	        // Matching
+	        MatOfDMatch matches = new MatOfDMatch();
+	        if (grayTpl.type() == orgMat.type()) {
+	            matcher.match(descriptors1, descriptors2, matches);
+	        } 
+	        List<DMatch> matchesList = matches.toList();
+	
+	        Double max_dist = 0.0;
+	        Double min_dist = 100.0;
+	
+	        for (int i = 0; i < matchesList.size(); i++) {
+	            Double dist = (double) matchesList.get(i).distance;
+	            if (dist < min_dist)
+	                min_dist = dist;
+	            if (dist > max_dist)
+	                max_dist = dist;
+	        }
+	
+	        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
+	        for (int i = 0; i < matchesList.size(); i++) {
+	            if (matchesList.get(i).distance <= (1.1 * min_dist))
+	                good_matches.addLast(matchesList.get(i));
+	        }
+	
+	        MatOfDMatch goodMatches = new MatOfDMatch();
+	        goodMatches.fromList(good_matches);
+	        Mat outputImg = new Mat();
+	        MatOfByte drawnMatches = new MatOfByte();
+	//        if (orgMat.empty() || orgMat.cols() < 1 || orgMat.rows() < 1) {
+	//            return aInputFrame;
+	//        }
+	        Features2d.drawMatches(grayTpl, keypoints1, orgMat, keypoints2, goodMatches, outputImg, BORDER_COLOR, BORDER_RED_COLOR, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
+	        Imgproc.resize(outputImg, outputImg, orgMat.size());
+	
+			
+	        
+	        BufferedImage resultImage = createAwtImage(outputImg);
+	        return new Object[] { resultImage, false };
 
-				if (approxC.size().height >= 10) {
-					// Imgproc.drawContours(blurGrayMat, contours, i, BORDER_COLOR, 1);
-		            Rect rect = Imgproc.boundingRect(contours.get(i));
-		            Imgproc.rectangle(orgMat, new Point(rect.x,rect.y), new Point(rect.x + rect.width, rect.y + rect.height), BORDER_COLOR);
-				}
-			}
+		}catch (Exception e) {
+			System.err.println(e.getMessage());
+			return new Object[] { createAwtImage(orgMat), false };
 		}
         
-        BufferedImage resultImage = createAwtImage(orgMat);
-        
-        return new Object[] { resultImage, false };
 	}
 	
 	public static Object[] processImage7(Image source) {
 		Mat orgMat = openImage(source);
-		
-		// Mat grayOrgMat = new Mat(orgMat.rows(), orgMat.cols(), CvType.CV_8UC1);
-		Mat grayOrgMat = new Mat();
-		Imgproc.cvtColor(orgMat, grayOrgMat, Imgproc.COLOR_BGR2GRAY);
-
-		Mat blurOrgMat = new Mat();
-		Imgproc.medianBlur(grayOrgMat, blurOrgMat, 3);
-		
-		Mat grayEdgeMat = new Mat();
-		Imgproc.Canny(blurOrgMat, grayEdgeMat, 100, 300);
-
-		
-        BufferedImage resultImage = createAwtImage(grayEdgeMat);
-        
-        return new Object[] { resultImage, false };
-
-	}
-	
-	public static Object[] processImage6(Image source) {
-		Mat orgMat = openImage(source);
+		// Mat orgMat = Imgcodecs.imread("samples/example.jpg");
 
 		// make it gray
 		Mat grayOrgMat = new Mat();
@@ -165,15 +182,75 @@ public class OpenCVUtils {
 
 		// make it blur - to remove noise
 		Mat blurGrayMat = new Mat();
-		Imgproc.GaussianBlur(grayOrgMat, blurGrayMat, new Size(3, 3), 6);
+		Imgproc.GaussianBlur(grayOrgMat, blurGrayMat, new Size(5, 5), 5);
 
 		// make it binary - to avoid many objects
 		Mat binOrgMat = new Mat();
-		Imgproc.threshold(blurGrayMat, binOrgMat, 200, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
+		Imgproc.threshold(blurGrayMat, binOrgMat, 235, 255, Imgproc.THRESH_BINARY);
 
 		// find edges of the image
 		Mat cannyBlurGrayMat = new Mat();
-		Imgproc.Canny(binOrgMat, cannyBlurGrayMat, 10, 250);
+		Imgproc.Canny(blurGrayMat, cannyBlurGrayMat, 10, 250);
+		
+//		Mat closedMat = new Mat();
+//		Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7, 7));
+//		Imgproc.morphologyEx(cannyBlurGrayMat, closedMat, Imgproc.MORPH_CLOSE, kernel);
+//		
+		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+		Mat hierarchy = new Mat();
+		Imgproc.findContours(cannyBlurGrayMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+		hierarchy.release();
+		
+		if (contours.size() > 0) {
+			MatOfPoint2f c = new MatOfPoint2f();
+			MatOfPoint2f approxC = new MatOfPoint2f();
+			
+			for(int i = 0; i < contours.size(); i++) {
+				// THRESHOLD_MIN_AREA
+				contours.get(i).convertTo(c, CvType.CV_32F);
+				double cArea = Imgproc.arcLength(c, true);
+				Imgproc.approxPolyDP(c, approxC, 0.02 * cArea, true);
+
+				// if (approxC.size().height == 4) {
+					Imgproc.drawContours(orgMat, contours, i, BORDER_COLOR, 1);
+		            // Rect rect = Imgproc.boundingRect(contours.get(i));
+		            // Imgproc.rectangle(orgMat, new Point(rect.x,rect.y), new Point(rect.x + rect.width, rect.y + rect.height), BORDER_COLOR);
+				//}
+			}
+		}
+        
+        BufferedImage resultImage = createAwtImage(binOrgMat);
+        
+        return new Object[] { resultImage, false };
+	}
+	
+	
+	/**
+	 * idea is from here 
+	 * - https://pythontips.com/2015/03/11/a-guide-to-finding-books-in-images-using-python-and-opencv/
+	 * 
+	 * @param source
+	 * @return
+	 */
+	public static Object[] processImage6(Image source) {
+		Mat orgMat = openImage(source);
+		// Mat orgMat = Imgcodecs.imread("samples/example.jpg");
+
+		// make it gray
+		Mat grayOrgMat = new Mat();
+		Imgproc.cvtColor(orgMat, grayOrgMat, Imgproc.COLOR_BGR2GRAY);
+
+		// make it blur - to remove noise
+		Mat blurGrayMat = new Mat();
+		Imgproc.GaussianBlur(grayOrgMat, blurGrayMat, new Size(3, 3), 0);
+
+//		// make it binary - to avoid many objects
+//		Mat binOrgMat = new Mat();
+//		Imgproc.threshold(blurGrayMat, binOrgMat, 200, 255, Imgproc.THRESH_TOZERO + Imgproc.THRESH_BINARY);
+
+		// find edges of the image
+		Mat cannyBlurGrayMat = new Mat();
+		Imgproc.Canny(blurGrayMat, cannyBlurGrayMat, 10, 250);
 		
 		Mat closedMat = new Mat();
 		Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7, 7));
@@ -189,19 +266,20 @@ public class OpenCVUtils {
 			MatOfPoint2f approxC = new MatOfPoint2f();
 			
 			for(int i = 0; i < contours.size(); i++) {
+				// THRESHOLD_MIN_AREA
 				contours.get(i).convertTo(c, CvType.CV_32F);
 				double cArea = Imgproc.arcLength(c, true);
 				Imgproc.approxPolyDP(c, approxC, 0.02 * cArea, true);
 
-				if (approxC.size().height >= 10) {
-					// Imgproc.drawContours(blurGrayMat, contours, i, BORDER_COLOR, 1);
-		            Rect rect = Imgproc.boundingRect(contours.get(i));
-		            Imgproc.rectangle(blurGrayMat, new Point(rect.x,rect.y), new Point(rect.x + rect.width, rect.y + rect.height), BORDER_COLOR);
+				if (approxC.size().height == 4) {
+					Imgproc.drawContours(orgMat, contours, i, BORDER_COLOR, 1);
+		            // Rect rect = Imgproc.boundingRect(contours.get(i));
+		            // Imgproc.rectangle(orgMat, new Point(rect.x,rect.y), new Point(rect.x + rect.width, rect.y + rect.height), BORDER_COLOR);
 				}
 			}
 		}
         
-        BufferedImage resultImage = createAwtImage(blurGrayMat);
+        BufferedImage resultImage = createAwtImage(orgMat);
         
         return new Object[] { resultImage, false };
 	}
