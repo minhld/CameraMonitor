@@ -164,11 +164,9 @@ public class ObjectDetector {
 //		
 		Imgproc.threshold(modMat, modMat, 220, 255, Imgproc.THRESH_BINARY);
 		
-        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(20, 20));
-		Imgproc.dilate(modMat, modMat, element);
+        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(3, 3));
 		Imgproc.dilate(modMat, modMat, element);
 		Imgproc.erode(modMat, modMat, element);
-//		Imgproc.erode(modMat, modMat, element);
 
 		
 		Mat matchedMat = new Mat();	
