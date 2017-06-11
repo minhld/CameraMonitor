@@ -5,26 +5,15 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
-import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.core.MatOfDMatch;
-import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
-import org.opencv.features2d.DescriptorExtractor;
-import org.opencv.features2d.DescriptorMatcher;
-import org.opencv.features2d.FeatureDetector;
-import org.opencv.features2d.Features2d;
 import org.opencv.core.Core.MinMaxLocResult;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -33,8 +22,7 @@ import sensor_msgs.Image;
 
 public class OpenCVUtils {
 	public static Scalar BORDER_COLOR = new Scalar(0, 255, 0);
-	public static Scalar BORDER_RED_COLOR = new Scalar(255, 0, 0);
-	// private static int THRESHOLD_MIN_AREA = 200;
+	public static Scalar BORDER_RED_COLOR = new Scalar(0, 0, 255);
 	
 	private static ArrayList<MatOfPoint> tplContours;
 	
@@ -46,11 +34,11 @@ public class OpenCVUtils {
 	static {
 		// preProcess();
 		// preProcess2();
-		// preProcess6();
+		preProcess6();
 	}
 	
 	protected static void preProcess6() {
-		Mat orgTplMat = Imgcodecs.imread("samples/design6.png");
+		Mat orgTplMat = Imgcodecs.imread("samples/tpl9.png");
 		Mat grayOrgTplMat = new Mat(orgTplMat.rows(), orgTplMat.cols(), CvType.CV_8UC1);
 		Imgproc.cvtColor(orgTplMat, grayOrgTplMat, Imgproc.COLOR_BGR2GRAY);
 		
@@ -202,9 +190,10 @@ public class OpenCVUtils {
 			}
 		}
         
+		BufferedImage processImage = createAwtImage(cannyBlurGrayMat);
         BufferedImage resultImage = createAwtImage(orgMat);
         
-        return new Object[] { resultImage, false };
+        return new Object[] { processImage, resultImage, false };
 	}
 	
 	public static Object[] processImage3(Image source) {

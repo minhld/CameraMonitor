@@ -330,6 +330,8 @@ public class RosAuto extends Thread {
 						// Object[] results = OpenCVUtils.processImage7(image);
 						// Object[] results = FeatureExtractor.processImage(image);
 						Object[] results = ObjectDetector.processImage(image);
+						// Object[] results = ObjectDetector.processImage2(image);
+						// Object[] results = ObjectDetector.processImage21(image);
 						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | Processing Time: " + (System.currentTimeMillis() - start) + "ms");
 						
 						BufferedImage processImage = (BufferedImage) results[0];
