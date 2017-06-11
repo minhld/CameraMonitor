@@ -42,6 +42,8 @@ public class AdjustSlider extends JPanel {
 				AdjustSlider.this.titleLabel.setText(AdjustSlider.this.title + ": " + val);
 			}
 		});
+		// bar.setPaintTicks(true);
+		// bar.setPaintLabels(true);
 		bar.setValue(currVal);
 		add(bar, BorderLayout.CENTER);
 	}
@@ -49,8 +51,8 @@ public class AdjustSlider extends JPanel {
 	public AdjustSlider(String label, int min, int max, int slideFlag) {
 		this(label, min, max);
 		if (slideFlag == FLAG_ODD_STEP) {
-			bar.setMinorTickSpacing(2);
-			bar.setSnapToTicks(true);
+//			bar.setMinorTickSpacing(2);
+//			bar.setSnapToTicks(true);
 		}
 	}
 }

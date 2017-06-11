@@ -30,9 +30,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
-import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -203,7 +201,7 @@ public class RosAuto extends Thread {
 		slidesPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 0, 15, AdjustSlider.FLAG_ODD_STEP));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_AREA_THRESHOLD, 100, 500));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));

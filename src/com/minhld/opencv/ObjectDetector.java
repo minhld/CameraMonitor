@@ -24,6 +24,7 @@ public class ObjectDetector {
 	public static int THRESHOLD_MIN_AREA = 400;
 
 	public static Mat tplMat;
+	static int tplWidth, tplHeight;
 	
 	static {
 		// init11();
@@ -42,9 +43,10 @@ public class ObjectDetector {
 	
 	public static void init() {
 		tplMat = Imgcodecs.imread("samples/tpl10.png");
+		tplWidth = tplMat.cols();
+		tplHeight = tplMat.rows();
 		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
 		Imgproc.threshold(tplMat, tplMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
-
 	}
 	
 	public static void init0() {
@@ -211,32 +213,29 @@ public class ObjectDetector {
 	 * @return
 	 */
 	public static Object[] processImage(Image source) {
-		// Mat orgMat = Imgcodecs.imread("samples/multiobjects.png"); 
+		// Mat orgMat = Imgcodecs.imread("samples/multiobjects.png");
 		Mat orgMat = OpenCVUtils.openImage(source);
 		
 		Mat modMat = new Mat();
 		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
 		
-		// Imgproc.GaussianBlur(modMat, modMat, new Size(9, 9), 2, 2);
-		Imgproc.GaussianBlur(modMat, modMat, new Size(Settings.gaussianSize, Settings.gaussianSize), 1);
+		if (Settings.gaussianSize % 2 == 1) {
+			Imgproc.GaussianBlur(modMat, modMat, new Size(Settings.gaussianSize, Settings.gaussianSize), 1);
+		}
 		
 		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 		
 		Mat matchedMat = new Mat(orgMat.rows() - tplMat.rows(), orgMat.cols() - tplMat.cols(), CvType.CV_32FC1);	
-        Imgproc.matchTemplate(modMat, tplMat, matchedMat, Imgproc.TM_SQDIFF_NORMED);
+        Imgproc.matchTemplate(modMat, tplMat, matchedMat, Imgproc.TM_CCOEFF);
         
         MinMaxLocResult mmr = Core.minMaxLoc(matchedMat);
      
-        Core.normalize(matchedMat, matchedMat);
+        // Core.normalize(matchedMat, matchedMat);
         
-        // Point leftTop = new Point(mmr.maxLoc.x - tplMat.cols() / 2, mmr.maxLoc.y - tplMat.rows() / 2);
-        // Point rightBottom = new Point(mmr.maxLoc.x + tplMat.cols() * 3 / 2, mmr.maxLoc.y + tplMat.rows() * 3 / 2);
-        Point leftTop = new Point(mmr.maxLoc.x, mmr.maxLoc.y);
-        Point rightBottom = new Point(mmr.maxLoc.x + tplMat.cols(), mmr.maxLoc.y + tplMat.rows());
+        Point loc = mmr.maxLoc;
+    	Imgproc.rectangle(orgMat, loc, new Point(loc.x + tplWidth, loc.y + tplHeight), OpenCVUtils.BORDER_COLOR);
         
-    	Imgproc.rectangle(orgMat, leftTop, rightBottom, OpenCVUtils.BORDER_COLOR);
-        
-        System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
+        // System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         
         BufferedImage processImage = OpenCVUtils.createAwtImage(modMat);
         BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);

@@ -10,8 +10,8 @@ public class Settings {
 	public static String LABEL_DILATE_SIZE = "Dilate Size";
 	public static String LABEL_NULL = "A";
 	
-	public static int threshold = 220;
-	public static int gaussianSize = 3;
+	public static int threshold = 250;
+	public static int gaussianSize = 0;
 	public static int contourSides = 10;
 	public static int areaThreshold = 200;
 	public static int dilateSize = 3;
