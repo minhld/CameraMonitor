@@ -16,26 +16,42 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import com.minhld.utils.OpenCVUtils;
+import com.minhld.utils.Settings;
 
 import sensor_msgs.Image;
 
 public class ObjectDetector {
 	public static int THRESHOLD_MIN_AREA = 400;
 
-	static Mat tplMat;
+	public static Mat tplMat;
 	
 	static {
+		// init11();
+		// init0();
 		init();
 	}
 	
+	public static void init11() {
+		tplMat = Imgcodecs.imread("samples/tpl9.png");
+		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
+		Imgproc.threshold(tplMat, tplMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
+		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(30, 30));
+//		Imgproc.dilate(tplMat, tplMat, element);
+		Imgproc.dilate(tplMat, tplMat, element);
+	}
 	
 	public static void init() {
 		tplMat = Imgcodecs.imread("samples/tpl10.png");
 		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
-		Imgproc.threshold(tplMat, tplMat, 220, 255, Imgproc.THRESH_BINARY);
+		Imgproc.threshold(tplMat, tplMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 
 	}
 	
+	public static void init0() {
+		tplMat = Imgcodecs.imread("samples/tpl9.png");
+		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
+	}
+
 	/**
 	 * finding the circle - updated version
 	 * 
@@ -144,8 +160,6 @@ public class ObjectDetector {
 	}
 	
 
-	
-	
 	/**
 	 * comparing with a known template
 	 * using matchTemplate function 
@@ -153,8 +167,7 @@ public class ObjectDetector {
 	 * @param source
 	 * @return
 	 */
-	public static Object[] processImage(Image source) {
-		// Mat orgMat = Imgcodecs.imread("samples/multiobjects.png"); 
+	public static Object[] processImage11(Image source) {
 		Mat orgMat = OpenCVUtils.openImage(source);
 		
 		Mat modMat = new Mat();
@@ -164,10 +177,9 @@ public class ObjectDetector {
 //		
 		Imgproc.threshold(modMat, modMat, 220, 255, Imgproc.THRESH_BINARY);
 		
-        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(3, 3));
+		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(20, 20));
 		Imgproc.dilate(modMat, modMat, element);
-		Imgproc.erode(modMat, modMat, element);
-
+//		Imgproc.erode(modMat, modMat, element);
 		
 		Mat matchedMat = new Mat();	
         Imgproc.matchTemplate(modMat, tplMat, matchedMat, Imgproc.TM_CCOEFF);
@@ -186,6 +198,79 @@ public class ObjectDetector {
         BufferedImage processImage = OpenCVUtils.createAwtImage(modMat);
         BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
         
+        
+        return new Object[] { processImage, resultImage, false };
+	}
+	
+	
+	/**
+	 * comparing with a known template
+	 * using matchTemplate function 
+	 * 
+	 * @param source
+	 * @return
+	 */
+	public static Object[] processImage(Image source) {
+		// Mat orgMat = Imgcodecs.imread("samples/multiobjects.png"); 
+		Mat orgMat = OpenCVUtils.openImage(source);
+		
+		Mat modMat = new Mat();
+		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
+		
+		// Imgproc.GaussianBlur(modMat, modMat, new Size(9, 9), 2, 2);
+		Imgproc.GaussianBlur(modMat, modMat, new Size(Settings.gaussianSize, Settings.gaussianSize), 1);
+		
+		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
+		
+		Mat matchedMat = new Mat(orgMat.rows() - tplMat.rows(), orgMat.cols() - tplMat.cols(), CvType.CV_32FC1);	
+        Imgproc.matchTemplate(modMat, tplMat, matchedMat, Imgproc.TM_SQDIFF_NORMED);
+        
+        MinMaxLocResult mmr = Core.minMaxLoc(matchedMat);
+     
+        Core.normalize(matchedMat, matchedMat);
+        
+        // Point leftTop = new Point(mmr.maxLoc.x - tplMat.cols() / 2, mmr.maxLoc.y - tplMat.rows() / 2);
+        // Point rightBottom = new Point(mmr.maxLoc.x + tplMat.cols() * 3 / 2, mmr.maxLoc.y + tplMat.rows() * 3 / 2);
+        Point leftTop = new Point(mmr.maxLoc.x, mmr.maxLoc.y);
+        Point rightBottom = new Point(mmr.maxLoc.x + tplMat.cols(), mmr.maxLoc.y + tplMat.rows());
+        
+    	Imgproc.rectangle(orgMat, leftTop, rightBottom, OpenCVUtils.BORDER_COLOR);
+        
+        System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
+        
+        BufferedImage processImage = OpenCVUtils.createAwtImage(modMat);
+        BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
+        
+        
+        return new Object[] { processImage, resultImage, false };
+	}
+	
+	/**
+	 * simple comparing with a known template
+	 * using matchTemplate function 
+	 * 
+	 * @param source
+	 * @return
+	 */
+	public static Object[] processImage0(Image source) {
+		Mat orgMat = OpenCVUtils.openImage(source);
+		
+		Mat modMat = new Mat();
+		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
+		
+		Mat matchedMat = new Mat();	
+        Imgproc.matchTemplate(modMat, tplMat, matchedMat, Imgproc.TM_CCOEFF);
+        
+        MinMaxLocResult mmr = Core.minMaxLoc(matchedMat);
+     
+        Point leftTop = new Point(mmr.maxLoc.x, mmr.maxLoc.y);
+        Point rightBottom = new Point(mmr.maxLoc.x + tplMat.cols(), mmr.maxLoc.y + tplMat.rows());
+        
+    	Imgproc.rectangle(orgMat, leftTop, rightBottom, OpenCVUtils.BORDER_COLOR);
+        
+        BufferedImage processImage = OpenCVUtils.createAwtImage(modMat);
+        BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
+       
         
         return new Object[] { processImage, resultImage, false };
 	}

@@ -30,7 +30,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -44,9 +46,11 @@ import org.opencv.core.Core;
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.opencv.FeatureExtractor;
 import com.minhld.opencv.ObjectDetector;
+import com.minhld.utils.AdjustSlider;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
+import com.minhld.utils.Settings;
 
 import sensor_msgs.Image;
 
@@ -57,7 +61,7 @@ public class RosAuto extends Thread {
 	JButton connectROSButton, stopROSButton;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
-	JPanel cameraPanel, processPanel, buttonPanel;
+	JPanel cameraPanel, processPanel, buttonPanel, templateDrawPanel;
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
 	
@@ -114,6 +118,8 @@ public class RosAuto extends Thread {
 		// load OpenCV
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
+		// initiate some remaining objects
+		startObjects();
 	}
 	
 	/**
@@ -172,7 +178,7 @@ public class RosAuto extends Thread {
 		
 		// ------ Viewer panel ------
 		JPanel viewer = new JPanel(new FlowLayout());
-		// viewer.setPreferredSize(new Dimension(900, 550));
+		viewer.setPreferredSize(new Dimension(1000, 415));
 		viewer.setBorder(BorderFactory.createTitledBorder("Camera View"));
 
 		cameraPanel = new JPanel();
@@ -185,7 +191,39 @@ public class RosAuto extends Thread {
 		processPanel.setBackground(new Color(200, 200, 200));
 		viewer.add(processPanel);
 		
-		totalView.add(viewer, BorderLayout.CENTER);
+		totalView.add(viewer, BorderLayout.NORTH);
+		
+		// ------ Adjust panel ------
+		
+		JPanel adjustPanel = new JPanel(new BorderLayout());
+		adjustPanel.setBorder(BorderFactory.createTitledBorder("Adjustment"));
+		
+		JPanel slidesPanel = new JPanel(new BorderLayout());
+		slidesPanel.setLayout(new GridLayout(2, 3));
+		slidesPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_AREA_THRESHOLD, 100, 500));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
+		slidesPanel.add(new AdjustSlider("A", 1, 100));
+		
+		
+		adjustPanel.add(slidesPanel, BorderLayout.CENTER);
+		
+		JPanel templatePanel = new JPanel(new BorderLayout());
+		templatePanel.setPreferredSize(new Dimension(200, 100));
+		templatePanel.add(new JLabel("Template"), BorderLayout.NORTH);
+		
+		templateDrawPanel = new JPanel();
+		// templateDrawPanel.setPreferredSize(new Dimension(150, 120));
+		templatePanel.add(templateDrawPanel, BorderLayout.SOUTH);
+		
+		adjustPanel.add(templatePanel, BorderLayout.EAST);
+		
+		
+		totalView.add(adjustPanel, BorderLayout.CENTER);
 		
 		// ------ Control + Control Info panel ------
 		JPanel control = new JPanel(new BorderLayout()); 
@@ -299,7 +337,10 @@ public class RosAuto extends Thread {
 		return totalView;
 	}
 	
-	
+	private void startObjects() {
+		BufferedImage templateImage = OpenCVUtils.createAwtImage(ObjectDetector.tplMat);
+		drawImage(templateDrawPanel, templateImage, templateDrawPanel.getWidth(), templateDrawPanel.getHeight());
+	}
 	
 	private void startListening() {
 	
@@ -329,7 +370,9 @@ public class RosAuto extends Thread {
 						// Object[] results = OpenCVUtils.processImage6(image);
 						// Object[] results = OpenCVUtils.processImage7(image);
 						// Object[] results = FeatureExtractor.processImage(image);
+						// Object[] results = ObjectDetector.processImage0(image);
 						Object[] results = ObjectDetector.processImage(image);
+						// Object[] results = ObjectDetector.processImage11(image);
 						// Object[] results = ObjectDetector.processImage2(image);
 						// Object[] results = ObjectDetector.processImage21(image);
 						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | Processing Time: " + (System.currentTimeMillis() - start) + "ms");
