@@ -237,9 +237,13 @@ public class ObjectDetector {
         
         // System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         
-    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
+    	// Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
+    	Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
     	
-        BufferedImage processImage = OpenCVUtils.createAwtImage(capturedMat); // OpenCVUtils.createAwtImage(modMat);
+    	Mat[] res2 = FeatureExtractor.processImage2(capturedMat);
+    	
+        BufferedImage processImage = OpenCVUtils.createAwtImage(res2[0]); // OpenCVUtils.createAwtImage(modMat);
+        // BufferedImage processImage = OpenCVUtils.createAwtImage(capturedMat); // OpenCVUtils.createAwtImage(modMat);
         BufferedImage resultImage = OpenCVUtils.createAwtImage(modMat);
         
         
