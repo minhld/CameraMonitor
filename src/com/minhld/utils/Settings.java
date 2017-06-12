@@ -3,18 +3,20 @@ package com.minhld.utils;
 import java.util.HashMap;
 
 public class Settings {
-	public static String LABEL_THRESHOLD = "Threshold";
-	public static String LABEL_GAUSSIAN_SIZE = "Gaussian Size";
-	public static String LABEL_CONTOUR_SIDES = "Contour Sides";
-	public static String LABEL_AREA_THRESHOLD = "Threshold Min Area";
-	public static String LABEL_DILATE_SIZE = "Dilate Size";
-	public static String LABEL_NULL = "A";
+	public static final String LABEL_THRESHOLD = "Threshold";
+	public static final String LABEL_GAUSSIAN_SIZE = "Gaussian Size";
+	public static final String LABEL_CONTOUR_SIDES = "Contour Sides";
+	public static final String LABEL_AREA_THRESHOLD = "Threshold Min Area";
+	public static final String LABEL_DILATE_SIZE = "Dilate Size";
+	public static final String LABEL_NULL = "A";
 	
-	public static int threshold = 250;
+	public static int threshold = 235;
 	public static int gaussianSize = 0;
 	public static int contourSides = 10;
 	public static int areaThreshold = 200;
 	public static int dilateSize = 3;
+	
+	public static String templatePath = "samples/tpl7.png";
 	
 	static HashMap<String, Integer> settings;
 	

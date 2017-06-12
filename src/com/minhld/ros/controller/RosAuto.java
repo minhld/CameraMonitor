@@ -8,6 +8,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -38,6 +39,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 
 import org.opencv.core.Core;
 
@@ -59,7 +61,7 @@ public class RosAuto extends Thread {
 	JButton connectROSButton, stopROSButton;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
-	JPanel cameraPanel, processPanel, buttonPanel, templateDrawPanel;
+	JPanel cameraPanel, processPanel, buttonPanel, templatePanel, capturedPanel, transformedPanel;
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
 	
@@ -117,7 +119,7 @@ public class RosAuto extends Thread {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		// initiate some remaining objects
-		startObjects();
+		startInitObjects();
 	}
 	
 	/**
@@ -210,13 +212,17 @@ public class RosAuto extends Thread {
 		
 		adjustPanel.add(slidesPanel, BorderLayout.CENTER);
 		
-		JPanel templatePanel = new JPanel(new BorderLayout());
-		templatePanel.setPreferredSize(new Dimension(200, 100));
+		templatePanel = new JPanel(new BorderLayout());
+		templatePanel.setPreferredSize(new Dimension(170, 100));
 		templatePanel.add(new JLabel("Template"), BorderLayout.NORTH);
+		templatePanel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// choose another template
+			}
+		});
 		
-		templateDrawPanel = new JPanel();
-		// templateDrawPanel.setPreferredSize(new Dimension(150, 120));
-		templatePanel.add(templateDrawPanel, BorderLayout.SOUTH);
+		// templatePanel.add(templateDrawPanel, BorderLayout.SOUTH);
 		
 		adjustPanel.add(templatePanel, BorderLayout.EAST);
 		
@@ -230,6 +236,7 @@ public class RosAuto extends Thread {
 		controller.setBorder(BorderFactory.createTitledBorder("Controller"));
 		controller.setPreferredSize(new Dimension(300, 280));
 		
+		// Navigation buttons panel
 		this.buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(3, 3));
 		buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50));
@@ -312,10 +319,12 @@ public class RosAuto extends Thread {
 		
 		control.add(controller, BorderLayout.WEST);
 		
+		
+		// Control Main Information panel
 		JPanel controlInfo = new JPanel(new BorderLayout());
 		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
 		
-		controlInfoText = new JTextArea(17, 102);
+		controlInfoText = new JTextArea(17, 63);
 		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
 		controlInfoText.setFont(new Font("courier", Font.PLAIN, 11));
 		controlInfoText.setEditable(false);
@@ -328,16 +337,33 @@ public class RosAuto extends Thread {
 		processTimeLabel.setIcon(new ImageIcon("images/settings.png"));
 		controlInfo.add(processTimeLabel, BorderLayout.SOUTH);
 		
-		control.add(controlInfo, BorderLayout.EAST);
+		control.add(controlInfo, BorderLayout.CENTER);
+		
+		// Transformation panel
+		JPanel transform = new JPanel(new FlowLayout());
+		transform.setBorder(BorderFactory.createTitledBorder("Transformation"));
+		transform.setPreferredSize(new Dimension(280, 280));
+		
+		transform.add(new JLabel("Captured Image"));
+		
+		capturedPanel = new JPanel();
+		capturedPanel.setPreferredSize(new Dimension(180, 100));
+		capturedPanel.setBorder(new TitledBorder(""));
+		transform.add(capturedPanel);
+		
+		transform.add(new JLabel("Transformed Image"));
+		
+		transformedPanel = new JPanel();
+		transformedPanel.setPreferredSize(new Dimension(180, 100));
+		transformedPanel.setBorder(new TitledBorder(""));
+		transform.add(transformedPanel);
+		
+		control.add(transform, BorderLayout.EAST);
+		
 		
 		totalView.add(control, BorderLayout.SOUTH);
 		
 		return totalView;
-	}
-	
-	private void startObjects() {
-		BufferedImage templateImage = OpenCVUtils.createAwtImage(ObjectDetector.tplMat);
-		drawImage(templateDrawPanel, templateImage, templateDrawPanel.getWidth(), templateDrawPanel.getHeight());
 	}
 	
 	private void startListening() {
@@ -353,7 +379,7 @@ public class RosAuto extends Thread {
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
 						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
-						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
+						BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
 						long loadImageTime = System.currentTimeMillis() - start;
 						
 						// // draw on the LEFT canvas the original camera image
@@ -373,14 +399,19 @@ public class RosAuto extends Thread {
 						// Object[] results = ObjectDetector.processImage11(image);
 						// Object[] results = ObjectDetector.processImage2(image);
 						// Object[] results = ObjectDetector.processImage21(image);
-						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | Processing Time: " + (System.currentTimeMillis() - start) + "ms");
+						
+						long durr = System.currentTimeMillis() - start;
+						long rate = (long) (1000 / durr);
+						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | " +  
+														"Processing Time: " + durr + "ms | " + 
+														"Rate: " + rate + "fps");
 						
 						BufferedImage processImage = (BufferedImage) results[0];
 						BufferedImage resultImage = (BufferedImage) results[1];
 						boolean isAtCenter = (Boolean) results[2];
-						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
-						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
-						
+						drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
+						drawImage(processPanel, resultImage, processPanel.getWidth(), processPanel.getHeight());
+						drawImage(capturedPanel, processImage, capturedPanel.getWidth(), capturedPanel.getHeight());
 						
 						if (RosAuto.this.isAuto) {
 							// only automatically moving when flag isAuto is set
@@ -410,6 +441,37 @@ public class RosAuto extends Thread {
 		
 	}
 	
+	
+	private void startInitObjects() {
+		// add a template image
+		addTemplateImage();
+        
+	}
+	
+	@SuppressWarnings("serial")
+	private void addTemplateImage() {
+		final BufferedImage templateImage = OpenCVUtils.createAwtImage(ObjectDetector.tplMat);
+		
+		JPanel tplImagePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(templateImage, 0, 0, 150, 80, null);
+            }
+        };
+        tplImagePanel.setSize(new Dimension(150, 80));
+        templatePanel.add(tplImagePanel, BorderLayout.CENTER);
+	}
+	
+	/**
+	 * draw an image to the panel - this function to draw 
+	 * on-the-fly image on a canvas of the panel 
+	 * 
+	 * @param panel
+	 * @param img
+	 * @param w
+	 * @param h
+	 */
 	private void drawImage(JPanel panel, BufferedImage img, int w, int h) {
 		Graphics g = panel.getGraphics();
 		if (g != null) {

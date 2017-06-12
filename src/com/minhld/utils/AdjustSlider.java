@@ -45,6 +45,7 @@ public class AdjustSlider extends JPanel {
 		// bar.setPaintTicks(true);
 		// bar.setPaintLabels(true);
 		bar.setValue(currVal);
+		bar.setFocusable(false);
 		add(bar, BorderLayout.CENTER);
 	}
 	

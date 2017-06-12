@@ -7,7 +7,6 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
@@ -27,12 +26,12 @@ public class ObjectDetector {
 	static int tplWidth, tplHeight;
 	
 	static {
-		// init11();
-		// init0();
-		init();
+		// readTemplate11();
+		// readTemplate0();
+		readTemplate();
 	}
 	
-	public static void init11() {
+	public static void readTemplate11() {
 		tplMat = Imgcodecs.imread("samples/tpl9.png");
 		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
 		Imgproc.threshold(tplMat, tplMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
@@ -41,15 +40,15 @@ public class ObjectDetector {
 		Imgproc.dilate(tplMat, tplMat, element);
 	}
 	
-	public static void init() {
-		tplMat = Imgcodecs.imread("samples/tpl10.png");
+	public static void readTemplate() {
+		tplMat = Imgcodecs.imread(Settings.templatePath);
 		tplWidth = tplMat.cols();
 		tplHeight = tplMat.rows();
 		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
 		Imgproc.threshold(tplMat, tplMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 	}
 	
-	public static void init0() {
+	public static void readTemplate0() {
 		tplMat = Imgcodecs.imread("samples/tpl9.png");
 		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
 	}
@@ -232,13 +231,16 @@ public class ObjectDetector {
      
         // Core.normalize(matchedMat, matchedMat);
         
-        Point loc = mmr.maxLoc;
-    	Imgproc.rectangle(orgMat, loc, new Point(loc.x + tplWidth, loc.y + tplHeight), OpenCVUtils.BORDER_COLOR);
+        Point locStart = mmr.maxLoc;
+        Point locEnd = new Point(locStart.x + tplWidth, locStart.y + tplHeight);
+    	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
         
         // System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         
-        BufferedImage processImage = OpenCVUtils.createAwtImage(modMat);
-        BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
+    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
+    	
+        BufferedImage processImage = OpenCVUtils.createAwtImage(capturedMat); // OpenCVUtils.createAwtImage(modMat);
+        BufferedImage resultImage = OpenCVUtils.createAwtImage(modMat);
         
         
         return new Object[] { processImage, resultImage, false };
