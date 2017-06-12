@@ -37,7 +37,7 @@ public class FeatureExtractor {
         descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
         matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
 
-		Mat tpl = Imgcodecs.imread("samples/tpl9.png");
+		Mat tpl = Imgcodecs.imread("samples/tpl11.png");
 		tplMat = new Mat();
 		Imgproc.cvtColor(tpl, tplMat, Imgproc.COLOR_BGR2GRAY);
 		tplDesc = new Mat();
@@ -62,47 +62,47 @@ public class FeatureExtractor {
 	
 	public static Mat[] processImage2(Mat orgMat) {
 		try {
-			Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
+			//Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
 			Mat orgDesc = new Mat();
 			MatOfKeyPoint orgKeys = new MatOfKeyPoint();
 	        detector.detect(orgMat, orgKeys);
 	        descriptor.compute(orgMat, orgKeys, orgDesc);
 	        
-//	        Mat outputImg = new Mat();
-//	        Features2d.drawKeypoints(orgMat, orgKeys, outputImg);
+	        Mat outputTpl = new Mat();
+	        Features2d.drawKeypoints(tplMat, tplKeys, outputTpl);
 	
 	        // Matching
 	        MatOfDMatch matches = new MatOfDMatch();
 	        if (tplMat.type() == orgMat.type()) {
 	            matcher.match(tplDesc, orgDesc, matches);
 	        } 
-	        List<DMatch> matchesList = matches.toList();
+//	        List<DMatch> matchesList = matches.toList();
+//	
+//	        Double max_dist = 0.0;
+//	        Double min_dist = 100.0;
+//	
+//	        for (int i = 0; i < matchesList.size(); i++) {
+//	            Double dist = (double) matchesList.get(i).distance;
+//	            if (dist < min_dist)
+//	                min_dist = dist;
+//	            if (dist > max_dist)
+//	                max_dist = dist;
+//	        }
 	
-	        Double max_dist = 0.0;
-	        Double min_dist = 100.0;
+//	        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
+//	        for (int i = 0; i < matchesList.size(); i++) {
+//	            if (matchesList.get(i).distance <= (1.5 * min_dist))
+//	                good_matches.addLast(matchesList.get(i));
+//	        }
 	
-	        for (int i = 0; i < matchesList.size(); i++) {
-	            Double dist = (double) matchesList.get(i).distance;
-	            if (dist < min_dist)
-	                min_dist = dist;
-	            if (dist > max_dist)
-	                max_dist = dist;
-	        }
-	
-	        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
-	        for (int i = 0; i < matchesList.size(); i++) {
-	            if (matchesList.get(i).distance <= (1.1 * min_dist))
-	                good_matches.addLast(matchesList.get(i));
-	        }
-	
-	        MatOfDMatch goodMatches = new MatOfDMatch();
-	        goodMatches.fromList(good_matches);
-	        Mat outputImg = new Mat();
+//	        MatOfDMatch goodMatches = new MatOfDMatch();
+//	        goodMatches.fromList(good_matches);
+	        Mat outputImg = new Mat(tplMat.rows() + orgMat.rows(), tplMat.cols() + orgMat.cols(), orgMat.type());
 	        MatOfByte drawnMatches = new MatOfByte();
 
-	        Features2d.drawMatches(tplMat, tplKeys, orgMat, orgKeys, goodMatches, outputImg, 
+	        Features2d.drawMatches(tplMat, tplKeys, orgMat, orgKeys, matches, outputImg, 
 	        			OpenCVUtils.BORDER_COLOR, OpenCVUtils.BORDER_RED_COLOR, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
-	        Imgproc.resize(outputImg, outputImg, orgMat.size());
+	        // Imgproc.resize(outputImg, outputImg, orgMat.size() + tplMat.size());
 	
 //			
 //	        

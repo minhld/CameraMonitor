@@ -237,8 +237,8 @@ public class ObjectDetector {
         
         // System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         
-    	// Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
-    	Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
+    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
+    	// Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
     	
     	Mat[] res2 = FeatureExtractor.processImage2(capturedMat);
     	
