@@ -140,13 +140,18 @@ public class RosAuto extends Thread {
 		toolbar.add(refreshBtn);
 		toolbar.addSeparator();
 		
-		JButton findPadBtn = new JButton("Find Pad");
+		final JButton findPadBtn = new JButton("Find Pad");
 		findPadBtn.setIcon(new ImageIcon("images/search.png"));
 		findPadBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (RosAuto.this.isAuto) {
+					CameraNode.move(0, 0);
+				} 
 				RosAuto.this.isAuto = !RosAuto.this.isAuto;
 				infoText.setText("AUTOMATION IS " + (RosAuto.this.isAuto ? "SET" : "CLEARED"));
+				findPadBtn.setText(RosAuto.this.isAuto ? "Stop Finding" : "Find Pad");
+				
 			}
 		});
 		toolbar.add(findPadBtn);
@@ -204,10 +209,9 @@ public class RosAuto extends Thread {
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 0, 15, AdjustSlider.FLAG_ODD_STEP));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_AREA_THRESHOLD, 100, 500));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
 		slidesPanel.add(new AdjustSlider("A", 1, 100));
-		
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 200, 900));
 		
 		adjustPanel.add(slidesPanel, BorderLayout.CENTER);
 		
@@ -504,15 +508,16 @@ public class RosAuto extends Thread {
 														"Processing Time: " + durr + "ms | " + 
 														"Rate: " + rate + "fps");
 						
-						BufferedImage processImage = (BufferedImage) results[0];
-						BufferedImage resultImage = (BufferedImage) results[1];
+						BufferedImage resultImage = (BufferedImage) results[0];
+						BufferedImage processImage = (BufferedImage) results[1];
+						BufferedImage capturedImage = (BufferedImage) results[2];
 						
 						// boolean isAtCenter = (Boolean) results[2];
-						int moveInstructor = (Integer) results[2];
+						int moveInstructor = (Integer) results[3];
 						
-						drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
-						drawImage(processPanel, resultImage, processPanel.getWidth(), processPanel.getHeight());
-						drawImage(capturedPanel, processImage, capturedPanel.getWidth(), capturedPanel.getHeight());
+						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
+						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
+						drawImage(capturedPanel, capturedImage, capturedPanel.getWidth(), capturedPanel.getHeight());
 						
 						if (RosAuto.this.isAuto) {
 							// only automatically moving when flag isAuto is set

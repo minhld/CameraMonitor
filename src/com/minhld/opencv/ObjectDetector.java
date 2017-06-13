@@ -7,6 +7,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Size;
@@ -234,25 +235,72 @@ public class ObjectDetector {
         
         Point locStart = mmr.maxLoc;
         Point locEnd = new Point(locStart.x + tplWidth, locStart.y + tplHeight);
-    	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
+    	
         
         // System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         
     	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
     	// Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
     	
-    	int moveInstructor = MoveInstructor.instruct(orgMat.cols(), locStart, locEnd);
+//    	Object[] res = findPad(capturedMat);
+//    	// Mat[] res2 = FeatureExtractor.extractFeature2(capturedMat);
+//
+//    	// if pad not found
+//    	if (!(boolean)res[1]) { 
+//    		locStart = new Point(0, 0);
+//    	} else {
+//    		Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
+//    	}
     	
-    	// Mat[] res2 = FeatureExtractor.processImage2(capturedMat);
+    	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
+    	
+    	int moveInstructor = MoveInstructor.instruct(orgMat.cols(), locStart, locEnd);
     	
         // BufferedImage processImage = OpenCVUtils.createAwtImage(res2[0]); // OpenCVUtils.createAwtImage(modMat);
         // BufferedImage processImage = OpenCVUtils.createAwtImage(orgMat);
-        BufferedImage processImage = OpenCVUtils.createAwtImage(capturedMat);
         // BufferedImage processImage = OpenCVUtils.createAwtImage(capturedMat); // OpenCVUtils.createAwtImage(modMat);
-        BufferedImage resultImage = OpenCVUtils.createAwtImage(modMat);
+        BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
+        BufferedImage processImage = OpenCVUtils.createAwtImage(modMat);
+        // BufferedImage capturedImage = OpenCVUtils.createAwtImage((Mat) res[0]);
+        BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
         
-        
-        return new Object[] { processImage, resultImage, moveInstructor };
+        return new Object[] { resultImage, processImage, capturedImage, moveInstructor };
+	}
+	
+	public static Object[] findPad(Mat capturedMat) {
+		Mat cannyMat = new Mat();
+		Imgproc.Canny(capturedMat, cannyMat, 10, 250);
+
+		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+		Mat hierarchy = new Mat();
+		Imgproc.findContours(cannyMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+		hierarchy.release();
+		
+		boolean foundPad = false;
+		
+		if (contours.size() > 0) {
+			MatOfPoint2f c = new MatOfPoint2f();
+			MatOfPoint2f approxC = new MatOfPoint2f();
+			MatOfPoint contour;
+			
+			for(int i = 0; i < contours.size(); i++) {
+				contour = contours.get(i);
+				if (Imgproc.contourArea(contour) > Settings.contourAreaMin) {
+					contours.get(i).convertTo(c, CvType.CV_32F);
+					double cArea = Imgproc.arcLength(c, true);
+					Imgproc.approxPolyDP(c, approxC, 0.02 * cArea, true);
+
+					if (approxC.size().height >= Settings.contourSides) {
+						foundPad = true;
+						break;
+					}
+				}
+			}
+			
+		}
+		
+		// no pad found
+		return new Object[] { cannyMat, foundPad };
 	}
 	
 	/**

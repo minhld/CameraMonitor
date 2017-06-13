@@ -203,7 +203,7 @@ public class RosAutoTest extends Thread {
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 0, 15, AdjustSlider.FLAG_ODD_STEP));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_AREA_THRESHOLD, 100, 500));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 100, 500));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
 		slidesPanel.add(new AdjustSlider("A", 1, 100));
 		

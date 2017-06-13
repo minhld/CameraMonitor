@@ -1,10 +1,5 @@
 package com.minhld.opencv;
 
-import java.awt.image.BufferedImage;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.opencv.core.DMatch;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
@@ -18,7 +13,6 @@ import org.opencv.imgproc.Imgproc;
 
 import com.minhld.utils.OpenCVUtils;
 
-import sensor_msgs.Image;
 
 public class FeatureExtractor {
 	static FeatureDetector detector;
@@ -60,7 +54,7 @@ public class FeatureExtractor {
 //        descriptor.compute(tplMat, tplKeys, tplDesc);
 //	}
 	
-	public static Mat[] processImage2(Mat orgMat) {
+	public static Mat[] extractFeature2(Mat orgMat) {
 		try {
 			//Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
 			Mat orgDesc = new Mat();
@@ -76,6 +70,9 @@ public class FeatureExtractor {
 	        if (tplMat.type() == orgMat.type()) {
 	            matcher.match(tplDesc, orgDesc, matches);
 	        } 
+
+	        // Imgproc.goodFeaturesToTrack
+	        
 //	        List<DMatch> matchesList = matches.toList();
 //	
 //	        Double max_dist = 0.0;
@@ -88,24 +85,28 @@ public class FeatureExtractor {
 //	            if (dist > max_dist)
 //	                max_dist = dist;
 //	        }
-	
+//	
 //	        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
 //	        for (int i = 0; i < matchesList.size(); i++) {
 //	            if (matchesList.get(i).distance <= (1.5 * min_dist))
 //	                good_matches.addLast(matchesList.get(i));
 //	        }
-	
+//	
 //	        MatOfDMatch goodMatches = new MatOfDMatch();
 //	        goodMatches.fromList(good_matches);
+//	        
+//	        
 	        Mat outputImg = new Mat(tplMat.rows() + orgMat.rows(), tplMat.cols() + orgMat.cols(), orgMat.type());
 	        MatOfByte drawnMatches = new MatOfByte();
 
+//	        Features2d.drawMatches(tplMat, tplKeys, orgMat, orgKeys, goodMatches, outputImg, 
+//	        			OpenCVUtils.BORDER_COLOR, OpenCVUtils.BORDER_RED_COLOR, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
+
 	        Features2d.drawMatches(tplMat, tplKeys, orgMat, orgKeys, matches, outputImg, 
 	        			OpenCVUtils.BORDER_COLOR, OpenCVUtils.BORDER_RED_COLOR, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
-	        // Imgproc.resize(outputImg, outputImg, orgMat.size() + tplMat.size());
-	
-//			
-//	        
+
+//	        Imgproc.resize(outputImg, outputImg, orgMat.size() + tplMat.size());
+
 //	        BufferedImage resultImage = OpenCVUtils.createAwtImage(outputImg);
 
 	        return new Mat[] { outputImg };
