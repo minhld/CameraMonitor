@@ -16,6 +16,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -245,12 +246,15 @@ public class RosAuto extends Thread {
 		buttonPanel.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				System.out.println("Key " + e.getKeyChar() + " pressed");
+				navButtonClicked(e.getKeyCode());
 			}
 			
 			@Override
 			public void keyReleased(KeyEvent e) {
-				
+				if (e.getKeyCode() >= 37 && e.getKeyCode() <= 40) {
+					// stop moving
+					navButtonReleased();
+				}
 			}
 		});
 		buttonPanel.addFocusListener(new FocusListener() {
@@ -274,6 +278,7 @@ public class RosAuto extends Thread {
 		upBtn.setSize(50, 50);
 		upBtn.setIcon(new ImageIcon("images/up.png"));
 		upBtn.setFocusable(false);
+		upBtn.addMouseListener(new NavButtonClickListener(NavButtonClickListener.KEY_UP));
 		buttonPanel.add(upBtn);
 		
 		buttonPanel.add(new JLabel(""));
@@ -282,6 +287,7 @@ public class RosAuto extends Thread {
 		leftBtn.setSize(50, 50);
 		leftBtn.setIcon(new ImageIcon("images/left.png"));
 		leftBtn.setFocusable(false);
+		leftBtn.addMouseListener(new NavButtonClickListener(NavButtonClickListener.KEY_LEFT));
 		buttonPanel.add(leftBtn, BorderLayout.WEST);
 		
 		buttonPanel.add(new JLabel(""));
@@ -290,6 +296,7 @@ public class RosAuto extends Thread {
 		rightBtn.setSize(50, 50);
 		rightBtn.setIcon(new ImageIcon("images/right.png"));
 		rightBtn.setFocusable(false);
+		rightBtn.addMouseListener(new NavButtonClickListener(NavButtonClickListener.KEY_RIGHT));
 		buttonPanel.add(rightBtn, BorderLayout.SOUTH);
 		
 		buttonPanel.add(new JLabel(""));
@@ -298,6 +305,7 @@ public class RosAuto extends Thread {
 		downBtn.setSize(50, 50);
 		downBtn.setIcon(new ImageIcon("images/down.png"));
 		downBtn.setFocusable(false);
+		downBtn.addMouseListener(new NavButtonClickListener(NavButtonClickListener.KEY_DOWN));
 		buttonPanel.add(downBtn, BorderLayout.SOUTH);
 		
 		buttonPanel.add(new JLabel(""));
@@ -324,7 +332,15 @@ public class RosAuto extends Thread {
 		JPanel controlInfo = new JPanel(new BorderLayout());
 		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
 		
-		controlInfoText = new JTextArea(17, 63);
+		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+		
+		AdjustSlider velSlider = new AdjustSlider("Velocity", 1, 10);
+		velocityPanel.add(velSlider, BorderLayout.NORTH);
+		velSlider.setPreferredSize(new Dimension(200, 50));
+		//velocityPanel.setPreferredSize(new Dimension(200, 50));
+		controlInfo.add(velocityPanel, BorderLayout.NORTH);
+		
+		controlInfoText = new JTextArea(10, 63);
 		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
 		controlInfoText.setFont(new Font("courier", Font.PLAIN, 11));
 		controlInfoText.setEditable(false);
@@ -366,6 +382,82 @@ public class RosAuto extends Thread {
 		return totalView;
 	}
 	
+	/**
+	 * this function is called when user presses on navigation buttons on keyboard
+	 * or uses mouse to click on navigation buttons on the application
+	 * 
+	 * @param keyCode
+	 */
+	private void navButtonClicked(int keyCode) {
+		float actualVel = (float) Settings.velocity / 10;
+		String move = "";
+		switch (keyCode) {
+			case NavButtonClickListener.KEY_UP: {
+				// move up
+				CameraNode.move(actualVel, 0);
+				move = "FORWARD";
+				break;
+			} case NavButtonClickListener.KEY_DOWN: {
+				// move down
+				CameraNode.move(-1 * actualVel, 0);
+				move = "BACKWARD";
+				break;
+			} case NavButtonClickListener.KEY_LEFT: {
+				// move left
+				CameraNode.move(0, -1 * actualVel);
+				move = "LEFT";
+				break;
+			} case NavButtonClickListener.KEY_RIGHT: {
+				// move right
+				CameraNode.move(0, actualVel);
+				move = "RIGHT";
+				break;
+			}
+		}
+		controlInfoText.setText("move: " + move + " | velocity: " + actualVel);
+	}
+	
+	/**
+	 * 
+	 */
+	private void navButtonReleased() {
+		CameraNode.move(0, 0);
+		controlInfoText.setText("move: STOP");
+	}
+	
+	/**
+	 * this class declares mouse pressed and released events for
+	 * the navigation buttons. 
+	 * 
+	 * @author lee
+	 *
+	 */
+	private class NavButtonClickListener extends MouseAdapter {
+		public static final int KEY_UP = 38;
+		public static final int KEY_DOWN = 40;
+		public static final int KEY_LEFT = 37;
+		public static final int KEY_RIGHT = 39;
+		
+		private int keyCode;
+		
+		public NavButtonClickListener(int keyCode) {
+			this.keyCode = keyCode;
+		}
+		
+		@Override
+		public void mousePressed(MouseEvent e) {
+			navButtonClicked(this.keyCode);
+		}
+		
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			navButtonReleased();
+		}
+	}
+	
+	/**
+	 * call this to start listening to the ROS server
+	 */
 	private void startListening() {
 	
 		nodeThread = new Thread() {
