@@ -55,7 +55,7 @@ import com.minhld.utils.Settings;
 
 import sensor_msgs.Image;
 
-public class RosAuto extends Thread {
+public class RosAutoTest extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
 	JTextArea infoText, controlInfoText;
@@ -103,7 +103,7 @@ public class RosAuto extends Thread {
 		mainFrame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				int response = JOptionPane.showConfirmDialog(RosAuto.this.mainFrame, 
+				int response = JOptionPane.showConfirmDialog(RosAutoTest.this.mainFrame, 
 									"Are you sure you want to quit?", "Confirm", 
 									JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
 			    if (response == JOptionPane.YES_OPTION) {
@@ -147,8 +147,8 @@ public class RosAuto extends Thread {
 		findPadBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				RosAuto.this.isAuto = !RosAuto.this.isAuto;
-				infoText.setText("AUTOMATION IS " + (RosAuto.this.isAuto ? "SET" : "CLEARED"));
+				RosAutoTest.this.isAuto = !RosAutoTest.this.isAuto;
+				infoText.setText("AUTOMATION IS " + (RosAutoTest.this.isAuto ? "SET" : "CLEARED"));
 			}
 		});
 		toolbar.add(findPadBtn);
@@ -261,8 +261,8 @@ public class RosAuto extends Thread {
 			@Override
 			public void focusLost(FocusEvent e) {
 				switchKeyFocus(false);
-				if (RosAuto.this.isServerInUsed) {
-					RosAuto.this.buttonPanel.requestFocusInWindow();
+				if (RosAutoTest.this.isServerInUsed) {
+					RosAutoTest.this.buttonPanel.requestFocusInWindow();
 				}
 			}
 			
@@ -317,8 +317,8 @@ public class RosAuto extends Thread {
 		keyFocusLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				if (RosAuto.this.isServerInUsed) {
-					RosAuto.this.buttonPanel.requestFocusInWindow();
+				if (RosAutoTest.this.isServerInUsed) {
+					RosAutoTest.this.buttonPanel.requestFocusInWindow();
 				}
 			}
 		});
@@ -502,7 +502,7 @@ public class RosAuto extends Thread {
 						
 						long durr = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / durr);
-						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | " +  
+						RosAutoTest.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | " +  
 														"Processing Time: " + durr + "ms | " + 
 														"Rate: " + rate + "fps");
 						
@@ -513,7 +513,7 @@ public class RosAuto extends Thread {
 						drawImage(processPanel, resultImage, processPanel.getWidth(), processPanel.getHeight());
 						drawImage(capturedPanel, processImage, capturedPanel.getWidth(), capturedPanel.getHeight());
 						
-						if (RosAuto.this.isAuto) {
+						if (RosAutoTest.this.isAuto) {
 							// only automatically moving when flag isAuto is set
 							
 							if (isAtCenter) {
@@ -708,7 +708,7 @@ public class RosAuto extends Thread {
 			ipText.setEditable(false);
 			connectROSButton.setEnabled(false);
 			stopROSButton.setEnabled(true);
-			RosAuto.this.buttonPanel.requestFocusInWindow();
+			RosAutoTest.this.buttonPanel.requestFocusInWindow();
 			
 		} catch (Exception e) {
 			infoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
@@ -749,6 +749,6 @@ public class RosAuto extends Thread {
 	}
 	
 	public static void main(String args[]) {
-		new RosAuto().start();
+		new RosAutoTest().start();
 	}
 }
