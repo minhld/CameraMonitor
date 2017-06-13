@@ -508,32 +508,39 @@ public class RosAuto extends Thread {
 						
 						BufferedImage processImage = (BufferedImage) results[0];
 						BufferedImage resultImage = (BufferedImage) results[1];
-						boolean isAtCenter = (Boolean) results[2];
+						
+						// boolean isAtCenter = (Boolean) results[2];
+						int moveInstructor = (Integer) results[2];
+						
 						drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						drawImage(processPanel, resultImage, processPanel.getWidth(), processPanel.getHeight());
 						drawImage(capturedPanel, processImage, capturedPanel.getWidth(), capturedPanel.getHeight());
 						
 						if (RosAuto.this.isAuto) {
 							// only automatically moving when flag isAuto is set
-							
-							if (isAtCenter) {
-								// stop and move toward
-								infoText.setText("FOUND THE PAD. MOVING AHEAD");
-								CameraNode.move(0.15, 0);
-							} else {
-								// continue rotating
-								infoText.setText("SEARCHING THE PAD...");
-								CameraNode.move(0, 0.2);
+							double vel = (double) Settings.velocity / 10;
+							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
+								infoText.setText("SEARCHING PAD...");
+								CameraNode.move(0, vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
+								infoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
+								CameraNode.move(0, -1 * vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
+								infoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
+								CameraNode.move(0, vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
+								infoText.setText("MOVING FORWARD...");
+								CameraNode.move(vel, 0);
 							}
 						}
 					}
 				}));
 				
-//				// start the velocity talker
-//				String talkerTopic = "/cmd_vel";
-//				String talkerNodeName = ROSUtils.getTalkerName(talkerTopic);
-//				mover = new VelocityTalker(talkerNodeName, talkerTopic);
-//				ROSUtils.execute(talkerNodeName, mover);
+				// // start the velocity talker
+				// String talkerTopic = "/cmd_vel";
+				// String talkerNodeName = ROSUtils.getTalkerName(talkerTopic);
+				// mover = new VelocityTalker(talkerNodeName, talkerTopic);
+				// ROSUtils.execute(talkerNodeName, mover);
 			}
 		};
 		nodeThread.start();
@@ -595,8 +602,8 @@ public class RosAuto extends Thread {
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(20);
 		ipText.grabFocus();
-		String currentIP = "129.123.7.100";
-		// String currentIP = AppUtils.getCurrentIP();
+		// String currentIP = "129.123.7.100";
+		String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);

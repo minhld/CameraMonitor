@@ -14,6 +14,7 @@ import org.opencv.core.Core.MinMaxLocResult;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
+import com.minhld.ros.controller.MoveInstructor;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.Settings;
 
@@ -237,18 +238,21 @@ public class ObjectDetector {
         
         // System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
         
-    	// Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
+    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
     	// Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
+    	
+    	int moveInstructor = MoveInstructor.instruct(orgMat.cols(), locStart, locEnd);
     	
     	// Mat[] res2 = FeatureExtractor.processImage2(capturedMat);
     	
         // BufferedImage processImage = OpenCVUtils.createAwtImage(res2[0]); // OpenCVUtils.createAwtImage(modMat);
-        BufferedImage processImage = OpenCVUtils.createAwtImage(orgMat); // OpenCVUtils.createAwtImage(modMat);
+        // BufferedImage processImage = OpenCVUtils.createAwtImage(orgMat);
+        BufferedImage processImage = OpenCVUtils.createAwtImage(capturedMat);
         // BufferedImage processImage = OpenCVUtils.createAwtImage(capturedMat); // OpenCVUtils.createAwtImage(modMat);
         BufferedImage resultImage = OpenCVUtils.createAwtImage(modMat);
         
         
-        return new Object[] { processImage, resultImage, false };
+        return new Object[] { processImage, resultImage, moveInstructor };
 	}
 	
 	/**
