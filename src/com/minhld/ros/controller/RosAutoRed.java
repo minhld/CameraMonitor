@@ -43,18 +43,15 @@ import javax.swing.border.TitledBorder;
 import org.opencv.core.Core;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
-import com.minhld.opencv.FeatureExtractor;
-import com.minhld.opencv.ObjectDetector;
 import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.utils.AdjustSlider;
 import com.minhld.utils.AppUtils;
-import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
 import sensor_msgs.Image;
 
-public class RosAuto extends Thread {
+public class RosAutoRed extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
 	JTextArea infoText, controlInfoText;
@@ -76,8 +73,8 @@ public class RosAuto extends Thread {
 		
 		Container contentPane = mainFrame.getContentPane();
 		
-		// load settings (for WHITE OBJECT configuration)
-		Settings.init("settings");
+		// load settings (for RED OBJECT configuration)
+		Settings.init(Settings.SETTING_RED);
 		
 		// ------ set Tool-bar and Buttons ------ 
 		contentPane.add(buildToolBar(), BorderLayout.NORTH);
@@ -105,12 +102,16 @@ public class RosAuto extends Thread {
 		mainFrame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				int response = JOptionPane.showConfirmDialog(RosAuto.this.mainFrame, 
+				int response = JOptionPane.showConfirmDialog(RosAutoRed.this.mainFrame, 
 									"Are you sure you want to quit?", "Confirm", 
 									JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
 			    if (response == JOptionPane.YES_OPTION) {
 			    	// close all nodes 
 			    	ROSUtils.shutdownAllNodes();
+			    	
+			    	// clean variables and save properties
+			    	prepareCloseApp();
+			    	
 			    	System.exit(0);
 			    }
 			}
@@ -149,12 +150,12 @@ public class RosAuto extends Thread {
 		findPadBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (RosAuto.this.isAuto) {
+				if (RosAutoRed.this.isAuto) {
 					CameraNode.move(0, 0);
 				} 
-				RosAuto.this.isAuto = !RosAuto.this.isAuto;
-				infoText.setText("AUTOMATION IS " + (RosAuto.this.isAuto ? "SET" : "CLEARED"));
-				findPadBtn.setText(RosAuto.this.isAuto ? "Stop Finding" : "Find Pad");
+				RosAutoRed.this.isAuto = !RosAutoRed.this.isAuto;
+				infoText.setText("AUTOMATION IS " + (RosAutoRed.this.isAuto ? "SET" : "CLEARED"));
+				findPadBtn.setText(RosAutoRed.this.isAuto ? "Stop Finding" : "Find Pad");
 				
 			}
 		});
@@ -210,12 +211,20 @@ public class RosAuto extends Thread {
 		slidesPanel.setLayout(new GridLayout(2, 3));
 		slidesPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 0, 15, AdjustSlider.FLAG_ODD_STEP));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
-		slidesPanel.add(new AdjustSlider("A", 1, 100));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 200, 900));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 0, 15, AdjustSlider.FLAG_ODD_STEP));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_COLOR_THRESHOLD, 50, 200));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 200, 900));
+		
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 245));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 1, 255));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 255));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_COLOR_THRESHOLD, 1, 255));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 255));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 1, 255));
+
 		
 		adjustPanel.add(slidesPanel, BorderLayout.CENTER);
 		
@@ -267,8 +276,8 @@ public class RosAuto extends Thread {
 			@Override
 			public void focusLost(FocusEvent e) {
 				switchKeyFocus(false);
-				if (RosAuto.this.isServerInUsed) {
-					RosAuto.this.buttonPanel.requestFocusInWindow();
+				if (RosAutoRed.this.isServerInUsed) {
+					RosAutoRed.this.buttonPanel.requestFocusInWindow();
 				}
 			}
 			
@@ -323,8 +332,8 @@ public class RosAuto extends Thread {
 		keyFocusLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				if (RosAuto.this.isServerInUsed) {
-					RosAuto.this.buttonPanel.requestFocusInWindow();
+				if (RosAutoRed.this.isServerInUsed) {
+					RosAutoRed.this.buttonPanel.requestFocusInWindow();
 				}
 			}
 		});
@@ -501,15 +510,15 @@ public class RosAuto extends Thread {
 						// Object[] results = OpenCVUtils.processImage7(image);
 						// Object[] results = FeatureExtractor.processImage(image);
 						// Object[] results = ObjectDetector.processImage0(image);
-						Object[] results = ObjectDetector.processImage(image);
+						// Object[] results = ObjectDetector.processImage(image);
 						// Object[] results = ObjectDetector.processImage11(image);
 						// Object[] results = ObjectDetector.processImage2(image);
 						// Object[] results = ObjectDetector.processImage21(image);
-						// Object[] results = ObjectDetector2.processImage(image);
+						Object[] results = ObjectDetectorRed.processImage(image);
 						
 						long durr = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / durr);
-						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | " +  
+						RosAutoRed.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | " +  
 														"Processing Time: " + durr + "ms | " + 
 														"Rate: " + rate + "fps");
 						
@@ -524,7 +533,7 @@ public class RosAuto extends Thread {
 						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
 						drawImage(capturedPanel, capturedImage, capturedPanel.getWidth(), capturedPanel.getHeight());
 						
-						if (RosAuto.this.isAuto) {
+						if (RosAutoRed.this.isAuto) {
 							// only automatically moving when flag isAuto is set
 							double vel = (double) Settings.velocity / 10;
 							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
@@ -723,7 +732,7 @@ public class RosAuto extends Thread {
 			ipText.setEditable(false);
 			connectROSButton.setEnabled(false);
 			stopROSButton.setEnabled(true);
-			RosAuto.this.buttonPanel.requestFocusInWindow();
+			RosAutoRed.this.buttonPanel.requestFocusInWindow();
 			
 		} catch (Exception e) {
 			infoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
@@ -746,6 +755,14 @@ public class RosAuto extends Thread {
 	}
 	
 	/**
+	 * this function is called to clean all the parameters
+	 * as well as save to props file
+	 */
+	private void prepareCloseApp() {
+		Settings.saveProps(Settings.SETTING_RED);
+	}
+	
+	/**
 	 * add a topic list to the swing list
 	 */
 	private void addTopicsToList() {
@@ -764,6 +781,6 @@ public class RosAuto extends Thread {
 	}
 	
 	public static void main(String args[]) {
-		new RosAuto().start();
+		new RosAutoRed().start();
 	}
 }

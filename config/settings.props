@@ -1,1 +1,9 @@
 # ROS CONTROLLER SETTINGS
+threshold=235
+color-threshold=100
+gaussian-size=0
+contour-sides=9
+dilate-size=3
+contour-area-min=300
+velocity=3
+A=0

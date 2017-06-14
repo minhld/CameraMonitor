@@ -13,8 +13,8 @@ import geometry_msgs.Twist;
 import sensor_msgs.Image;
 
 public class CameraNode extends AbstractNodeMain {
-	public static String topicTitle = "/rrbot/camera1/image_raw";
-	// public static String topicTitle = "/camera/image_raw";
+	// public static String topicTitle = "/rrbot/camera1/image_raw";
+	public static String topicTitle = "/camera/image_raw";
 	
 	private static Publisher<geometry_msgs.Twist> pub;
 	
