@@ -1,10 +1,10 @@
 #ROS CONTROLLER SETTINGS
-#Wed Jun 14 16:09:58 MDT 2017
-threshold=1
+#Wed Jun 14 16:19:26 MDT 2017
 A=0
+threshold=1
 contour-area-min=110
 color-threshold=170
-gaussian-size=110
 velocity=6
+gaussian-size=110
 dilate-size=100
 contour-sides=100

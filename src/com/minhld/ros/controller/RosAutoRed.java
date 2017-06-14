@@ -151,7 +151,7 @@ public class RosAutoRed extends Thread {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (RosAutoRed.this.isAuto) {
-					CameraNode.move(0, 0);
+					CameraNode2.move(0, 0);
 				} 
 				RosAutoRed.this.isAuto = !RosAutoRed.this.isAuto;
 				infoText.setText("AUTOMATION IS " + (RosAutoRed.this.isAuto ? "SET" : "CLEARED"));
@@ -413,22 +413,26 @@ public class RosAutoRed extends Thread {
 		switch (keyCode) {
 			case NavButtonClickListener.KEY_UP: {
 				// move up
-				CameraNode.move(actualVel, 0);
+				// CameraNode2.move(actualVel, 0);
+				CameraNode2.moveForward(actualVel);
 				move = "FORWARD";
 				break;
 			} case NavButtonClickListener.KEY_DOWN: {
 				// move down
-				CameraNode.move(-1 * actualVel, 0);
+				// CameraNode2.move(-1 * actualVel, 0);
+				CameraNode2.moveBackward(actualVel);
 				move = "BACKWARD";
 				break;
 			} case NavButtonClickListener.KEY_LEFT: {
 				// move left
-				CameraNode.move(0, -1 * actualVel);
+				// CameraNode2.move(0, -1 * actualVel);
+				CameraNode2.moveLeft(actualVel);
 				move = "LEFT";
 				break;
 			} case NavButtonClickListener.KEY_RIGHT: {
 				// move right
-				CameraNode.move(0, actualVel);
+				// CameraNode2.move(0, actualVel);
+				CameraNode2.moveRight(-1 * actualVel);
 				move = "RIGHT";
 				break;
 			}
@@ -444,7 +448,7 @@ public class RosAutoRed extends Thread {
 		if (!this.isServerInUsed) return;
 		
 		// go otherwise
-		CameraNode.move(0, 0);
+		CameraNode2.move(0, 0);
 		controlInfoText.setText("move: STOP");
 	}
 	
@@ -487,9 +491,9 @@ public class RosAutoRed extends Thread {
 			@Override
 			public void run() {
 				// this will be the name of the subscriber to this topic
-				String graphName = ROSUtils.getNodeName(CameraNode.topicTitle);
+				String graphName = ROSUtils.getNodeName(CameraNode2.topicTitle);
 				
-				ROSUtils.execute(graphName, new CameraNode(new CameraNode.ImageListener() {
+				ROSUtils.execute(graphName, new CameraNode2(new CameraNode2.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
@@ -538,16 +542,20 @@ public class RosAutoRed extends Thread {
 							double vel = (double) Settings.velocity / 10;
 							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
 								infoText.setText("SEARCHING PAD...");
-								CameraNode.move(0, vel);
+								// CameraNode2.move(0, vel);
+								CameraNode2.moveRight(vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
 								infoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
-								CameraNode.move(0, -1 * vel);
+								// CameraNode2.move(0, vel);
+								CameraNode2.moveLeft(vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
 								infoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
-								CameraNode.move(0, vel);
+								// CameraNode2.move(0, -1 * vel);
+								CameraNode2.moveRight(-1 * vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
 								infoText.setText("MOVING FORWARD...");
-								CameraNode.move(vel, 0);
+								// CameraNode2.move(vel, 0);
+								CameraNode2.moveForward(vel);
 							}
 						}
 					}
