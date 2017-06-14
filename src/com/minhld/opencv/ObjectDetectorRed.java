@@ -11,6 +11,7 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
@@ -56,7 +57,7 @@ public class ObjectDetectorRed {
 //		if (Settings.gaussianSize % 2 == 1) {
 //			Imgproc.GaussianBlur(orgMat, orgMat, new Size(Settings.gaussianSize, Settings.gaussianSize), 1);
 //		}
-		// Imgproc.GaussianBlur(orgMat, orgMat, new Size(9, 9), 2, 2);
+		// Imgproc.GaussianBlur(orgMat, orgMat, new Size(3, 3), 1);
 		
 		// turns it to HSV color image
 		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2HSV);
@@ -69,6 +70,11 @@ public class ObjectDetectorRed {
 		// merge the two masks
 		Mat finalMask = new Mat();
 		Core.addWeighted(lowMask, 1, highMask, 1, 0, finalMask);
+
+		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(3, 3));
+		Imgproc.dilate(finalMask, finalMask, element);
+		Imgproc.erode(finalMask, finalMask, element);
+
 		
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
@@ -81,7 +87,7 @@ public class ObjectDetectorRed {
 		if (contours.size() > 0) {
 			MatOfPoint contour;
 			double maxContourSize = 0, contourSize;
-			Point locStart, locEnd;
+			Point locStart = new Point(), locEnd = new Point();
 			Rect rect;
 				
 			// fetch through the list of contours
@@ -95,30 +101,31 @@ public class ObjectDetectorRed {
 					locStart = new Point(rect.x, rect.y);
 					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
 					
-					// define the max area
-					if (maxContourSize < contourSize) {
-						maxContourSize = contourSize;
-						locStartMax = locStart;
-						locEndMax = locEnd;
-					}
+					
 				}
-				
+				// define the max area
+				if (maxContourSize < contourSize) {
+					maxContourSize = contourSize;
+					locStartMax = locStart;
+					locEndMax = locEnd;
+				}
 			}
+			System.out.println("contour max: " + maxContourSize);
 		}
 
 		// draw the rectangle surrounding the object
 		Imgproc.rectangle(orgMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
 
-		// capture the image containing the object
-		Mat capturedMat = new Mat(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT, orgMat.type());
-		if (locEndMax.x > 0 && locEndMax.y > 0) {
-			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
-			int centerY = (int) (locEndMax.y + locEndMax.y) / 2;
-			if (centerX - Settings.TEMPLATE_WIDTH / 2 > 0 && centerY - Settings.TEMPLATE_HEIGHT / 2 > 0) {
-				capturedMat = new Mat(orgMat, new Rect(new Point(centerX - Settings.TEMPLATE_WIDTH / 2, centerY - Settings.TEMPLATE_HEIGHT / 2), 
-												new Point(centerX + Settings.TEMPLATE_WIDTH / 2, centerY + Settings.TEMPLATE_HEIGHT / 2)));
-			}
-		}
+//		// capture the image containing the object
+//		Mat capturedMat = new Mat(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT, orgMat.type());
+//		if (locEndMax.x > 0 && locEndMax.y > 0) {
+//			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
+//			int centerY = (int) (locEndMax.y + locEndMax.y) / 2;
+//			if (centerX - Settings.TEMPLATE_WIDTH / 2 > 0 && centerY - Settings.TEMPLATE_HEIGHT / 2 > 0) {
+//				capturedMat = new Mat(orgMat, new Rect(new Point(centerX - Settings.TEMPLATE_WIDTH / 2, centerY - Settings.TEMPLATE_HEIGHT / 2), 
+//												new Point(centerX + Settings.TEMPLATE_WIDTH / 2, centerY + Settings.TEMPLATE_HEIGHT / 2)));
+//			}
+//		}
 		
 //    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
 //    	// Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
@@ -139,9 +146,9 @@ public class ObjectDetectorRed {
     	
         BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
-        BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
+        // BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
         
-        return new Object[] { resultImage, processImage, capturedImage, moveInstructor };
+        return new Object[] { resultImage, processImage, null, moveInstructor };
 	}
 	
 	public static Object[] findPad(Mat capturedMat) {
