@@ -28,6 +28,9 @@ public class Settings {
 	public static int dilateSize = 3;
 	public static int velocity = 3;
 	
+	public static int TEMPLATE_WIDTH = 180;
+	public static int TEMPLATE_HEIGHT = 100;
+	
 	public static String templatePath = "samples/tpl7.png";
 	
 //	static HashMap<String, Integer> settings;

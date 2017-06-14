@@ -11,8 +11,6 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.opencv.core.Core.MinMaxLocResult;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
@@ -23,7 +21,7 @@ import com.minhld.utils.Settings;
 import sensor_msgs.Image;
 
 public class ObjectDetectorRed {
-	public static int THRESHOLD_MIN_AREA = 400;
+	public static int THRESHOLD_MIN_AREA = 200;
 
 	public static Mat tplMat;
 	static int tplWidth, tplHeight;
@@ -77,50 +75,51 @@ public class ObjectDetectorRed {
 		Imgproc.findContours(finalMask, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 		hierarchy.release();
 
+		Point locStartMax = new Point(), locEndMax = new Point();
+		
+		
 		if (contours.size() > 0) {
 			MatOfPoint contour;
-//			double contourSize;
+			double maxContourSize = 0, contourSize;
+			Point locStart, locEnd;
+			Rect rect;
+				
+			// fetch through the list of contours
 			for(int i = 0; i < contours.size(); i++) {
-				// THRESHOLD_MIN_AREA
 				contour = contours.get(i);
-				if (Imgproc.contourArea(contour) > THRESHOLD_MIN_AREA) {
-					Rect rect = Imgproc.boundingRect(contour);
-					Imgproc.rectangle(orgMat, new Point(rect.x,rect.y), new Point(rect.x + rect.width, rect.y + rect.height), OpenCVUtils.BORDER_COLOR);
+				
+				// get rid of the small objects found in the camera area
+				contourSize = Imgproc.contourArea(contour);
+				if (contourSize > THRESHOLD_MIN_AREA) {
+					rect = Imgproc.boundingRect(contour);
+					locStart = new Point(rect.x, rect.y);
+					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
 					
-	            	// Imgproc.drawContours(orgMat, contours, i, OpenCVUtils.BORDER_COLOR, 1);
-					
+					// define the max area
+					if (maxContourSize < contourSize) {
+						maxContourSize = contourSize;
+						locStartMax = locStart;
+						locEndMax = locEnd;
+					}
 				}
 				
-//				contours.get(i).convertTo(c, CvType.CV_32F);
-//				double cArea = Imgproc.arcLength(c, true);
-//				Imgproc.approxPolyDP(c, approxC, 0.02 * cArea, true);
-//
-//				// if (approxC.size().height == 4) {
-					
-//		            // Rect rect = Imgproc.boundingRect(contours.get(i));
-//		            // Imgproc.rectangle(orgMat, new Point(rect.x,rect.y), new Point(rect.x + rect.width, rect.y + rect.height), BORDER_COLOR);
-//				//}
+			}
+		}
+
+		// draw the rectangle surrounding the object
+		Imgproc.rectangle(orgMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
+
+		// capture the image containing the object
+		Mat capturedMat = new Mat(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT, orgMat.type());
+		if (locEndMax.x > 0 && locEndMax.y > 0) {
+			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
+			int centerY = (int) (locEndMax.y + locEndMax.y) / 2;
+			if (centerX - Settings.TEMPLATE_WIDTH / 2 > 0 && centerY - Settings.TEMPLATE_HEIGHT / 2 > 0) {
+				capturedMat = new Mat(orgMat, new Rect(new Point(centerX - Settings.TEMPLATE_WIDTH / 2, centerY - Settings.TEMPLATE_HEIGHT / 2), 
+												new Point(centerX + Settings.TEMPLATE_WIDTH / 2, centerY + Settings.TEMPLATE_HEIGHT / 2)));
 			}
 		}
 		
-//		Mat erodeElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));
-//		Imgproc.erode(finalMask, finalMask, erodeElement);
-//		Mat dilateElement = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize * 2, Settings.dilateSize * 2));
-//		Imgproc.dilate(finalMask, finalMask, dilateElement);
-
-//		Mat matchedMat = new Mat(orgMat.rows() - tplMat.rows(), orgMat.cols() - tplMat.cols(), CvType.CV_32FC1);	
-//        Imgproc.matchTemplate(modMat, tplMat, matchedMat, Imgproc.TM_CCOEFF);
-//        
-//        MinMaxLocResult mmr = Core.minMaxLoc(matchedMat);
-//     
-//        // Core.normalize(matchedMat, matchedMat);
-//        
-//        Point locStart = mmr.maxLoc;
-//        Point locEnd = new Point(locStart.x + tplWidth, locStart.y + tplHeight);
-//    	
-//        
-//        // System.out.println("similarity: " + mmr.minVal + ", " + mmr.maxVal);
-//        
 //    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
 //    	// Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
 //    	
@@ -136,17 +135,13 @@ public class ObjectDetectorRed {
 //    	
 //    	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
 //    	
-//    	int moveInstructor = MoveInstructor.instruct(orgMat.cols(), locStart, locEnd);
+    	int moveInstructor = MoveInstructor.instruct(orgMat.cols(), locStartMax, locEndMax);
     	
-        // BufferedImage processImage = OpenCVUtils.createAwtImage(res2[0]); // OpenCVUtils.createAwtImage(modMat);
-        // BufferedImage processImage = OpenCVUtils.createAwtImage(orgMat);
-        // BufferedImage processImage = OpenCVUtils.createAwtImage(capturedMat); // OpenCVUtils.createAwtImage(modMat);
         BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
-        // BufferedImage capturedImage = OpenCVUtils.createAwtImage((Mat) res[0]);
-//        BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
+        BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
         
-        return new Object[] { resultImage, processImage, null, MoveInstructor.MOVE_SEARCH };
+        return new Object[] { resultImage, processImage, capturedImage, moveInstructor };
 	}
 	
 	public static Object[] findPad(Mat capturedMat) {

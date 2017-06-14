@@ -349,7 +349,7 @@ public class RosAutoRed extends Thread {
 		
 		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		
-		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 1, 10);
+		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 3, 15);
 		velocityPanel.add(velSlider, BorderLayout.NORTH);
 		velSlider.setPreferredSize(new Dimension(200, 50));
 		//velocityPanel.setPreferredSize(new Dimension(200, 50));
@@ -378,14 +378,14 @@ public class RosAutoRed extends Thread {
 		transform.add(new JLabel("Captured Image"));
 		
 		capturedPanel = new JPanel();
-		capturedPanel.setPreferredSize(new Dimension(180, 100));
+		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
 		capturedPanel.setBorder(new TitledBorder(""));
 		transform.add(capturedPanel);
 		
 		transform.add(new JLabel("Transformed Image"));
 		
 		transformedPanel = new JPanel();
-		transformedPanel.setPreferredSize(new Dimension(180, 100));
+		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
 		transformedPanel.setBorder(new TitledBorder(""));
 		transform.add(transformedPanel);
 		
