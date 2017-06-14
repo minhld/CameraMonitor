@@ -13,7 +13,7 @@ import geometry_msgs.Twist;
 import sensor_msgs.Image;
 
 public class CameraNode2 extends AbstractNodeMain {
-	public static final double MOVE_STEP = 0.02;
+	public static final double MOVE_STEP = 0.05;
 	
 	// public static String topicTitle = "/rrbot/camera1/image_raw";
 	public static String topicTitle = "/camera/image_raw";
