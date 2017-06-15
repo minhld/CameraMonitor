@@ -27,18 +27,18 @@ public class ObjectDetectorRed {
 	public static Mat tplMat;
 	static int tplWidth, tplHeight;
 	
-	static {
-		readTemplate();
-	}
-	
-	public static void readTemplate() {
-		tplMat = Imgcodecs.imread(Settings.templatePath);
-		tplWidth = tplMat.cols();
-		tplHeight = tplMat.rows();
-		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
-		Imgproc.threshold(tplMat, tplMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
-	}
-	
+//	static {
+//		readTemplate();
+//	}
+//	
+//	public static void readTemplate() {
+//		tplMat = Imgcodecs.imread(Settings.templatePath);
+//		tplWidth = tplMat.cols();
+//		tplHeight = tplMat.rows();
+//		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
+//		Imgproc.threshold(tplMat, tplMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
+//	}
+//	
 	
 	/**
 	 * comparing with a known template
@@ -63,8 +63,8 @@ public class ObjectDetectorRed {
 		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2HSV);
 		
 		Mat lowMask = new Mat(), highMask = new Mat();
-		Core.inRange(modMat, new Scalar(Settings.threshold, Settings.gaussianSize, Settings.contourSides), new Scalar(Settings.threshold + 10, 255, 255),lowMask);
-		Core.inRange(modMat, new Scalar(Settings.colorThreshold, Settings.dilateSize, Settings.contourAreaMin), new Scalar(Settings.colorThreshold + 10, 255, 255),highMask);
+		Core.inRange(modMat, new Scalar(Settings.lowHColor, Settings.lowSColor, Settings.lowVColor), new Scalar(Settings.lowHColor + 10, 255, 255), lowMask);
+		Core.inRange(modMat, new Scalar(Settings.highHColor, Settings.highSColor, Settings.highVColor), new Scalar(Settings.highHColor + 10, 255, 255), highMask);
 
 		
 		// merge the two masks
@@ -96,7 +96,7 @@ public class ObjectDetectorRed {
 				
 				// get rid of the small objects found in the camera area
 				contourSize = Imgproc.contourArea(contour);
-				if (contourSize > THRESHOLD_MIN_AREA) {
+				if (contourSize > Settings.contourAreaMin) {
 					rect = Imgproc.boundingRect(contour);
 					locStart = new Point(rect.x, rect.y);
 					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);

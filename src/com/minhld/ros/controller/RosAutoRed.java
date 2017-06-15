@@ -9,6 +9,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -25,6 +26,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -153,7 +155,7 @@ public class RosAutoRed extends Thread {
 					MoveInstructor2.move(0, 0);
 				} 
 				RosAutoRed.this.isAuto = !RosAutoRed.this.isAuto;
-				infoText.setText("AUTOMATION IS " + (RosAutoRed.this.isAuto ? "SET" : "CLEARED"));
+				controlInfoText.setText("AUTOMATION IS " + (RosAutoRed.this.isAuto ? "SET" : "CLEARED"));
 				findPadBtn.setText(RosAutoRed.this.isAuto ? "Stop Finding" : "Find Pad");
 				
 			}
@@ -167,7 +169,7 @@ public class RosAutoRed extends Thread {
 		settingsBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
+				showSettingsDialog();
 			}
 		});
 		toolbar.add(settingsBtn);
@@ -540,19 +542,19 @@ public class RosAutoRed extends Thread {
 							// only automatically moving when flag isAuto is set
 							double vel = (double) Settings.velocity / 10;
 							if (moveInstructor == MoveInstructor2.MOVE_SEARCH) {
-								infoText.setText("SEARCHING PAD...");
+								controlInfoText.setText("SEARCHING PAD...");
 								MoveInstructor2.move(0, vel);
 								// MoveInstructor2.moveRight(vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_LEFT) {
-								infoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
+								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
 								MoveInstructor2.move(0, vel);
 								// MoveInstructor2.moveLeft(vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_RIGHT) {
-								infoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
+								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
 								MoveInstructor2.move(0, -1 * vel);
 								// MoveInstructor2.moveRight(-1 * vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_FORWARD) {
-								infoText.setText("MOVING FORWARD...");
+								controlInfoText.setText("MOVING FORWARD...");
 								MoveInstructor2.move(vel, 0);
 								// MoveInstructor2.moveForward(vel);
 							}
@@ -606,6 +608,18 @@ public class RosAutoRed extends Thread {
 		if (g != null) {
 			g.drawImage(img, 0, 0, w, h, null);
 		}
+	}
+	
+	/**
+	 * open Settings dialog
+	 */
+	private void showSettingsDialog() {
+	    JDialog settingsDialog = new JDialog(mainFrame, "Settings", ModalityType.APPLICATION_MODAL);
+	    settingsDialog.add(new SettingsPanel());
+	    settingsDialog.setSize(600, 600);
+	    settingsDialog.setResizable(false);
+	    settingsDialog.setLocationRelativeTo(mainFrame);
+	    settingsDialog.setVisible(true);
 	}
 	
 	/**
