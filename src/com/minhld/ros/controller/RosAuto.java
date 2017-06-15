@@ -65,7 +65,6 @@ public class RosAuto extends Thread {
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
 	
-	VelocityTalker mover;
 	boolean isAuto = false;
 	boolean isServerInUsed = false;
 	
@@ -527,16 +526,16 @@ public class RosAuto extends Thread {
 						if (RosAuto.this.isAuto) {
 							// only automatically moving when flag isAuto is set
 							double vel = (double) Settings.velocity / 10;
-							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
+							if (moveInstructor == MoveInstructor2.MOVE_SEARCH) {
 								infoText.setText("SEARCHING PAD...");
 								CameraNode.move(0, vel);
-							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
+							} else if (moveInstructor == MoveInstructor2.MOVE_LEFT) {
 								infoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
 								CameraNode.move(0, -1 * vel);
-							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
+							} else if (moveInstructor == MoveInstructor2.MOVE_RIGHT) {
 								infoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
 								CameraNode.move(0, vel);
-							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
+							} else if (moveInstructor == MoveInstructor2.MOVE_FORWARD) {
 								infoText.setText("MOVING FORWARD...");
 								CameraNode.move(vel, 0);
 							}

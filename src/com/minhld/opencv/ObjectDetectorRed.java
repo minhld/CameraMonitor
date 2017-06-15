@@ -15,7 +15,7 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import com.minhld.ros.controller.MoveInstructor;
+import com.minhld.ros.controller.MoveInstructor2;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.Settings;
 
@@ -142,7 +142,7 @@ public class ObjectDetectorRed {
 //    	
 //    	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
 //    	
-    	int moveInstructor = MoveInstructor.instruct(orgMat.cols(), locStartMax, locEndMax);
+    	int moveInstructor = MoveInstructor2.instruct(orgMat.cols(), locStartMax, locEndMax);
     	
         BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);

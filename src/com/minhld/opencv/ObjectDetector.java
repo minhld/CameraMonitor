@@ -15,7 +15,7 @@ import org.opencv.core.Core.MinMaxLocResult;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import com.minhld.ros.controller.MoveInstructor;
+import com.minhld.ros.controller.MoveInstructor2;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.Settings;
 
@@ -254,7 +254,7 @@ public class ObjectDetector {
     	
     	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
     	
-    	int moveInstructor = MoveInstructor.instruct(orgMat.cols(), locStart, locEnd);
+    	int moveInstructor = MoveInstructor2.instruct(orgMat.cols(), locStart, locEnd);
     	
         // BufferedImage processImage = OpenCVUtils.createAwtImage(res2[0]); // OpenCVUtils.createAwtImage(modMat);
         // BufferedImage processImage = OpenCVUtils.createAwtImage(orgMat);
