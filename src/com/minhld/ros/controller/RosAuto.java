@@ -43,12 +43,9 @@ import javax.swing.border.TitledBorder;
 import org.opencv.core.Core;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
-import com.minhld.opencv.FeatureExtractor;
 import com.minhld.opencv.ObjectDetector;
-import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.utils.AdjustSlider;
 import com.minhld.utils.AppUtils;
-import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
@@ -149,7 +146,7 @@ public class RosAuto extends Thread {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (RosAuto.this.isAuto) {
-					CameraNode.move(0, 0);
+					MoveInstructor2.move(0, 0);
 				} 
 				RosAuto.this.isAuto = !RosAuto.this.isAuto;
 				infoText.setText("AUTOMATION IS " + (RosAuto.this.isAuto ? "SET" : "CLEARED"));
@@ -403,22 +400,22 @@ public class RosAuto extends Thread {
 		switch (keyCode) {
 			case NavButtonClickListener.KEY_UP: {
 				// move up
-				CameraNode.move(actualVel, 0);
+				MoveInstructor2.move(actualVel, 0);
 				move = "FORWARD";
 				break;
 			} case NavButtonClickListener.KEY_DOWN: {
 				// move down
-				CameraNode.move(-1 * actualVel, 0);
+				MoveInstructor2.move(-1 * actualVel, 0);
 				move = "BACKWARD";
 				break;
 			} case NavButtonClickListener.KEY_LEFT: {
 				// move left
-				CameraNode.move(0, -1 * actualVel);
+				MoveInstructor2.move(0, -1 * actualVel);
 				move = "LEFT";
 				break;
 			} case NavButtonClickListener.KEY_RIGHT: {
 				// move right
-				CameraNode.move(0, actualVel);
+				MoveInstructor2.move(0, actualVel);
 				move = "RIGHT";
 				break;
 			}
@@ -434,7 +431,7 @@ public class RosAuto extends Thread {
 		if (!this.isServerInUsed) return;
 		
 		// go otherwise
-		CameraNode.move(0, 0);
+		MoveInstructor2.move(0, 0);
 		controlInfoText.setText("move: STOP");
 	}
 	
@@ -477,9 +474,9 @@ public class RosAuto extends Thread {
 			@Override
 			public void run() {
 				// this will be the name of the subscriber to this topic
-				String graphName = ROSUtils.getNodeName(CameraNode.topicTitle);
+				String graphName = ROSUtils.getNodeName(CameraNode2.topicTitle);
 				
-				ROSUtils.execute(graphName, new CameraNode(new CameraNode.ImageListener() {
+				ROSUtils.execute(graphName, new CameraNode2(new CameraNode2.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
@@ -528,16 +525,16 @@ public class RosAuto extends Thread {
 							double vel = (double) Settings.velocity / 10;
 							if (moveInstructor == MoveInstructor2.MOVE_SEARCH) {
 								infoText.setText("SEARCHING PAD...");
-								CameraNode.move(0, vel);
+								MoveInstructor2.move(0, vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_LEFT) {
 								infoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
-								CameraNode.move(0, -1 * vel);
+								MoveInstructor2.move(0, -1 * vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_RIGHT) {
 								infoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
-								CameraNode.move(0, vel);
+								MoveInstructor2.move(0, vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_FORWARD) {
 								infoText.setText("MOVING FORWARD...");
-								CameraNode.move(vel, 0);
+								MoveInstructor2.move(vel, 0);
 							}
 						}
 					}

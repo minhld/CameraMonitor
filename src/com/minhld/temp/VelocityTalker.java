@@ -1,4 +1,4 @@
-package com.minhld.ros.controller;
+package com.minhld.temp;
 
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;

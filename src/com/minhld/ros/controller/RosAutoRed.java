@@ -560,12 +560,6 @@ public class RosAutoRed extends Thread {
 					}
 				}));
 				
-				// // start the Movement Instructor
-				// String talkerTopic = "/cmd_vel";
-				// String talkerNodeName = ROSUtils.getTalkerName(talkerTopic);
-				// mover = new VelocityTalker(talkerNodeName, talkerTopic);
-				// ROSUtils.execute(talkerNodeName, mover);
-				
 				// start the Movement Instructor
 				String graphMoveName = ROSUtils.getNodeName(MoveInstructor2.moveTopicTitle);
 				ROSUtils.execute(graphMoveName, new MoveInstructor2());
