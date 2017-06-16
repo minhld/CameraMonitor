@@ -123,8 +123,8 @@ public class RosAutoRed extends Thread {
 		// load OpenCV
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-		// initiate some remaining objects
-		startInitObjects();
+//		// initiate some remaining objects
+//		startInitObjects();
 	}
 	
 	/**
@@ -207,41 +207,91 @@ public class RosAutoRed extends Thread {
 		
 		JPanel adjustPanel = new JPanel(new BorderLayout());
 		adjustPanel.setBorder(BorderFactory.createTitledBorder("Adjustment"));
+		adjustPanel.setPreferredSize(new Dimension(1000, 200));
 		
-		JPanel slidesPanel = new JPanel(new BorderLayout());
-		slidesPanel.setLayout(new GridLayout(2, 3));
-		slidesPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+		JPanel slidesPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+		slidesPanel.setLayout(new GridLayout(1, 5));
+//		slidesPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 0, 15, AdjustSlider.FLAG_ODD_STEP));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_COLOR_THRESHOLD, 50, 200));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, AdjustSlider.FLAG_ODD_STEP));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 200, 900));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 245));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 1, 255));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 255));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_COLOR_THRESHOLD, 1, 255));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 255));
+//		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 1, 255));
+
+		// Velocity slider
+		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 245));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 1, 255));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 255));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_COLOR_THRESHOLD, 1, 255));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 255));
-		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 1, 255));
-
+		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 3, 15);
+		velocityPanel.add(velSlider, BorderLayout.NORTH);
+		velocityPanel.setPreferredSize(new Dimension(200, 30));
+		slidesPanel.add(velocityPanel, BorderLayout.NORTH);
+		
+		// 1. Captured panel
+		JPanel capture = new JPanel(new FlowLayout());
+		capture.setPreferredSize(new Dimension(280, 280));
+		capture.add(new JLabel("Captured Image"));
+		
+		capturedPanel = new JPanel();
+		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+		capturedPanel.setBorder(new TitledBorder(""));
+		capture.add(capturedPanel);
+		
+		slidesPanel.add(capture);
+		
+		// 1. Captured panel
+		JPanel capture2 = new JPanel(new FlowLayout());
+		capture2.setPreferredSize(new Dimension(280, 280));
+		capture2.add(new JLabel("Captured Image"));
+		
+		JPanel capturedPanel2 = new JPanel();
+		capturedPanel2.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+		capturedPanel2.setBorder(new TitledBorder(""));
+		capture2.add(capturedPanel2);
+		
+		slidesPanel.add(capture2);
+		
+		// 1. Captured panel
+		JPanel capture3 = new JPanel(new FlowLayout());
+		capture3.setPreferredSize(new Dimension(280, 280));
+		capture3.add(new JLabel("Captured Image"));
+		
+		JPanel capturedPanel3 = new JPanel();
+		capturedPanel3.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+		capturedPanel3.setBorder(new TitledBorder(""));
+		capture3.add(capturedPanel3);
+		
+		slidesPanel.add(capture3);
+		
+		// 1. Captured panel
+		JPanel capture4 = new JPanel(new FlowLayout());
+		capture4.setPreferredSize(new Dimension(280, 280));
+		capture4.add(new JLabel("Captured Image"));
+		
+		JPanel capturedPanel4 = new JPanel();
+		capturedPanel4.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+		capturedPanel4.setBorder(new TitledBorder(""));
+		capture4.add(capturedPanel4);
+		
+		slidesPanel.add(capture4);
+		
 		
 		adjustPanel.add(slidesPanel, BorderLayout.CENTER);
 		
-		templatePanel = new JPanel(new BorderLayout());
-		templatePanel.setPreferredSize(new Dimension(170, 100));
-		templatePanel.add(new JLabel("Template"), BorderLayout.NORTH);
-		templatePanel.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				// choose another template
-			}
-		});
+//		templatePanel = new JPanel(new BorderLayout());
+//		templatePanel.setPreferredSize(new Dimension(170, 100));
+//		templatePanel.add(new JLabel("Template"), BorderLayout.NORTH);
+//		templatePanel.addMouseListener(new MouseAdapter() {
+//			@Override
+//			public void mouseReleased(MouseEvent e) {
+//				// choose another template
+//			}
+//		});
 		
 		// templatePanel.add(templateDrawPanel, BorderLayout.SOUTH);
 		
-		adjustPanel.add(templatePanel, BorderLayout.EAST);
+		// adjustPanel.add(templatePanel, BorderLayout.EAST);
 		
 		
 		totalView.add(adjustPanel, BorderLayout.CENTER);
@@ -251,7 +301,7 @@ public class RosAutoRed extends Thread {
 		
 		JPanel controller = new JPanel(new BorderLayout());
 		controller.setBorder(BorderFactory.createTitledBorder("Controller"));
-		controller.setPreferredSize(new Dimension(300, 280));
+		controller.setPreferredSize(new Dimension(300, 260));
 		
 		// Navigation buttons panel
 		this.buttonPanel = new JPanel();
@@ -348,13 +398,6 @@ public class RosAutoRed extends Thread {
 		JPanel controlInfo = new JPanel(new BorderLayout());
 		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
 		
-		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		
-		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 3, 15);
-		velocityPanel.add(velSlider, BorderLayout.NORTH);
-		velSlider.setPreferredSize(new Dimension(200, 50));
-		//velocityPanel.setPreferredSize(new Dimension(200, 50));
-		controlInfo.add(velocityPanel, BorderLayout.NORTH);
 		
 		controlInfoText = new JTextArea(10, 63);
 		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
@@ -371,26 +414,26 @@ public class RosAutoRed extends Thread {
 		
 		control.add(controlInfo, BorderLayout.CENTER);
 		
-		// Transformation panel
-		JPanel transform = new JPanel(new FlowLayout());
-		transform.setBorder(BorderFactory.createTitledBorder("Transformation"));
-		transform.setPreferredSize(new Dimension(280, 280));
-		
-		transform.add(new JLabel("Captured Image"));
-		
-		capturedPanel = new JPanel();
-		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-		capturedPanel.setBorder(new TitledBorder(""));
-		transform.add(capturedPanel);
-		
-		transform.add(new JLabel("Transformed Image"));
-		
-		transformedPanel = new JPanel();
-		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-		transformedPanel.setBorder(new TitledBorder(""));
-		transform.add(transformedPanel);
-		
-		control.add(transform, BorderLayout.EAST);
+//		// Transformation panel
+//		JPanel transform = new JPanel(new FlowLayout());
+//		transform.setBorder(BorderFactory.createTitledBorder("Transformation"));
+//		transform.setPreferredSize(new Dimension(280, 280));
+//		
+//		transform.add(new JLabel("Captured Image"));
+//		
+//		capturedPanel = new JPanel();
+//		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+//		capturedPanel.setBorder(new TitledBorder(""));
+//		transform.add(capturedPanel);
+//		
+//		transform.add(new JLabel("Transformed Image"));
+//		
+//		transformedPanel = new JPanel();
+//		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+//		transformedPanel.setBorder(new TitledBorder(""));
+//		transform.add(transformedPanel);
+//		
+//		control.add(transform, BorderLayout.EAST);
 		
 		
 		totalView.add(control, BorderLayout.SOUTH);
@@ -536,7 +579,7 @@ public class RosAutoRed extends Thread {
 						
 						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
-						drawImage(capturedPanel, capturedImage, capturedPanel.getWidth(), capturedPanel.getHeight());
+						drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
 						
 						if (RosAutoRed.this.isAuto) {
 							// only automatically moving when flag isAuto is set
@@ -573,26 +616,26 @@ public class RosAutoRed extends Thread {
 	}
 	
 	
-	private void startInitObjects() {
-		// add a template image
-		addTemplateImage();
-        
-	}
+//	private void startInitObjects() {
+//		// add a template image
+//		addTemplateImage();
+//        
+//	}
 	
-	@SuppressWarnings("serial")
-	private void addTemplateImage() {
-		// final BufferedImage templateImage = OpenCVUtils.createAwtImage(ObjectDetector.tplMat);
-		
-		JPanel tplImagePanel = new JPanel() {
-//            @Override
-//            protected void paintComponent(Graphics g) {
-//                super.paintComponent(g);
-//                g.drawImage(templateImage, 0, 0, 150, 80, null);
-//            }
-        };
-        tplImagePanel.setSize(new Dimension(150, 80));
-        templatePanel.add(tplImagePanel, BorderLayout.CENTER);
-	}
+//	@SuppressWarnings("serial")
+//	private void addTemplateImage() {
+//		// final BufferedImage templateImage = OpenCVUtils.createAwtImage(ObjectDetector.tplMat);
+//		
+//		JPanel tplImagePanel = new JPanel() {
+////            @Override
+////            protected void paintComponent(Graphics g) {
+////                super.paintComponent(g);
+////                g.drawImage(templateImage, 0, 0, 150, 80, null);
+////            }
+//        };
+//        tplImagePanel.setSize(new Dimension(150, 80));
+//        templatePanel.add(tplImagePanel, BorderLayout.CENTER);
+//	}
 	
 	/**
 	 * draw an image to the panel - this function to draw 
@@ -607,6 +650,17 @@ public class RosAutoRed extends Thread {
 		Graphics g = panel.getGraphics();
 		if (g != null) {
 			g.drawImage(img, 0, 0, w, h, null);
+		}
+	}
+	
+	private void drawClearImage(JPanel panel, BufferedImage img, int w, int h) {
+		Graphics g = panel.getGraphics();
+		if (g != null) {
+			// g.setColor(Color.GRAY);
+			// g.fillRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
+			// g.clearRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
+			g.drawImage(img, 0, 0, w, h, null);
+			
 		}
 	}
 	

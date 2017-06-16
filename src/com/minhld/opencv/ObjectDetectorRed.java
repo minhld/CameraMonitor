@@ -111,22 +111,28 @@ public class ObjectDetectorRed {
 					locEndMax = locEnd;
 				}
 			}
-			System.out.println("contour max: " + maxContourSize);
+//			System.out.println("contour max: " + maxContourSize);
 		}
 
 		// draw the rectangle surrounding the object
-		Imgproc.rectangle(orgMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
+		Mat rectMat = new Mat();
+		orgMat.copyTo(rectMat);
+		Imgproc.rectangle(rectMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
 
-//		// capture the image containing the object
-//		Mat capturedMat = new Mat(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT, orgMat.type());
-//		if (locEndMax.x > 0 && locEndMax.y > 0) {
-//			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
-//			int centerY = (int) (locEndMax.y + locEndMax.y) / 2;
-//			if (centerX - Settings.TEMPLATE_WIDTH / 2 > 0 && centerY - Settings.TEMPLATE_HEIGHT / 2 > 0) {
-//				capturedMat = new Mat(orgMat, new Rect(new Point(centerX - Settings.TEMPLATE_WIDTH / 2, centerY - Settings.TEMPLATE_HEIGHT / 2), 
-//												new Point(centerX + Settings.TEMPLATE_WIDTH / 2, centerY + Settings.TEMPLATE_HEIGHT / 2)));
-//			}
-//		}
+		// capture the image containing the object
+		Mat capturedMat = new Mat(1, 1, orgMat.type());
+		if (locEndMax.x > 0 && locEndMax.y > 0) {
+			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
+			int centerY = (int) (locStartMax.y + locEndMax.y) / 2;
+			
+			int startPointX = (centerX - Settings.TEMPLATE_WIDTH / 2 >= 0) ? centerX - Settings.TEMPLATE_WIDTH / 2 : 0;
+			int startPointY = (centerY - Settings.TEMPLATE_HEIGHT / 2 >= 0) ? centerY - Settings.TEMPLATE_HEIGHT / 2 : 0;
+			int endPointX = (centerX + Settings.TEMPLATE_WIDTH / 2 <= orgMat.cols()) ? centerX + Settings.TEMPLATE_WIDTH / 2 : orgMat.cols(); 
+			int endPointY = (centerY + Settings.TEMPLATE_HEIGHT / 2 <= orgMat.rows()) ? centerY + Settings.TEMPLATE_HEIGHT / 2 : orgMat.rows();
+		
+			capturedMat = new Mat(orgMat, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
+			
+		}
 		
 //    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
 //    	// Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
@@ -145,11 +151,11 @@ public class ObjectDetectorRed {
 //    	
     	int moveInstructor = MoveInstructor2.instruct(orgMat.cols(), locStartMax, locEndMax);
     	
-        BufferedImage resultImage = OpenCVUtils.createAwtImage(orgMat);
+        BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
-        // BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
+        BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
         
-        return new Object[] { resultImage, processImage, null, moveInstructor };
+        return new Object[] { resultImage, processImage, capturedImage, moveInstructor };
 	}
 	
 	public static Object[] findPad(Mat capturedMat) {

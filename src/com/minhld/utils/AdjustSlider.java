@@ -20,7 +20,7 @@ public class AdjustSlider extends JPanel {
 	
 	public AdjustSlider(String label, int min, int max) {
 		setLayout(new BorderLayout());
-		setPreferredSize(new Dimension(200, 80));
+		setPreferredSize(new Dimension(200, 50));
 
 		this.title = label;
 		int currVal = Settings.getValue(this.title);

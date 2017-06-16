@@ -215,7 +215,6 @@ public class RosAuto extends Thread {
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 0, 15, 2));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
-		slidesPanel.add(new AdjustSlider("A", 1, 100));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, 2));
 		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 200, 900));
 		

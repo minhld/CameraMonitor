@@ -34,9 +34,9 @@ public class SettingsPanel extends JPanel {
 		JPanel thresholdPanel = new JPanel(new GridLayout(1, 3));
 		thresholdPanel.setPreferredSize(new Dimension(650, 70));
 		thresholdPanel.setBorder(BorderFactory.createTitledBorder("Thresholds"));
-		thresholdPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
-		thresholdPanel.add(new AdjustChecker(Settings.LABEL_DILATE_ENABLE, 1));
+		thresholdPanel.add(new AdjustChecker(Settings.LABEL_DILATE_ENABLE, 1, false));
 		thresholdPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, 2));
+		thresholdPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
 		add(thresholdPanel);
 				
 		// ------ Contour panel ------
