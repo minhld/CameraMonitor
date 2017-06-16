@@ -11,11 +11,12 @@ import javax.swing.event.ChangeListener;
 
 public class AdjustSlider extends JPanel {
 	private static final long serialVersionUID = 8183929984967684854L;
-	public static final int FLAG_ODD_STEP = 1;
+	// public static final int FLAG_ODD_STEP = 1;
 	
 	String title;
 	JLabel titleLabel;
 	JSlider bar;
+	int step = 1;
 	
 	public AdjustSlider(String label, int min, int max) {
 		setLayout(new BorderLayout());
@@ -34,12 +35,17 @@ public class AdjustSlider extends JPanel {
 		bar.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				// update setting object
 				int val = bar.getValue();
-				Settings.setValue(AdjustSlider.this.title, val);
 				
-				// update label of the slider 
-				AdjustSlider.this.titleLabel.setText(AdjustSlider.this.title + ": " + val);
+				// if step  
+				if (AdjustSlider.this.step == 1 || AdjustSlider.this.step > 1 && val % AdjustSlider.this.step == 1) {
+						
+					// update setting object
+					Settings.setValue(AdjustSlider.this.title, val);
+					
+					// update label of the slider 
+					AdjustSlider.this.titleLabel.setText(AdjustSlider.this.title + ": " + val);
+				}
 			}
 		});
 		// bar.setPaintTicks(true);
@@ -49,11 +55,12 @@ public class AdjustSlider extends JPanel {
 		add(bar, BorderLayout.CENTER);
 	}
 	
-	public AdjustSlider(String label, int min, int max, int slideFlag) {
+	public AdjustSlider(String label, int min, int max, int step) {
 		this(label, min, max);
-		if (slideFlag == FLAG_ODD_STEP) {
-//			bar.setMinorTickSpacing(2);
-//			bar.setSnapToTicks(true);
+		this.step = step;
+		if (step > 1) {
+			bar.setMinorTickSpacing(this.step);
+			bar.setSnapToTicks(true);
 		}
 	}
 }

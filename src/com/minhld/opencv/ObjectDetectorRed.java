@@ -53,10 +53,10 @@ public class ObjectDetectorRed {
 		
 		Mat modMat = new Mat();
 		
-//		// set it blur (to remove noise)
-//		if (Settings.gaussianSize % 2 == 1) {
-//			Imgproc.GaussianBlur(orgMat, orgMat, new Size(Settings.gaussianSize, Settings.gaussianSize), 1);
-//		}
+		// set it blur (to remove noise)
+		if (Settings.gaussianEnable == 1) {
+			Imgproc.GaussianBlur(orgMat, orgMat, new Size(Settings.gaussianSize, Settings.gaussianSize), Settings.gaussianStandardDeviation);
+		}
 		// Imgproc.GaussianBlur(orgMat, orgMat, new Size(3, 3), 1);
 		
 		// turns it to HSV color image
@@ -71,9 +71,11 @@ public class ObjectDetectorRed {
 		Mat finalMask = new Mat();
 		Core.addWeighted(lowMask, 1, highMask, 1, 0, finalMask);
 
-		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(3, 3));
-		Imgproc.dilate(finalMask, finalMask, element);
-		Imgproc.erode(finalMask, finalMask, element);
+		if (Settings.dilateEnable == 1) {
+			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));
+			Imgproc.dilate(finalMask, finalMask, element);
+			Imgproc.erode(finalMask, finalMask, element);
+		}
 
 		
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();

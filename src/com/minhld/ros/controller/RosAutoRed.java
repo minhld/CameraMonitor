@@ -616,7 +616,7 @@ public class RosAutoRed extends Thread {
 	private void showSettingsDialog() {
 	    JDialog settingsDialog = new JDialog(mainFrame, "Settings", ModalityType.APPLICATION_MODAL);
 	    settingsDialog.add(new SettingsPanel());
-	    settingsDialog.setSize(600, 600);
+	    settingsDialog.setSize(660, 660);
 	    settingsDialog.setResizable(false);
 	    settingsDialog.setLocationRelativeTo(mainFrame);
 	    settingsDialog.setVisible(true);

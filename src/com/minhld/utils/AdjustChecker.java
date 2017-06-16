@@ -37,4 +37,8 @@ public class AdjustChecker extends JPanel {
 
 	}
 	
+	public AdjustChecker(String label, int defaultValue, boolean enabled) {
+		this(label, defaultValue);
+		checker.setEnabled(enabled);
+	}
 }

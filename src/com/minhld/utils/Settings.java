@@ -12,13 +12,18 @@ public class Settings {
 	
 	public static final String LABEL_THRESHOLD = "threshold";
 	public static final String LABEL_COLOR_THRESHOLD = "color-threshold";
-	public static final String LABEL_GAUSSIAN_SIZE = "gaussian-size";
 	
 	public static final String LABEL_CONTOUR_SIDES = "contour-sides";
 	public static final String LABEL_CONTOUR_AREA_MIN = "contour-area-min";
 	public static final String LABEL_CONTOUR_ENABLE = "contour-enable";
-	
+
+	public static final String LABEL_GAUSSIAN_ENABLE = "gaussian-enable";
+	public static final String LABEL_GAUSSIAN_SIZE = "gaussian-size";
+	public static final String LABEL_GAUSSIAN_STANDARD_DEVIATION = "gaussian-standard-deviation";
+
+	public static final String LABEL_DILATE_ENABLE = "dilate-enable";
 	public static final String LABEL_DILATE_SIZE = "dilate-size";
+	
 	public static final String LABEL_VELOCITY = "velocity";
 	
 	public static final String LABEL_COLOR_LOW_H = "low-h-color";
@@ -28,16 +33,19 @@ public class Settings {
 	public static final String LABEL_COLOR_HIGH_S = "high-s-color";
 	public static final String LABEL_COLOR_HIGH_V = "high-v-color";
 	
-	public static final String LABEL_NULL = "A";
-	
+
 	public static int threshold = 235;
 	public static int colorThreshold = 100;
+	
+	public static int gaussianEnable = 0;
 	public static int gaussianSize = 0;
+	public static int gaussianStandardDeviation = 0;
 	
 	public static int contourSides = 9;
 	public static int contourAreaMin = 300;
 	public static int contourEnable = 1;
 	
+	public static int dilateEnable = 1;
 	public static int dilateSize = 3;
 	public static int velocity = 3;
 	
@@ -70,14 +78,20 @@ public class Settings {
 			Settings.threshold = value;
 		} else if (key.equals(Settings.LABEL_COLOR_THRESHOLD)) {
 			Settings.colorThreshold = value;
+		} else if (key.equals(Settings.LABEL_GAUSSIAN_ENABLE)) {
+			Settings.gaussianEnable = value;
 		} else if (key.equals(Settings.LABEL_GAUSSIAN_SIZE)) {
 			Settings.gaussianSize = value;
+		} else if (key.equals(Settings.LABEL_GAUSSIAN_STANDARD_DEVIATION)) {
+			Settings.gaussianStandardDeviation = value;
 		} else if (key.equals(Settings.LABEL_CONTOUR_SIDES)) {
 			Settings.contourSides = value;
 		} else if (key.equals(Settings.LABEL_CONTOUR_AREA_MIN)) {
 			Settings.contourAreaMin = value;
 		} else if (key.equals(Settings.LABEL_CONTOUR_ENABLE)) { 
 			Settings.contourEnable = value;
+		} else if (key.equals(Settings.LABEL_DILATE_ENABLE)) { 
+			Settings.dilateEnable = value;
 		} else if (key.equals(Settings.LABEL_DILATE_SIZE)) { 
 			Settings.dilateSize = value;
 		} else if (key.equals(Settings.LABEL_VELOCITY)) {
@@ -94,8 +108,6 @@ public class Settings {
 			Settings.highSColor = value;
 		} else if (key.equals(Settings.LABEL_COLOR_HIGH_V)) {
 			Settings.highVColor = value;
-		} else if (key.equals(Settings.LABEL_NULL)) {
-			
 		}  
 	}
 	
@@ -131,6 +143,11 @@ public class Settings {
 			Settings.settings = new Properties();
 			Settings.settings.load(new FileInputStream(f));
 			
+			String keyStr;
+			for (Object key : Settings.settings.keySet()) {
+				keyStr = (String) key;
+				setValue(keyStr, Integer.parseInt((String) Settings.settings.getProperty(keyStr)));
+			}
 		} catch (IOException ioEx) {
 			ioEx.printStackTrace();
 		}
