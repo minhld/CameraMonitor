@@ -128,6 +128,23 @@ public class MoveInstructor2 extends AbstractNodeMain {
 		move(cVel, cRot);
 	}
 	
+	public static int instruct(int orgImgWidth, Rect objectRect) {
+		int avgX = objectRect.x + (int) (objectRect.width / 2);
+		int centerX = orgImgWidth / 2;
+		if (objectRect.x == 0 && objectRect.y == 0) {
+			// pad has yet to be found
+			return MOVE_SEARCH;
+		} else if (avgX <= centerX - CENTER_MARGIN) {
+			return MOVE_LEFT;
+		} else if (avgX > centerX - CENTER_MARGIN && avgX < centerX + CENTER_MARGIN) {
+			return MOVE_FORWARD;
+		} else if (avgX >= centerX + CENTER_MARGIN) {
+			return MOVE_RIGHT;
+		}
+		
+		return MOVE_STOP;
+	}
+	
 	public static int instruct(int orgImgWidth, Point padTopLeft, Point padBottomRight) {
 		int avgX = (int) (padTopLeft.x + padBottomRight.x) / 2;
 		int centerX = orgImgWidth / 2;

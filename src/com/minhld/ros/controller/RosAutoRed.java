@@ -43,6 +43,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 import org.opencv.core.Core;
+import org.opencv.core.Rect;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.opencv.ObjectDetectorRed;
@@ -573,9 +574,9 @@ public class RosAutoRed extends Thread {
 						BufferedImage resultImage = (BufferedImage) results[0];
 						BufferedImage processImage = (BufferedImage) results[1];
 						BufferedImage capturedImage = (BufferedImage) results[2];
+						Rect objectRect = (Rect) results[3];
 						
-						// boolean isAtCenter = (Boolean) results[2];
-						int moveInstructor = (Integer) results[3];
+						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
 						
 						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
@@ -656,10 +657,8 @@ public class RosAutoRed extends Thread {
 	private void drawClearImage(JPanel panel, BufferedImage img, int w, int h) {
 		Graphics g = panel.getGraphics();
 		if (g != null) {
-			// g.setColor(Color.GRAY);
-			// g.fillRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
 			// g.clearRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
-			g.drawImage(img, 0, 0, w, h, null);
+			g.drawImage(img, 0, 0, w / 2, h / 2, null);
 			
 		}
 	}

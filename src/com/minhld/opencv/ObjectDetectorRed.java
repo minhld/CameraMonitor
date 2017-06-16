@@ -124,14 +124,14 @@ public class ObjectDetectorRed {
 		if (locEndMax.x > 0 && locEndMax.y > 0) {
 			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
 			int centerY = (int) (locStartMax.y + locEndMax.y) / 2;
-			
-			int startPointX = (centerX - Settings.TEMPLATE_WIDTH / 2 >= 0) ? centerX - Settings.TEMPLATE_WIDTH / 2 : 0;
-			int startPointY = (centerY - Settings.TEMPLATE_HEIGHT / 2 >= 0) ? centerY - Settings.TEMPLATE_HEIGHT / 2 : 0;
-			int endPointX = (centerX + Settings.TEMPLATE_WIDTH / 2 <= orgMat.cols()) ? centerX + Settings.TEMPLATE_WIDTH / 2 : orgMat.cols(); 
-			int endPointY = (centerY + Settings.TEMPLATE_HEIGHT / 2 <= orgMat.rows()) ? centerY + Settings.TEMPLATE_HEIGHT / 2 : orgMat.rows();
+
+			// redefine the capture screen
+			int startPointX = (centerX - Settings.TEMPLATE_WIDTH >= 0) ? centerX - Settings.TEMPLATE_WIDTH : 0;
+			int startPointY = (centerY - Settings.TEMPLATE_HEIGHT >= 0) ? centerY - Settings.TEMPLATE_HEIGHT : 0;
+			int endPointX = (centerX + Settings.TEMPLATE_WIDTH <= orgMat.cols()) ? centerX + Settings.TEMPLATE_WIDTH : orgMat.cols(); 
+			int endPointY = (centerY + Settings.TEMPLATE_HEIGHT <= orgMat.rows()) ? centerY + Settings.TEMPLATE_HEIGHT : orgMat.rows();
 		
 			capturedMat = new Mat(orgMat, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
-			
 		}
 		
 //    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
@@ -149,13 +149,14 @@ public class ObjectDetectorRed {
 //    	
 //    	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
 //    	
-    	int moveInstructor = MoveInstructor2.instruct(orgMat.cols(), locStartMax, locEndMax);
+    	
+//		int moveInstructor = MoveInstructor2.instruct(orgMat.cols(), locStartMax, locEndMax);
     	
         BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
         BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
         
-        return new Object[] { resultImage, processImage, capturedImage, moveInstructor };
+        return new Object[] { resultImage, processImage, capturedImage, new Rect(locStartMax, locEndMax) };
 	}
 	
 	public static Object[] findPad(Mat capturedMat) {
