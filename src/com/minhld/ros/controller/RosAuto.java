@@ -9,6 +9,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridLayout;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -25,6 +26,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -73,7 +75,7 @@ public class RosAuto extends Thread {
 		Container contentPane = mainFrame.getContentPane();
 		
 		// load settings (for WHITE OBJECT configuration)
-		Settings.init("settings");
+		Settings.init(Settings.SETTING_ORG);
 		
 		// ------ set Tool-bar and Buttons ------ 
 		contentPane.add(buildToolBar(), BorderLayout.NORTH);
@@ -107,6 +109,10 @@ public class RosAuto extends Thread {
 			    if (response == JOptionPane.YES_OPTION) {
 			    	// close all nodes 
 			    	ROSUtils.shutdownAllNodes();
+			    	
+			    	// clean variables and save properties
+			    	prepareCloseApp();
+			    	
 			    	System.exit(0);
 			    }
 			}
@@ -149,7 +155,7 @@ public class RosAuto extends Thread {
 					MoveInstructor2.move(0, 0);
 				} 
 				RosAuto.this.isAuto = !RosAuto.this.isAuto;
-				infoText.setText("AUTOMATION IS " + (RosAuto.this.isAuto ? "SET" : "CLEARED"));
+				controlInfoText.setText("AUTOMATION IS " + (RosAuto.this.isAuto ? "SET" : "CLEARED"));
 				findPadBtn.setText(RosAuto.this.isAuto ? "Stop Finding" : "Find Pad");
 				
 			}
@@ -163,7 +169,7 @@ public class RosAuto extends Thread {
 		settingsBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				
+				showSettingsDialog();
 			}
 		});
 		toolbar.add(settingsBtn);
@@ -336,7 +342,7 @@ public class RosAuto extends Thread {
 		
 		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		
-		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 1, 10);
+		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 3, 15);
 		velocityPanel.add(velSlider, BorderLayout.NORTH);
 		velSlider.setPreferredSize(new Dimension(200, 50));
 		//velocityPanel.setPreferredSize(new Dimension(200, 50));
@@ -365,14 +371,14 @@ public class RosAuto extends Thread {
 		transform.add(new JLabel("Captured Image"));
 		
 		capturedPanel = new JPanel();
-		capturedPanel.setPreferredSize(new Dimension(180, 100));
+		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
 		capturedPanel.setBorder(new TitledBorder(""));
 		transform.add(capturedPanel);
 		
 		transform.add(new JLabel("Transformed Image"));
 		
 		transformedPanel = new JPanel();
-		transformedPanel.setPreferredSize(new Dimension(180, 100));
+		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
 		transformedPanel.setBorder(new TitledBorder(""));
 		transform.add(transformedPanel);
 		
@@ -401,21 +407,25 @@ public class RosAuto extends Thread {
 			case NavButtonClickListener.KEY_UP: {
 				// move up
 				MoveInstructor2.move(actualVel, 0);
+				// MoveInstructor2.moveForward(actualVel);
 				move = "FORWARD";
 				break;
 			} case NavButtonClickListener.KEY_DOWN: {
 				// move down
 				MoveInstructor2.move(-1 * actualVel, 0);
+				// MoveInstructor2.moveBackward(actualVel);
 				move = "BACKWARD";
 				break;
 			} case NavButtonClickListener.KEY_LEFT: {
 				// move left
-				MoveInstructor2.move(0, -1 * actualVel);
+				MoveInstructor2.move(0, actualVel);
+				// MoveInstructor2.moveLeft(actualVel);
 				move = "LEFT";
 				break;
 			} case NavButtonClickListener.KEY_RIGHT: {
 				// move right
-				MoveInstructor2.move(0, actualVel);
+				MoveInstructor2.move(0, -1 * actualVel);
+				// MoveInstructor2.moveRight(-1 * actualVel);
 				move = "RIGHT";
 				break;
 			}
@@ -474,9 +484,9 @@ public class RosAuto extends Thread {
 			@Override
 			public void run() {
 				// this will be the name of the subscriber to this topic
-				String graphName = ROSUtils.getNodeName(CameraNode2.topicTitle);
+				String graphCameraName = ROSUtils.getNodeName(CameraNode2.topicTitle);
 				
-				ROSUtils.execute(graphName, new CameraNode2(new CameraNode2.ImageListener() {
+				ROSUtils.execute(graphCameraName, new CameraNode2(new CameraNode2.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
@@ -524,27 +534,25 @@ public class RosAuto extends Thread {
 							// only automatically moving when flag isAuto is set
 							double vel = (double) Settings.velocity / 10;
 							if (moveInstructor == MoveInstructor2.MOVE_SEARCH) {
-								infoText.setText("SEARCHING PAD...");
+								controlInfoText.setText("SEARCHING PAD...");
 								MoveInstructor2.move(0, vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_LEFT) {
-								infoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
-								MoveInstructor2.move(0, -1 * vel);
-							} else if (moveInstructor == MoveInstructor2.MOVE_RIGHT) {
-								infoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
+								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
 								MoveInstructor2.move(0, vel);
+							} else if (moveInstructor == MoveInstructor2.MOVE_RIGHT) {
+								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
+								MoveInstructor2.move(0, -1 * vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_FORWARD) {
-								infoText.setText("MOVING FORWARD...");
+								controlInfoText.setText("MOVING FORWARD...");
 								MoveInstructor2.move(vel, 0);
 							}
 						}
 					}
 				}));
 				
-				// // start the velocity talker
-				// String talkerTopic = "/cmd_vel";
-				// String talkerNodeName = ROSUtils.getTalkerName(talkerTopic);
-				// mover = new VelocityTalker(talkerNodeName, talkerTopic);
-				// ROSUtils.execute(talkerNodeName, mover);
+				// start the Movement Instructor
+				String graphMoveName = ROSUtils.getNodeName(MoveInstructor2.moveTopicTitle);
+				ROSUtils.execute(graphMoveName, new MoveInstructor2());
 			}
 		};
 		nodeThread.start();
@@ -588,6 +596,18 @@ public class RosAuto extends Thread {
 		if (g != null) {
 			g.drawImage(img, 0, 0, w, h, null);
 		}
+	}
+	
+	/**
+	 * open Settings dialog
+	 */
+	private void showSettingsDialog() {
+	    JDialog settingsDialog = new JDialog(mainFrame, "Settings", ModalityType.APPLICATION_MODAL);
+	    settingsDialog.add(new SettingsPanel());
+	    settingsDialog.setSize(660, 660);
+	    settingsDialog.setResizable(false);
+	    settingsDialog.setLocationRelativeTo(mainFrame);
+	    settingsDialog.setVisible(true);
 	}
 	
 	/**
@@ -739,6 +759,14 @@ public class RosAuto extends Thread {
 		connectROSButton.setEnabled(true);
 		stopROSButton.setEnabled(false);
 		
+	}
+	
+	/**
+	 * this function is called to clean all the parameters
+	 * as well as save to props file
+	 */
+	private void prepareCloseApp() {
+		Settings.saveProps(Settings.SETTING_RED);
 	}
 	
 	/**
