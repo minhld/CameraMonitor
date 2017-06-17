@@ -75,6 +75,9 @@ public class RosAutoRed extends Thread {
 		
 		Container contentPane = mainFrame.getContentPane();
 		
+		// load UI properties
+		UISupport.loadUIProps();
+		
 		// load settings (for RED OBJECT configuration)
 		Settings.init(Settings.SETTING_RED);
 		
@@ -95,7 +98,8 @@ public class RosAutoRed extends Thread {
 		} catch (Exception e) { }
 		
 		// set window size
-		mainFrame.setSize(1390, 860);
+		mainFrame.setSize(UISupport.getUIProp("main-window-width"), UISupport.getUIProp("main-window-height"));
+		// mainFrame.setSize(1390, 860);
 		// mainFrame.setSize(1660, 1060);
 		mainFrame.setResizable(false);
 		// mainFrame.setMinimumSize(new Dimension(1380, 860));
@@ -302,12 +306,15 @@ public class RosAutoRed extends Thread {
 		
 		JPanel controller = new JPanel(new BorderLayout());
 		controller.setBorder(BorderFactory.createTitledBorder("Controller"));
-		controller.setPreferredSize(new Dimension(300, 260));
+		controller.setPreferredSize(new Dimension(300, UISupport.getUIProp("controller-height")));
 		
 		// Navigation buttons panel
 		this.buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(3, 3));
-		buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50));
+		buttonPanel.setBorder(new EmptyBorder(UISupport.getUIProp("button-margin-top"), 
+										UISupport.getUIProp("button-margin-left"), 
+										UISupport.getUIProp("button-margin-top"), 
+										UISupport.getUIProp("button-margin-left")));
 		buttonPanel.setFocusable(true);
 		buttonPanel.requestFocusInWindow();
 		buttonPanel.addKeyListener(new KeyAdapter() {
@@ -689,7 +696,7 @@ public class RosAutoRed extends Thread {
 		
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
-		ipText = new JTextField(20);
+		ipText = new JTextField(UISupport.getUIProp("host-text-columns"));
 		ipText.grabFocus();
 		// String currentIP = "129.123.7.100";
 		String currentIP = AppUtils.getCurrentIP();
@@ -756,7 +763,8 @@ public class RosAutoRed extends Thread {
 		JScrollPane listScroller = new JScrollPane(topicList, 
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		listScroller.setPreferredSize(new Dimension(300, 250));
+		listScroller.setPreferredSize(new Dimension(UISupport.getUIProp("topic-list-width"), 
+													UISupport.getUIProp("topic-list-height")));
 		topicPanel.add(listScroller, BorderLayout.CENTER);
 		config.add(topicPanel, BorderLayout.CENTER);
 
@@ -767,7 +775,7 @@ public class RosAutoRed extends Thread {
 		JPanel infoPanel = new JPanel();
 		infoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
 
-		infoText = new JTextArea(25, 46);
+		infoText = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
 		infoText.setBorder(BorderFactory.createLineBorder(Color.gray));
 		infoText.setFont(new Font("courier", Font.PLAIN, 11));
 		infoText.setEditable(false);
