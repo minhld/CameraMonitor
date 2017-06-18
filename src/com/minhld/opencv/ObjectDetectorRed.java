@@ -68,7 +68,8 @@ public class ObjectDetectorRed {
 		// ... merge the two masks
 		Mat finalMask = new Mat();
 		Core.addWeighted(lowMask, 1, highMask, 1, 0, finalMask);
-
+		// Core.bitwise_and(lowMask, highMask, finalMask);
+		
 		// 3. remove more noise
 		if (Settings.dilateEnable == 1) {
 			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));

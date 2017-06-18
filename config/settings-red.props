@@ -1,10 +1,10 @@
 #ROS CONTROLLER SETTINGS
-#Sun Jun 18 15:28:26 MDT 2017
+#Sun Jun 18 17:09:47 MDT 2017
 contour-enable=1
 dilate-size=3
 low-h-color=1
 high-h-color=170
-low-s-color=164
+low-s-color=110
 velocity=6
 high-s-color=110
 threshold=235
