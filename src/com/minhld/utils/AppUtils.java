@@ -5,12 +5,15 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class AppUtils {
-	
+	static final DecimalFormat formatter = new DecimalFormat("#,###.00");
+
 	/**
 	 * hold the application ID
 	 */
@@ -76,5 +79,9 @@ public class AppUtils {
 		} catch (Exception e) {
 			// silently passes
 		}
+	}
+	
+	public static String getNumberFormat(double num) {
+		return formatter.format(num);
 	}
 }

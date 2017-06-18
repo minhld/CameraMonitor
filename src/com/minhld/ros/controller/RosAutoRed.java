@@ -46,6 +46,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Rect;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
+import com.minhld.opencv.DistanceEstimator;
 import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.utils.AdjustSlider;
 import com.minhld.utils.AppUtils;
@@ -571,6 +572,7 @@ public class RosAutoRed extends Thread {
 						BufferedImage padImage = (BufferedImage) results[3];
 						Rect objectRect = (Rect) results[4];
 						
+						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
 						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
 						
 						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
@@ -579,13 +581,12 @@ public class RosAutoRed extends Thread {
 						drawImage(closedCapturedPanel, padImage, closedCapturedPanel.getWidth(), closedCapturedPanel.getHeight());
 						
 						long drawTime = System.currentTimeMillis() - start;
-						
-						
-						
 						long rate = (long) (1000 / processTime);
 						RosAutoRed.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
 														"Processing Time: " + processTime + "ms | " + 
 														"Rate: " + rate + "fps");
+
+						RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)");
 						
 						
 						if (RosAutoRed.this.isAuto) {
