@@ -61,7 +61,8 @@ public class RosAutoRed extends Thread {
 	JButton connectROSButton, stopROSButton;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
-	JPanel cameraPanel, processPanel, buttonPanel, templatePanel, capturedPanel, transformedPanel;
+	JPanel cameraPanel, processPanel, buttonPanel, templatePanel; 
+	JPanel capturedPanel, closedCapturedPanel, transformedPanel;
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
 	
@@ -250,10 +251,10 @@ public class RosAutoRed extends Thread {
 		capture2.setPreferredSize(new Dimension(280, 280));
 		capture2.add(new JLabel("Captured Image"));
 		
-		JPanel capturedPanel2 = new JPanel();
-		capturedPanel2.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-		capturedPanel2.setBorder(new TitledBorder(""));
-		capture2.add(capturedPanel2);
+		closedCapturedPanel = new JPanel();
+		closedCapturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+		closedCapturedPanel.setBorder(new TitledBorder(""));
+		capture2.add(closedCapturedPanel);
 		
 		slidesPanel.add(capture2);
 		
@@ -551,7 +552,7 @@ public class RosAutoRed extends Thread {
 						long start = System.currentTimeMillis();
 						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
 						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
-						long loadImageTime = System.currentTimeMillis() - start;
+						// long loadImageTime = System.currentTimeMillis() - start;
 						
 						// // draw on the LEFT canvas the original camera image
 						// drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
@@ -559,35 +560,33 @@ public class RosAutoRed extends Thread {
 						// draw on the RIGHT canvas the modify image
 						// Object[] results = OpenCVUtils.processImage(bImage);
 						start = System.currentTimeMillis();
-						// Object[] results = OpenCVUtils.processImage(image);
-						// Object[] results = OpenCVUtils.processImage2(image);
-						// Object[] results = OpenCVUtils.processImage3(image);
-						// Object[] results = OpenCVUtils.processImage6(image);
-						// Object[] results = OpenCVUtils.processImage7(image);
-						// Object[] results = FeatureExtractor.processImage(image);
-						// Object[] results = ObjectDetector.processImage0(image);
-						// Object[] results = ObjectDetector.processImage(image);
-						// Object[] results = ObjectDetector.processImage11(image);
-						// Object[] results = ObjectDetector.processImage2(image);
-						// Object[] results = ObjectDetector.processImage21(image);
 						Object[] results = ObjectDetectorRed.processImage(image);
+						long processTime = System.currentTimeMillis() - start;
 						
-						long durr = System.currentTimeMillis() - start;
-						long rate = (long) (1000 / durr);
-						RosAutoRed.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | " +  
-														"Processing Time: " + durr + "ms | " + 
-														"Rate: " + rate + "fps");
 						
+						start = System.currentTimeMillis();
 						BufferedImage resultImage = (BufferedImage) results[0];
 						BufferedImage processImage = (BufferedImage) results[1];
 						BufferedImage capturedImage = (BufferedImage) results[2];
-						Rect objectRect = (Rect) results[3];
+						BufferedImage padImage = (BufferedImage) results[3];
+						Rect objectRect = (Rect) results[4];
 						
 						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
 						
 						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
 						drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
+						drawImage(closedCapturedPanel, padImage, closedCapturedPanel.getWidth(), closedCapturedPanel.getHeight());
+						
+						long drawTime = System.currentTimeMillis() - start;
+						
+						
+						
+						long rate = (long) (1000 / processTime);
+						RosAutoRed.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
+														"Processing Time: " + processTime + "ms | " + 
+														"Rate: " + rate + "fps");
+						
 						
 						if (RosAutoRed.this.isAuto) {
 							// only automatically moving when flag isAuto is set

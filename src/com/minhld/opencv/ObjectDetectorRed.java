@@ -14,7 +14,6 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-import com.minhld.ros.controller.MoveInstructor2;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.Settings;
 
@@ -119,6 +118,7 @@ public class ObjectDetectorRed {
 		orgMat.copyTo(rectMat);
 		Imgproc.rectangle(rectMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
 
+		
 		// capture the image containing the object
 		Mat capturedMat = new Mat(1, 1, orgMat.type());
 		if (locEndMax.x > 0 && locEndMax.y > 0) {
@@ -150,13 +150,32 @@ public class ObjectDetectorRed {
 //    	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
 //    	
     	
-//		int moveInstructor = MoveInstructor2.instruct(orgMat.cols(), locStartMax, locEndMax);
-    	
         BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
         BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
         
-        return new Object[] { resultImage, processImage, capturedImage, new Rect(locStartMax, locEndMax) };
+        BufferedImage padImage = null;
+        if (locEndMax.x > 0 && locEndMax.y > 0) {
+    		Mat padMat = new Mat(orgMat, new Rect(locStartMax, locEndMax));
+    		padMat = extractFeature(padMat);
+
+            padImage = OpenCVUtils.createAwtImage(padMat);
+        }
+        
+        return new Object[] { resultImage, processImage, capturedImage, padImage, new Rect(locStartMax, locEndMax) };
+	}
+	
+	public static Mat extractFeature(Mat padMat) {
+		Mat rectMat = new Mat();
+		// Imgproc.GaussianBlur(padMat, rectMat, new Size(3, 3), 0);
+		Imgproc.GaussianBlur(padMat, rectMat, new Size(0, 0), 3);
+		Core.addWeighted(padMat, 1.5, rectMat, -0.5, 0, rectMat);
+
+		Mat[] results = FeatureExtractorRed.extractFeature(rectMat);
+		
+		
+		
+		return results[1];
 	}
 	
 	public static Object[] findPad(Mat capturedMat) {
