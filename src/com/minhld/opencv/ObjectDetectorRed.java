@@ -57,25 +57,26 @@ public class ObjectDetectorRed {
 		}
 		// Imgproc.GaussianBlur(orgMat, orgMat, new Size(3, 3), 1);
 		
-		// turns it to HSV color image
+		// 1. turns it to HSV color image
 		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2HSV);
 		
+		// 2. filter out the red color in a wide range 
 		Mat lowMask = new Mat(), highMask = new Mat();
 		Core.inRange(modMat, new Scalar(Settings.lowHColor, Settings.lowSColor, Settings.lowVColor), new Scalar(Settings.lowHColor + 10, 255, 255), lowMask);
 		Core.inRange(modMat, new Scalar(Settings.highHColor, Settings.highSColor, Settings.highVColor), new Scalar(Settings.highHColor + 10, 255, 255), highMask);
-
 		
-		// merge the two masks
+		// ... merge the two masks
 		Mat finalMask = new Mat();
 		Core.addWeighted(lowMask, 1, highMask, 1, 0, finalMask);
 
+		// 3. remove more noise
 		if (Settings.dilateEnable == 1) {
 			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));
 			Imgproc.dilate(finalMask, finalMask, element);
 			Imgproc.erode(finalMask, finalMask, element);
 		}
 
-		
+		// 4. try to find the contour of the pad
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
 		Imgproc.findContours(finalMask, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
@@ -113,13 +114,13 @@ public class ObjectDetectorRed {
 //			System.out.println("contour max: " + maxContourSize);
 		}
 
-		// draw the rectangle surrounding the object
+		// 5. draw the rectangle surrounding the object
 		Mat rectMat = new Mat();
 		orgMat.copyTo(rectMat);
 		Imgproc.rectangle(rectMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
 
 		
-		// capture the image containing the object
+		// 6. capture the image containing the object
 		Mat capturedMat = new Mat(1, 1, orgMat.type());
 		if (locEndMax.x > 0 && locEndMax.y > 0) {
 			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
@@ -133,23 +134,8 @@ public class ObjectDetectorRed {
 		
 			capturedMat = new Mat(orgMat, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
 		}
-		
-//    	Mat capturedMat = new Mat(modMat, new Rect(locStart, locEnd));
-//    	// Mat capturedMat = new Mat(orgMat, new Rect(locStart, locEnd));
-//    	
-////    	Object[] res = findPad(capturedMat);
-////    	// Mat[] res2 = FeatureExtractor.extractFeature2(capturedMat);
-////
-////    	// if pad not found
-////    	if (!(boolean)res[1]) { 
-////    		locStart = new Point(0, 0);
-////    	} else {
-////    		Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
-////    	}
-//    	
-//    	Imgproc.rectangle(orgMat, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
-//    	
-    	
+
+		// 8. prepare to flush out the output results
         BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
         BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
