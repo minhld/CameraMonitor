@@ -2,7 +2,6 @@ package com.minhld.opencv;
 
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 
 public class Transformer {
 	

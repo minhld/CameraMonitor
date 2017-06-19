@@ -26,6 +26,10 @@ public class Settings {
 	
 	public static final String LABEL_VELOCITY = "velocity";
 	
+	public static final String LABEL_STD_DISTANCE = "standard-distance";
+	public static final String LABEL_STD_PIXEL_HEIGHT = "standard-pixel-height";
+	public static final String LABEL_STD_HEIGHT = "actual-height";
+	
 	public static final String LABEL_COLOR_LOW_H = "low-h-color";
 	public static final String LABEL_COLOR_LOW_S = "low-s-color";
 	public static final String LABEL_COLOR_LOW_V = "low-v-color";
@@ -56,6 +60,9 @@ public class Settings {
 	public static int highSColor = 300;
 	public static int highVColor = 3;
 
+	public static int standardDistance = 50;			// any measurements (cm, m, in etc.)
+	public static int standardPixelHeight = 200;
+	public static int actualHeight = 15;				// any measurements (cm, m, in etc.)
 	
 	public static int TEMPLATE_WIDTH = 180;
 	public static int TEMPLATE_HEIGHT = 100;
@@ -108,7 +115,13 @@ public class Settings {
 			Settings.highSColor = value;
 		} else if (key.equals(Settings.LABEL_COLOR_HIGH_V)) {
 			Settings.highVColor = value;
-		}  
+		} else if (key.equals(Settings.LABEL_STD_DISTANCE)) {
+			Settings.standardDistance = value;
+		} else if (key.equals(Settings.LABEL_STD_PIXEL_HEIGHT)) {
+			Settings.standardPixelHeight = value;
+		} else if (key.equals(Settings.LABEL_STD_HEIGHT)) {
+			Settings.actualHeight = value;
+		} 
 	}
 	
 	/**

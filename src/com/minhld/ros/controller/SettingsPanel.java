@@ -9,6 +9,7 @@ import javax.swing.JPanel;
 
 import com.minhld.utils.AdjustChecker;
 import com.minhld.utils.AdjustSlider;
+import com.minhld.utils.AdjustTexter;
 import com.minhld.utils.Settings;
 
 public class SettingsPanel extends JPanel {
@@ -59,11 +60,11 @@ public class SettingsPanel extends JPanel {
 		
 		// ------ Distance panel ------
 		JPanel distancePanel = new JPanel(new GridLayout(1, 3));
-		gaussianPanel.setPreferredSize(new Dimension(650, 70));
-		gaussianPanel.setBorder(BorderFactory.createTitledBorder("Gaussian"));
-		gaussianPanel.add(new AdjustChecker(Settings.LABEL_GAUSSIAN_ENABLE, 0, false));
-		gaussianPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 1, 15, 2));
-		gaussianPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_STANDARD_DEVIATION, 0, 10));
-		add(gaussianPanel);
+		distancePanel.setPreferredSize(new Dimension(650, 80));
+		distancePanel.setBorder(BorderFactory.createTitledBorder("Focal Length"));
+		distancePanel.add(new AdjustTexter(Settings.LABEL_STD_DISTANCE));
+		distancePanel.add(new AdjustTexter(Settings.LABEL_STD_PIXEL_HEIGHT));
+		distancePanel.add(new AdjustTexter(Settings.LABEL_STD_HEIGHT));
+		add(distancePanel);
 	}
 }

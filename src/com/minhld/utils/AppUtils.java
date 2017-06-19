@@ -6,7 +6,6 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.UUID;

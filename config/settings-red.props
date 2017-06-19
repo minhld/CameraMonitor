@@ -1,19 +1,22 @@
 #ROS CONTROLLER SETTINGS
-#Sun Jun 18 17:09:47 MDT 2017
-contour-enable=1
-dilate-size=3
-low-h-color=1
-high-h-color=170
-low-s-color=110
-velocity=6
-high-s-color=110
-threshold=235
-gaussian-size=3
-gaussian-enable=0
+#Mon Jun 19 14:02:10 MDT 2017
 dilate-enable=1
+low-h-color=1
 color-threshold=100
-gaussian-standard-deviation=0
-contour-area-min=211
-contour-sides=9
+actual-height=15
 low-v-color=150
+threshold=235
+contour-enable=1
+high-s-color=110
+contour-sides=9
+dilate-size=3
+contour-area-min=211
+velocity=6
+high-h-color=170
+standard-distance=50
 high-v-color=150
+gaussian-standard-deviation=0
+gaussian-size=3
+standard-pixel-height=200
+gaussian-enable=0
+low-s-color=110
