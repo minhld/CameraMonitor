@@ -264,10 +264,10 @@ public class RosAutoRed extends Thread {
 		capture3.setPreferredSize(new Dimension(280, 280));
 		capture3.add(new JLabel("Captured Image"));
 		
-		JPanel capturedPanel3 = new JPanel();
-		capturedPanel3.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-		capturedPanel3.setBorder(new TitledBorder(""));
-		capture3.add(capturedPanel3);
+		transformedPanel = new JPanel();
+		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+		transformedPanel.setBorder(new TitledBorder(""));
+		capture3.add(transformedPanel);
 		
 		slidesPanel.add(capture3);
 		
@@ -569,8 +569,9 @@ public class RosAutoRed extends Thread {
 						BufferedImage resultImage = (BufferedImage) results[0];
 						BufferedImage processImage = (BufferedImage) results[1];
 						BufferedImage capturedImage = (BufferedImage) results[2];
-						BufferedImage padImage = (BufferedImage) results[3];
-						Rect objectRect = (Rect) results[4];
+						BufferedImage pad1 = (BufferedImage) results[3];
+						BufferedImage pad2 = (BufferedImage) results[4];
+						Rect objectRect = (Rect) results[5];
 						
 						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
 						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
@@ -578,7 +579,8 @@ public class RosAutoRed extends Thread {
 						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
 						drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
-						drawImage(closedCapturedPanel, padImage, closedCapturedPanel.getWidth(), closedCapturedPanel.getHeight());
+						drawImage(closedCapturedPanel, pad1, closedCapturedPanel.getWidth(), closedCapturedPanel.getHeight());
+						drawImage(transformedPanel, pad2, transformedPanel.getWidth(), closedCapturedPanel.getHeight());
 						
 						long drawTime = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / processTime);
@@ -698,8 +700,8 @@ public class RosAutoRed extends Thread {
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(UISupport.getUIProp("host-text-columns"));
 		ipText.grabFocus();
-		// String currentIP = "129.123.7.100";
-		String currentIP = AppUtils.getCurrentIP();
+		String currentIP = "129.123.7.100";
+		// String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);

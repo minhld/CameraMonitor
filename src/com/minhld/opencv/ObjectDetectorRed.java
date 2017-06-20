@@ -134,6 +134,7 @@ public class ObjectDetectorRed {
 			int endPointY = (centerY + Settings.TEMPLATE_HEIGHT <= orgMat.rows()) ? centerY + Settings.TEMPLATE_HEIGHT : orgMat.rows();
 		
 			capturedMat = new Mat(orgMat, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
+			// capturedMat = new Mat(finalMask, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
 		}
 
 		// 8. prepare to flush out the output results
@@ -141,28 +142,32 @@ public class ObjectDetectorRed {
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
         BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
         
-        BufferedImage padImage = null;
+        BufferedImage padEx1 = null, padEx2 = null;
         if (locEndMax.x > 0 && locEndMax.y > 0) {
-    		Mat padMat = new Mat(orgMat, new Rect(locStartMax, locEndMax));
-    		padMat = extractFeature(padMat);
+    		// Mat padMat = new Mat(orgMat, new Rect(locStartMax, locEndMax));
+    		Mat padMat = new Mat(finalMask, new Rect(locStartMax, locEndMax));
+    		
+    		// Mat[] results = FeatureExtractorRed.extractFeature(padMat);
+    		Mat[] results = FeatureExtractorRed.extractFeature2(padMat);
 
-            padImage = OpenCVUtils.createAwtImage(padMat);
+    		padEx1 = OpenCVUtils.createAwtImage(results[0]);
+    		padEx2 = OpenCVUtils.createAwtImage(results[1]);
         }
         
-        return new Object[] { resultImage, processImage, capturedImage, padImage, new Rect(locStartMax, locEndMax) };
+        return new Object[] { resultImage, processImage, capturedImage, padEx1, padEx2, new Rect(locStartMax, locEndMax) };
 	}
 	
-	public static Mat extractFeature(Mat padMat) {
+	public static Mat[] extractFeature(Mat padMat) {
 		Mat rectMat = new Mat();
 		// Imgproc.GaussianBlur(padMat, rectMat, new Size(3, 3), 0);
 		Imgproc.GaussianBlur(padMat, rectMat, new Size(0, 0), 3);
 		Core.addWeighted(padMat, 1.5, rectMat, -0.5, 0, rectMat);
 
-		Mat[] results = FeatureExtractorRed.extractFeature(rectMat);
-		
-		
-		
-		return results[1];
+//		Mat[] results = FeatureExtractorRed.extractFeature(rectMat);
+//		return results[1];
+
+		return FeatureExtractorRed.extractFeature(rectMat);
+
 	}
 	
 	public static Object[] findPad(Mat capturedMat) {
