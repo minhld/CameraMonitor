@@ -62,7 +62,24 @@ public class FeatureExtractorRed {
 		// threshold to eliminate a number of objects
 		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 		
+		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+		Mat hierarchy = new Mat();
+		Imgproc.findContours(modMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+		hierarchy.release();
 
+//		Point locStartMax = new Point(), locEndMax = new Point();
+		
+		ArrayList<MatOfPoint> maxContours = new ArrayList<MatOfPoint>();
+		
+		Mat modDesc = new Mat();
+		MatOfKeyPoint modKeys = new MatOfKeyPoint();
+        detector.detect(modMat, modKeys);
+        descriptor.compute(modMat, modKeys, modDesc);
+
+		
+		if (contours.size() > 0) {
+			
+		}
 		
 		return new Mat[] { orgMat, modMat };
 	}
