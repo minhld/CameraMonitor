@@ -2,6 +2,7 @@ package com.minhld.opencv;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -19,6 +20,7 @@ import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.Converters;
 
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.Settings;
@@ -56,30 +58,57 @@ public class FeatureExtractorRed {
 	public static Mat[] extractFeature3(Mat orgMat) { 
 		Mat modMat = new Mat();
 		
+		// ------ define destination perspective matrix ------ 
+		List<Point> destPoints = new ArrayList<>();
+		destPoints.add(new Point(orgMat.cols() / 2, orgMat.cols()));
+		destPoints.add(new Point(orgMat.cols(), orgMat.cols() / 2));
+		destPoints.add(new Point(orgMat.cols() / 2, 0));
+		destPoints.add(new Point(0, orgMat.cols() / 2));
+		Mat destMat = Converters.vector_Point2f_to_Mat(destPoints);
+		
 		// turn to black-white
 		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
 		
 		// threshold to eliminate a number of objects
 		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 		
+		// find contours
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
 		Imgproc.findContours(modMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 		hierarchy.release();
+		
+		List<Point> srcPoints = new ArrayList<>();
 
-//		Point locStartMax = new Point(), locEndMax = new Point();
-		
-		ArrayList<MatOfPoint> maxContours = new ArrayList<MatOfPoint>();
-		
-		Mat modDesc = new Mat();
-		MatOfKeyPoint modKeys = new MatOfKeyPoint();
-        detector.detect(modMat, modKeys);
-        descriptor.compute(modMat, modKeys, modDesc);
-
-		
-		if (contours.size() > 0) {
+		Point maxPoint = new Point(0, 0);
+		if (contours.size() >= 3) {
+			MatOfPoint contour;
+			double maxContourSize = 0, contourSize;
 			
+			for(int i = 0; i < contours.size(); i++) {
+				contour = contours.get(i);
+				contourSize = Imgproc.contourArea(contour);
+				
+				Rect rect = Imgproc.boundingRect(contour);
+				Point p = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
+				srcPoints.add(p);
+				System.out.print("(" + p.x + "," + p.y + "," + contourSize + ")");
+				
+				// define the max area
+				if (maxContourSize < contourSize) {
+					maxContourSize = contourSize;
+					maxPoint = p;
+				}
+			}
 		}
+		System.out.println();
+		Point symPoint = new Point(orgMat.cols() - maxPoint.x, orgMat.rows() - maxPoint.y);
+		srcPoints.add(symPoint);
+		
+		Mat srcMat = Converters.vector_Point2f_to_Mat(srcPoints);
+
+		Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
+		Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.rows()));
 		
 		return new Mat[] { orgMat, modMat };
 	}
