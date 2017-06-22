@@ -37,6 +37,12 @@ public class Settings {
 	public static final String LABEL_COLOR_HIGH_S = "high-s-color";
 	public static final String LABEL_COLOR_HIGH_V = "high-v-color";
 	
+	public static final String LABEL_COLOR_LOW_GREEN_H = "low-green-h-color";
+	public static final String LABEL_COLOR_LOW_GREEN_S = "low-green-s-color";
+	public static final String LABEL_COLOR_LOW_GREEN_V = "low-green-v-color";
+	public static final String LABEL_COLOR_HIGH_GREEN_H = "high-green-h-color";
+	public static final String LABEL_COLOR_HIGH_GREEN_S = "high-green-s-color";
+	public static final String LABEL_COLOR_HIGH_GREEN_V = "high-green-v-color";
 
 	public static int threshold = 235;
 	public static int colorThreshold = 100;
@@ -59,6 +65,14 @@ public class Settings {
 	public static int highHColor = 9;
 	public static int highSColor = 300;
 	public static int highVColor = 3;
+
+	// ------ GREEN COLOR ------
+	public static int lowGreenHColor = 235;
+	public static int lowGreenSColor = 100;
+	public static int lowGreenVColor = 0;
+	public static int highGreenHColor = 9;
+	public static int highGreenSColor = 300;
+	public static int highGreenVColor = 3;
 
 	public static int standardDistance = 50;			// any measurements (cm, m, in etc.)
 	public static int standardPixelHeight = 200;
@@ -115,6 +129,18 @@ public class Settings {
 			Settings.highSColor = value;
 		} else if (key.equals(Settings.LABEL_COLOR_HIGH_V)) {
 			Settings.highVColor = value;
+		}  else if (key.equals(Settings.LABEL_COLOR_LOW_GREEN_H)) {
+			Settings.lowGreenHColor = value;
+		} else if (key.equals(Settings.LABEL_COLOR_LOW_GREEN_S)) {
+			Settings.lowGreenSColor = value;
+		} else if (key.equals(Settings.LABEL_COLOR_LOW_GREEN_V)) {
+			Settings.lowGreenVColor = value;
+		} else if (key.equals(Settings.LABEL_COLOR_HIGH_GREEN_H)) {
+			Settings.highGreenHColor = value;
+		} else if (key.equals(Settings.LABEL_COLOR_HIGH_GREEN_S)) {
+			Settings.highGreenSColor = value;
+		} else if (key.equals(Settings.LABEL_COLOR_HIGH_GREEN_V)) {
+			Settings.highGreenVColor = value;
 		} else if (key.equals(Settings.LABEL_STD_DISTANCE)) {
 			Settings.standardDistance = value;
 		} else if (key.equals(Settings.LABEL_STD_PIXEL_HEIGHT)) {

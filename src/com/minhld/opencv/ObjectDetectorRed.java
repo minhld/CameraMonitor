@@ -144,11 +144,11 @@ public class ObjectDetectorRed {
         
         BufferedImage padEx1 = null, padEx2 = null;
         if (locEndMax.x > 0 && locEndMax.y > 0) {
-    		// Mat padMat = new Mat(orgMat, new Rect(locStartMax, locEndMax));
-    		Mat padMat = new Mat(finalMask, new Rect(locStartMax, locEndMax));
+    		Mat padMat = new Mat(orgMat, new Rect(locStartMax, locEndMax));
+    		// Mat padMat = new Mat(finalMask, new Rect(locStartMax, locEndMax));
     		
-    		// Mat[] results = FeatureExtractorRed.extractFeature(padMat);
-    		Mat[] results = FeatureExtractorRed.extractFeature2(padMat);
+    		Mat[] results = FeatureExtractorRed.extractFeature3(padMat);
+    		// Mat[] results = FeatureExtractorRed.extractFeature2(padMat);
 
     		padEx1 = OpenCVUtils.createAwtImage(results[0]);
     		padEx2 = OpenCVUtils.createAwtImage(results[1]);

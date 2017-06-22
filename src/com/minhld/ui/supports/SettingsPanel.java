@@ -1,4 +1,4 @@
-package com.minhld.ros.controller;
+package com.minhld.ui.supports;
 
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -7,9 +7,6 @@ import java.awt.GridLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-import com.minhld.utils.AdjustChecker;
-import com.minhld.utils.AdjustSlider;
-import com.minhld.utils.AdjustTexter;
 import com.minhld.utils.Settings;
 
 public class SettingsPanel extends JPanel {
@@ -30,6 +27,18 @@ public class SettingsPanel extends JPanel {
 		hsvColorPanel.add(new AdjustSlider(Settings.LABEL_COLOR_HIGH_S, 1, 255));
 		hsvColorPanel.add(new AdjustSlider(Settings.LABEL_COLOR_HIGH_V, 1, 255));
 		add(hsvColorPanel);
+		
+		// ------ HSV Green Color panel ------
+		JPanel hsvGreenColorPanel = new JPanel(new GridLayout(2, 3));
+		hsvGreenColorPanel.setPreferredSize(new Dimension(650, 110));
+		hsvGreenColorPanel.setBorder(BorderFactory.createTitledBorder("HSV Green Color"));
+		hsvGreenColorPanel.add(new AdjustSlider(Settings.LABEL_COLOR_LOW_GREEN_H, 1, 255));
+		hsvGreenColorPanel.add(new AdjustSlider(Settings.LABEL_COLOR_LOW_GREEN_S, 1, 255));
+		hsvGreenColorPanel.add(new AdjustSlider(Settings.LABEL_COLOR_LOW_GREEN_V, 1, 255));
+		hsvGreenColorPanel.add(new AdjustSlider(Settings.LABEL_COLOR_HIGH_GREEN_H, 1, 255));
+		hsvGreenColorPanel.add(new AdjustSlider(Settings.LABEL_COLOR_HIGH_GREEN_S, 1, 255));
+		hsvGreenColorPanel.add(new AdjustSlider(Settings.LABEL_COLOR_HIGH_GREEN_V, 1, 255));
+		add(hsvGreenColorPanel);
 		
 		// ------ Threshold panel ------
 		JPanel thresholdPanel = new JPanel(new GridLayout(1, 3));

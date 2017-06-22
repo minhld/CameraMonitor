@@ -1,4 +1,4 @@
-package com.minhld.utils;
+package com.minhld.ui.supports;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -7,6 +7,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import com.minhld.utils.Settings;
 
 public class AdjustChecker extends JPanel {
 	private static final long serialVersionUID = 8183929984967684854L;

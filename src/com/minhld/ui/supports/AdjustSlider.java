@@ -1,4 +1,4 @@
-package com.minhld.utils;
+package com.minhld.ui.supports;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -9,17 +9,20 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-public class EzSlider extends JPanel {
+import com.minhld.utils.Settings;
+
+public class AdjustSlider extends JPanel {
 	private static final long serialVersionUID = 8183929984967684854L;
-	public static final int FLAG_ODD_STEP = 1;
+	// public static final int FLAG_ODD_STEP = 1;
 	
 	String title;
 	JLabel titleLabel;
 	JSlider bar;
+	int step = 1;
 	
-	public EzSlider(String label, int min, int max) {
+	public AdjustSlider(String label, int min, int max) {
 		setLayout(new BorderLayout());
-		setPreferredSize(new Dimension(200, 80));
+		setPreferredSize(new Dimension(200, 50));
 
 		this.title = label;
 		int currVal = Settings.getValue(this.title);
@@ -34,12 +37,17 @@ public class EzSlider extends JPanel {
 		bar.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				// update setting object
 				int val = bar.getValue();
-				Settings.setValue(EzSlider.this.title, val);
 				
-				// update label of the slider 
-				EzSlider.this.titleLabel.setText(EzSlider.this.title + ": " + val);
+				// if step  
+				if (AdjustSlider.this.step == 1 || AdjustSlider.this.step > 1 && val % AdjustSlider.this.step == 1) {
+						
+					// update setting object
+					Settings.setValue(AdjustSlider.this.title, val);
+					
+					// update label of the slider 
+					AdjustSlider.this.titleLabel.setText(AdjustSlider.this.title + ": " + val);
+				}
 			}
 		});
 		// bar.setPaintTicks(true);
@@ -49,11 +57,12 @@ public class EzSlider extends JPanel {
 		add(bar, BorderLayout.CENTER);
 	}
 	
-	public EzSlider(String label, int min, int max, int slideFlag) {
+	public AdjustSlider(String label, int min, int max, int step) {
 		this(label, min, max);
-		if (slideFlag == FLAG_ODD_STEP) {
-//			bar.setMinorTickSpacing(2);
-//			bar.setSnapToTicks(true);
+		this.step = step;
+		if (step > 1) {
+			bar.setMinorTickSpacing(this.step);
+			bar.setSnapToTicks(true);
 		}
 	}
 }

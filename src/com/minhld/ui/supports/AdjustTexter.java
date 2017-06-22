@@ -1,4 +1,4 @@
-package com.minhld.utils;
+package com.minhld.ui.supports;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -11,6 +11,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import com.minhld.utils.Settings;
 
 public class AdjustTexter extends JPanel {
 	private static final long serialVersionUID = 1L;

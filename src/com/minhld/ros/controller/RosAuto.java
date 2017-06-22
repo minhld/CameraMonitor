@@ -46,7 +46,8 @@ import org.opencv.core.Core;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.opencv.ObjectDetector;
-import com.minhld.utils.AdjustSlider;
+import com.minhld.ui.supports.AdjustSlider;
+import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;

@@ -3,6 +3,7 @@ package com.minhld.opencv;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
@@ -50,6 +51,20 @@ public class FeatureExtractorRed {
 //        outputTpl = new Mat();
 //        Features2d.drawKeypoints(tplMat, tplKeys, outputTpl);
 
+	}
+	
+	public static Mat[] extractFeature3(Mat orgMat) { 
+		Mat modMat = new Mat();
+		
+		// turn to black-white
+		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
+		
+		// threshold to eliminate a number of objects
+		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
+		
+
+		
+		return new Mat[] { orgMat, modMat };
 	}
 	
 	public static Mat[] extractFeature2(Mat orgMat) {
