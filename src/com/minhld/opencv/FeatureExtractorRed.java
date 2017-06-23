@@ -72,44 +72,46 @@ public class FeatureExtractorRed {
 		// threshold to eliminate a number of objects
 		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 		
-		// find contours
-		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		Mat hierarchy = new Mat();
-		Imgproc.findContours(modMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-		hierarchy.release();
+		Imgproc.Canny(modMat, modMat, 10, 255);
 		
-		List<Point> srcPoints = new ArrayList<>();
-
-		Point maxPoint = new Point(0, 0);
-		if (contours.size() >= 3) {
-			MatOfPoint contour;
-			double maxContourSize = 0, contourSize;
-			
-			for(int i = 0; i < contours.size(); i++) {
-				contour = contours.get(i);
-				contourSize = Imgproc.contourArea(contour);
-				
-				Rect rect = Imgproc.boundingRect(contour);
-				Point p = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
-				srcPoints.add(p);
-				System.out.print("(" + p.x + "," + p.y + "," + contourSize + ")");
-				
-				// define the max area
-				if (maxContourSize < contourSize) {
-					maxContourSize = contourSize;
-					maxPoint = p;
-				}
-			}
-		}
-		System.out.println();
-		Point symPoint = new Point(orgMat.cols() - maxPoint.x, orgMat.rows() - maxPoint.y);
-		srcPoints.add(symPoint);
-		
-		Mat srcMat = Converters.vector_Point2f_to_Mat(srcPoints);
-
-		Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
-		Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.rows()));
-		
+//		// find contours
+//		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+//		Mat hierarchy = new Mat();
+//		Imgproc.findContours(modMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+//		hierarchy.release();
+//		
+//		List<Point> srcPoints = new ArrayList<>();
+//
+//		Point maxPoint = new Point(0, 0);
+//		if (contours.size() >= 3) {
+//			MatOfPoint contour;
+//			double maxContourSize = 0, contourSize;
+//			
+//			for(int i = 0; i < contours.size(); i++) {
+//				contour = contours.get(i);
+//				contourSize = Imgproc.contourArea(contour);
+//				
+//				Rect rect = Imgproc.boundingRect(contour);
+//				Point p = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
+//				srcPoints.add(p);
+//				System.out.print("(" + p.x + "," + p.y + "," + contourSize + ")");
+//				
+//				// define the max area
+//				if (maxContourSize < contourSize) {
+//					maxContourSize = contourSize;
+//					maxPoint = p;
+//				}
+//			}
+//		}
+//		System.out.println();
+//		Point symPoint = new Point(orgMat.cols() - maxPoint.x, orgMat.rows() - maxPoint.y);
+//		srcPoints.add(symPoint);
+//		
+//		Mat srcMat = Converters.vector_Point2f_to_Mat(srcPoints);
+//
+//		Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
+//		Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.rows()));
+//		
 		return new Mat[] { orgMat, modMat };
 	}
 	
