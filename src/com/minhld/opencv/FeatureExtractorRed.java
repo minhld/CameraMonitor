@@ -60,10 +60,10 @@ public class FeatureExtractorRed {
 		
 		// ------ define destination perspective matrix ------ 
 		List<Point> destPoints = new ArrayList<>();
-		destPoints.add(new Point(0, orgMat.cols() / 2));
-		destPoints.add(new Point(orgMat.cols() / 2, 0));
-		destPoints.add(new Point(orgMat.cols(), orgMat.cols() / 2));
-		destPoints.add(new Point(orgMat.cols() / 2, orgMat.cols()));
+		destPoints.add(new Point(10, orgMat.cols() / 2));
+		destPoints.add(new Point(orgMat.cols() / 2, 3));
+		destPoints.add(new Point(orgMat.cols() - 10, orgMat.cols() / 2));
+		destPoints.add(new Point(orgMat.cols() / 2, orgMat.cols() - 3));
 		Mat destMat = Converters.vector_Point2f_to_Mat(destPoints);
 		
 		// turn to black-white
@@ -91,18 +91,21 @@ public class FeatureExtractorRed {
 				contour = contours.get(i);
 				contourSize = Imgproc.contourArea(contour);
 				
-				Rect rect = Imgproc.boundingRect(contour);
-				Point p = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
-				srcPoints.add(0, p);
-				System.out.print("(" + p.x + "," + p.y + "," + contourSize + ")");
-				
-				// define the max area
-				if (maxContourSize < contourSize) {
-					maxContourSize = contourSize;
-					maxPoint = p;
+				if (contourSize > 10) {
+					Rect rect = Imgproc.boundingRect(contour);
+					Point p = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
+					srcPoints.add(0, p);
+					System.out.print("(" + p.x + "," + p.y + "," + contourSize + ")");
+					
+					// define the max area
+					if (maxContourSize < contourSize) {
+						maxContourSize = contourSize;
+						maxPoint = p;
+					}
 				}
 			}
 		}
+		
 		System.out.println();
 		Point symPoint = new Point(orgMat.cols() - maxPoint.x, orgMat.rows() - maxPoint.y);
 		srcPoints.add(0, symPoint);
@@ -110,7 +113,7 @@ public class FeatureExtractorRed {
 		if (srcPoints.size() == 4) {
 			Mat srcMat = Converters.vector_Point2f_to_Mat(srcPoints);
 			Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
-			Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.rows()));
+			Imgproc.warpPerspective(orgMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
 		}
 		
 		return new Mat[] { orgMat, modMat };

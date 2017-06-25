@@ -239,7 +239,7 @@ public class RosAutoRed extends Thread {
 		// 1. Captured panel
 		JPanel capture = new JPanel(new FlowLayout());
 		capture.setPreferredSize(new Dimension(280, 280));
-		capture.add(new JLabel("Captured Image"));
+		capture.add(new JLabel("Centered Image"));
 		
 		capturedPanel = new JPanel();
 		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
@@ -251,7 +251,7 @@ public class RosAutoRed extends Thread {
 		// 1. Captured panel
 		JPanel capture2 = new JPanel(new FlowLayout());
 		capture2.setPreferredSize(new Dimension(280, 280));
-		capture2.add(new JLabel("Captured Image"));
+		capture2.add(new JLabel("Captured Pad"));
 		
 		closedCapturedPanel = new JPanel();
 		closedCapturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
@@ -263,7 +263,7 @@ public class RosAutoRed extends Thread {
 		// 1. Captured panel
 		JPanel capture3 = new JPanel(new FlowLayout());
 		capture3.setPreferredSize(new Dimension(280, 280));
-		capture3.add(new JLabel("Captured Image"));
+		capture3.add(new JLabel("Transformed Pad"));
 		
 		transformedPanel = new JPanel();
 		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
@@ -577,11 +577,11 @@ public class RosAutoRed extends Thread {
 						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
 						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
 						
-						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
-						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
-						drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
-						drawImage(closedCapturedPanel, pad1, closedCapturedPanel.getWidth(), closedCapturedPanel.getHeight());
-						drawImage(transformedPanel, pad2, transformedPanel.getWidth(), closedCapturedPanel.getHeight());
+						UISupport.drawImage(cameraPanel, resultImage);
+						UISupport.drawImage(processPanel, processImage);
+						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
+						UISupport.drawRatioImage(closedCapturedPanel, pad1);
+						UISupport.drawRatioImage(transformedPanel, pad2);
 						
 						long drawTime = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / processTime);
@@ -647,31 +647,6 @@ public class RosAutoRed extends Thread {
 //        tplImagePanel.setSize(new Dimension(150, 80));
 //        templatePanel.add(tplImagePanel, BorderLayout.CENTER);
 //	}
-	
-	/**
-	 * draw an image to the panel - this function to draw 
-	 * on-the-fly image on a canvas of the panel 
-	 * 
-	 * @param panel
-	 * @param img
-	 * @param w
-	 * @param h
-	 */
-	private void drawImage(JPanel panel, BufferedImage img, int w, int h) {
-		Graphics g = panel.getGraphics();
-		if (g != null) {
-			g.drawImage(img, 0, 0, w, h, null);
-		}
-	}
-	
-	private void drawClearImage(JPanel panel, BufferedImage img, int w, int h) {
-		Graphics g = panel.getGraphics();
-		if (g != null) {
-			// g.clearRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
-			g.drawImage(img, 0, 0, w / 2, h / 2, null);
-			
-		}
-	}
 	
 	/**
 	 * open Settings dialog
