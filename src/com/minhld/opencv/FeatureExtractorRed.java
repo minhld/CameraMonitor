@@ -60,10 +60,10 @@ public class FeatureExtractorRed {
 		
 		// ------ define destination perspective matrix ------ 
 		List<Point> destPoints = new ArrayList<>();
+		destPoints.add(new Point(orgMat.cols() / 2, orgMat.cols() - 3));
 		destPoints.add(new Point(10, orgMat.cols() / 2));
 		destPoints.add(new Point(orgMat.cols() / 2, 3));
 		destPoints.add(new Point(orgMat.cols() - 10, orgMat.cols() / 2));
-		destPoints.add(new Point(orgMat.cols() / 2, orgMat.cols() - 3));
 		Mat destMat = Converters.vector_Point2f_to_Mat(destPoints);
 		
 		// turn to black-white
