@@ -148,18 +148,16 @@ public class FeatureExtractorRed {
 			// threshold to eliminate a number of objects
 			Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 			
-//			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));
-//			Imgproc.erode(modMat, modMat, element);
-//			Imgproc.dilate(modMat, modMat, element);
+			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));
+			Imgproc.erode(modMat, modMat, element);
+			Imgproc.dilate(modMat, modMat, element);
 
-			
-			
-////			Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
-//			Mat orgDesc = new Mat();
-//			MatOfKeyPoint orgKeys = new MatOfKeyPoint();
-//	        detector.detect(orgMat, orgKeys);
-//	        descriptor.compute(orgMat, orgKeys, orgDesc);
-//	        
+//			Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
+			Mat orgDesc = new Mat();
+			MatOfKeyPoint orgKeys = new MatOfKeyPoint();
+	        detector.detect(orgMat, orgKeys);
+	        descriptor.compute(orgMat, orgKeys, orgDesc);
+	        
 ////	        Mat outputImg = new Mat();
 ////	        Features2d.drawKeypoints(orgMat, orgKeys, outputImg);
 ////	
