@@ -43,6 +43,8 @@ public class UISupport {
 	 * @param img
 	 */
 	public static void drawImage(JPanel panel, BufferedImage img) {
+		if (img == null) return;
+		
 		Graphics g = panel.getGraphics();
 		if (g != null) {
 			g.drawImage(img, 0, 0, panel.getWidth(), panel.getHeight(), null);
@@ -56,6 +58,8 @@ public class UISupport {
 	 * @param img
 	 */
 	public static void drawRatioImage(JPanel panel, BufferedImage img) {
+		if (img == null) return;
+		
 		// find the relative size of being-drawn object
 		double panelRate = (double) panel.getWidth() / (double) panel.getHeight();
 		double imgRate = (double) img.getWidth() / (double) img.getHeight();
@@ -90,6 +94,8 @@ public class UISupport {
 	 * @param h
 	 */
 	public static void drawClearImage(JPanel panel, BufferedImage img, int w, int h) {
+		if (img == null) return;
+		
 		Graphics g = panel.getGraphics();
 		if (g != null) {
 			// g.clearRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
