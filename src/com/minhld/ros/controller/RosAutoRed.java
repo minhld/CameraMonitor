@@ -69,6 +69,7 @@ public class RosAutoRed extends Thread {
 	Thread nodeThread;
 	
 	boolean isAuto = false;
+	boolean isMovingNode = false;
 	boolean isServerInUsed = false;
 	
 	public void run() {
@@ -151,8 +152,23 @@ public class RosAutoRed extends Thread {
 				addTopicsToList();
 			}
 		});
+		refreshBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(refreshBtn);
+		
+		
+		JButton settingsBtn = new JButton("Settings");
+		settingsBtn.setIcon(new ImageIcon("images/settings.png"));
+		settingsBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showSettingsDialog();
+			}
+		});
+		settingsBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
+		toolbar.add(settingsBtn);
+		
 		toolbar.addSeparator();
+		
 		
 		final JButton findPadBtn = new JButton("Find Pad");
 		findPadBtn.setIcon(new ImageIcon("images/search.png"));
@@ -168,20 +184,23 @@ public class RosAutoRed extends Thread {
 				
 			}
 		});
+		findPadBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(findPadBtn);
 		
-		toolbar.addSeparator();
-		
-		JButton settingsBtn = new JButton("Settings");
-		settingsBtn.setIcon(new ImageIcon("images/settings.png"));
-		settingsBtn.addActionListener(new ActionListener() {
+		final JButton initMovingBtn = new JButton("Start Moving Node");
+		initMovingBtn.setIcon(new ImageIcon("images/execute.png"));
+		initMovingBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				showSettingsDialog();
+				RosAutoRed.this.isMovingNode = !RosAutoRed.this.isMovingNode;
+				// controlInfoText.setText("AUTOMATION IS " + (RosAutoRed.this.isMovingNode ? "SET" : "CLEARED"));
+				initMovingBtn.setText(RosAutoRed.this.isMovingNode ? "Stop Node" : "Start Moving Node");
+				
 			}
 		});
-		toolbar.add(settingsBtn);
-		
+		initMovingBtn.setEnabled(false);	// temporarily closed
+		initMovingBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
+		toolbar.add(initMovingBtn);
 		
 		return toolbar;
 	}

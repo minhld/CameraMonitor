@@ -91,7 +91,7 @@ public class FeatureExtractorRed {
 				contour = contours.get(i);
 				contourSize = Imgproc.contourArea(contour);
 				
-				if (contourSize > 10) {
+				if (contourSize > 8) {
 					Rect rect = Imgproc.boundingRect(contour);
 					Point p = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
 					srcPoints.add(0, p);
