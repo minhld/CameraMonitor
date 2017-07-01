@@ -9,6 +9,8 @@ import java.util.Properties;
 
 import javax.swing.JPanel;
 
+import com.minhld.utils.Settings;
+
 public class UISupport {
 	static Properties uiProps;
 	
@@ -43,9 +45,14 @@ public class UISupport {
 	 * @param img
 	 */
 	public static void drawImage(JPanel panel, BufferedImage img) {
-		if (img == null) return;
-		
 		Graphics g = panel.getGraphics();
+		
+		if (img == null) {
+			// if the image is null, let's clear the draw area
+			g.clearRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
+			return;
+		} 
+		
 		if (g != null) {
 			g.drawImage(img, 0, 0, panel.getWidth(), panel.getHeight(), null);
 		}
@@ -58,7 +65,12 @@ public class UISupport {
 	 * @param img
 	 */
 	public static void drawRatioImage(JPanel panel, BufferedImage img) {
-		if (img == null) return;
+		Graphics g = panel.getGraphics();
+		if (img == null) { 
+			// if the image is null, let's clear the draw area
+			g.clearRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
+			return;
+		}
 		
 		// find the relative size of being-drawn object
 		double panelRate = (double) panel.getWidth() / (double) panel.getHeight();
@@ -76,7 +88,6 @@ public class UISupport {
 		int startY = (panel.getHeight() - height) / 2;
 		
 		// start drawing
-		Graphics g = panel.getGraphics();
 		if (g != null) {
 			g.drawImage(img, startX, startY, width, height, null);
 		}
@@ -94,11 +105,15 @@ public class UISupport {
 	 * @param h
 	 */
 	public static void drawClearImage(JPanel panel, BufferedImage img, int w, int h) {
-		if (img == null) return;
-		
 		Graphics g = panel.getGraphics();
+
+		if (img == null) {
+			// if the image is null, let's clear the draw area
+			g.clearRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
+			return;
+		}
+		
 		if (g != null) {
-			// g.clearRect(0, 0, Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT);
 			g.drawImage(img, 0, 0, w / 2, h / 2, null);
 			
 		}

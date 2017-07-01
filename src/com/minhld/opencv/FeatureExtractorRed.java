@@ -108,20 +108,24 @@ public class FeatureExtractorRed {
 		
 		System.out.println();
 		
-		for (int i = 0; i < srcPoints.size(); i++) {
-			
-		}
+		List<Point> correctedDestPoints = getCorrectOrder(orgMat, srcPoints, maxPoint);
 		
-		Point symPoint = new Point(orgMat.cols() - maxPoint.x, orgMat.rows() - maxPoint.y);
-		srcPoints.add(0, symPoint);
-		
-		if (srcPoints.size() == 4) {
-			Mat srcMat = Converters.vector_Point2f_to_Mat(srcPoints);
+		if (correctedDestPoints.size() == 4) {
+			Mat srcMat = Converters.vector_Point2f_to_Mat(correctedDestPoints);
 			Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
 			Imgproc.warpPerspective(orgMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
 		}
 		
 		return new Mat[] { orgMat, modMat };
+	}
+	
+	private static List<Point> getCorrectOrder(Mat orgMat, List<Point> srcPoint, Point maxPoint) {
+		List<Point> points = new ArrayList<>();
+		
+		Point symPoint = new Point(orgMat.cols() - maxPoint.x, orgMat.rows() - maxPoint.y);
+		points.add(0, symPoint);
+
+		return points;
 	}
 	
 	public static Mat[] extractFeature2(Mat orgMat) {
