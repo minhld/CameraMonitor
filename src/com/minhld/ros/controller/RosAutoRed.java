@@ -601,8 +601,10 @@ public class RosAutoRed extends Thread {
 						// using feature detection to find the location of the pad
 						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
 						
-						UISupport.drawRatioImage(closedCapturedPanel, (BufferedImage) locs[0]);
-						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
+						if (locs != null) { 
+							UISupport.drawRatioImage(closedCapturedPanel, (BufferedImage) locs[0]);
+							UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
+						}
 						
 						long drawTime = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / findPadTime);

@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
@@ -50,13 +51,18 @@ public class FeatureExtractorRed {
 	
 	public static Object[] detectLocation(Mat padMat) {
 		Mat[] results = FeatureExtractorRed.extractFeature(padMat);
+		if (results == null) return null;
+		
 		BufferedImage padEx1 = OpenCVUtils.createAwtImage(results[0]);
 		BufferedImage padEx2 = OpenCVUtils.createAwtImage(results[1]);
 		
 		return new Object[] { padEx1, padEx2 };
 	}
 	
-	public static Mat[] extractFeature(Mat orgMat) { 
+	public static Mat[] extractFeature(Mat orgMat) {
+		// check if original matrix is null 
+		if (orgMat == null) return null;
+		
 		Mat modMat = new Mat();
 		
 		// ------ define destination perspective matrix ------ 
@@ -95,7 +101,7 @@ public class FeatureExtractorRed {
 				if (contourSize > 8) {
 					Rect rect = Imgproc.boundingRect(contour);
 					Point p = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
-					srcPoints.add(0, p);
+					srcPoints.add(p);
 					// System.out.print("(" + p.x + "," + p.y + "," + contourSize + ")");
 					
 					// define the max area
@@ -110,18 +116,57 @@ public class FeatureExtractorRed {
 		// System.out.println();
 		
 		// place the found points into the correct order for transformation 
-		List<Point> correctedDestPoints = getCorrectOrder(orgMat, srcPoints, maxPoint);
-		
-		if (correctedDestPoints.size() == 4) {
-			Mat srcMat = Converters.vector_Point2f_to_Mat(correctedDestPoints);
-			Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
-			Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
+		if (srcPoints.size() == 3) {
+			List<Point> correctedDestPoints = getCorrectOrder(orgMat, srcPoints, maxPoint);
+			
+			// check if we are able to gather all enough 4 points for transformation
+			// if there are not enough 4 points, the transformation will fail
+			if (correctedDestPoints.size() == 4) {
+				Mat srcMat = Converters.vector_Point2f_to_Mat(correctedDestPoints);
+				Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
+				Imgproc.warpPerspective(orgMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
+
+				Point[] transPoints = (Point[]) getMainPoints(orgMat, persMat, maxPoint);
+				Imgproc.drawMarker(modMat, transPoints[0], new Scalar(255, 255, 255));
+				Imgproc.drawMarker(modMat, transPoints[1], new Scalar(255, 255, 255));
+				Imgproc.drawMarker(modMat, transPoints[2], new Scalar(255, 255, 255));
+
+			}
 		}
 		
 		return new Mat[] { orgMat, modMat };
 	}
 	
+	private static Point[] getMainPoints(Mat orgMat, Mat transfMat, Point maxPoint) {
+		// 1. prepare for original points
+		List<Point> eyePoints = new ArrayList<>();
+		// bottom point
+		eyePoints.add(new Point(orgMat.cols() / 2, orgMat.rows() - 5));
+		// central point
+		eyePoints.add(new Point(orgMat.cols() / 2, orgMat.rows() / 2));
+		// max point
+		eyePoints.add(maxPoint);
+		Imgproc.drawMarker(orgMat, eyePoints.get(0), new Scalar(255, 255, 255));
+		Imgproc.drawMarker(orgMat, eyePoints.get(1), new Scalar(255, 255, 255));
+		Imgproc.drawMarker(orgMat, eyePoints.get(2), new Scalar(255, 255, 255));
+		Mat eyePointMat = Converters.vector_Point2f_to_Mat(eyePoints);
+		
+		// 2. transform to find the corresponding transformed points
+		Mat transfPointMat = new Mat();
+		// Imgproc.(eyePoint, eyeOrgPoint, persMat, new Size(eyePoint.rows(), eyePoint.cols()));
+		// Imgproc.warpPerspective(eyePointMat, eyeOrgPointMat, persMat, new Size(1, 3));
+		Core.perspectiveTransform(eyePointMat, transfPointMat, transfMat);
+
+		List<Point> transfPoints = new ArrayList<>();
+		Converters.Mat_to_vector_Point2f(transfPointMat, transfPoints);
+		System.out.println(transfPoints);
+		
+		return transfPoints.toArray(new Point[] {});
+	}
+	
 	/**
+	 * get the correct order of the three main areas on the pad
+	 * (assume that the colors of the areas may change: white or blue) 
 	 * 
 	 * @param orgMat
 	 * @param srcPoint
