@@ -119,8 +119,24 @@ public class FeatureExtractorRed {
 		return new Mat[] { orgMat, modMat };
 	}
 	
+	/**
+	 * 
+	 * @param orgMat
+	 * @param srcPoint
+	 * @param maxPoint
+	 * @return
+	 */
 	private static List<Point> getCorrectOrder(Mat orgMat, List<Point> srcPoint, Point maxPoint) {
 		List<Point> points = new ArrayList<>();
+		Point temp, firstPoint, secondPoint;
+		for (int i = 0; i < srcPoint.size(); i++) {
+			temp = srcPoint.get(i);
+			// check if temp is not the max point
+			if (temp.x != maxPoint.x && temp.y != maxPoint.y) {
+				
+			}
+		}
+		
 		
 		Point symPoint = new Point(orgMat.cols() - maxPoint.x, orgMat.rows() - maxPoint.y);
 		points.add(0, symPoint);
