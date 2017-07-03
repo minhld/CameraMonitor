@@ -1,13 +1,9 @@
 package com.minhld.opencv;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
@@ -17,16 +13,12 @@ import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
-import org.opencv.features2d.Features2d;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.Settings;
-
-import sensor_msgs.Image;
-
 
 public class FeatureExtractorRed {
 	static FeatureDetector detector;
@@ -95,7 +87,7 @@ public class FeatureExtractorRed {
 					Rect rect = Imgproc.boundingRect(contour);
 					Point p = new Point(rect.x + rect.width / 2, rect.y + rect.height / 2);
 					srcPoints.add(0, p);
-					System.out.print("(" + p.x + "," + p.y + "," + contourSize + ")");
+					// System.out.print("(" + p.x + "," + p.y + "," + contourSize + ")");
 					
 					// define the max area
 					if (maxContourSize < contourSize) {
@@ -106,7 +98,7 @@ public class FeatureExtractorRed {
 			}
 		}
 		
-		System.out.println();
+		// System.out.println();
 		
 		List<Point> correctedDestPoints = getCorrectOrder(orgMat, srcPoints, maxPoint);
 		
