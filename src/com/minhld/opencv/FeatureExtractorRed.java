@@ -51,7 +51,7 @@ public class FeatureExtractorRed {
 	
 	public static Object[] detectLocation(Mat padMat) {
 		Mat[] results = FeatureExtractorRed.extractFeature(padMat);
-		if (results == null) return null;
+		if (results == null) return new Object[] { null, null };
 		
 		BufferedImage padEx1 = OpenCVUtils.createAwtImage(results[0]);
 		BufferedImage padEx2 = OpenCVUtils.createAwtImage(results[1]);
@@ -63,6 +63,7 @@ public class FeatureExtractorRed {
 		// check if original matrix is null 
 		if (orgMat == null) return null;
 		
+		boolean extractSuccessful = false;
 		Mat modMat = new Mat();
 		
 		// ------ define destination perspective matrix ------ 
@@ -124,17 +125,19 @@ public class FeatureExtractorRed {
 			if (correctedDestPoints.size() == 4) {
 				Mat srcMat = Converters.vector_Point2f_to_Mat(correctedDestPoints);
 				Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
-				Imgproc.warpPerspective(orgMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
+				Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
 
+				// draw markers on the modified matrix
 				Point[] transPoints = (Point[]) getMainPoints(orgMat, persMat, maxPoint);
-				Imgproc.drawMarker(modMat, transPoints[0], new Scalar(255, 255, 255));
-				Imgproc.drawMarker(modMat, transPoints[1], new Scalar(255, 255, 255));
-				Imgproc.drawMarker(modMat, transPoints[2], new Scalar(255, 255, 255));
+				Imgproc.drawMarker(modMat, transPoints[0], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
+				Imgproc.drawMarker(modMat, transPoints[1], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
+				Imgproc.drawMarker(modMat, transPoints[2], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
 
-			}
-		}
+				extractSuccessful = true;
+			} 
+		} 
 		
-		return new Mat[] { orgMat, modMat };
+		return extractSuccessful ? new Mat[] { orgMat, modMat } : null;
 	}
 	
 	private static Point[] getMainPoints(Mat orgMat, Mat transfMat, Point maxPoint) {
@@ -146,9 +149,9 @@ public class FeatureExtractorRed {
 		eyePoints.add(new Point(orgMat.cols() / 2, orgMat.rows() / 2));
 		// max point
 		eyePoints.add(maxPoint);
-		Imgproc.drawMarker(orgMat, eyePoints.get(0), new Scalar(255, 255, 255));
-		Imgproc.drawMarker(orgMat, eyePoints.get(1), new Scalar(255, 255, 255));
-		Imgproc.drawMarker(orgMat, eyePoints.get(2), new Scalar(255, 255, 255));
+//		Imgproc.drawMarker(orgMat, eyePoints.get(0), new Scalar(255, 255, 255));
+//		Imgproc.drawMarker(orgMat, eyePoints.get(1), new Scalar(255, 255, 255));
+//		Imgproc.drawMarker(orgMat, eyePoints.get(2), new Scalar(255, 255, 255));
 		Mat eyePointMat = Converters.vector_Point2f_to_Mat(eyePoints);
 		
 		// 2. transform to find the corresponding transformed points
@@ -199,7 +202,7 @@ public class FeatureExtractorRed {
 		double eval = (firstPoint.y - secondPoint.y) * maxPoint.x + (secondPoint.x - firstPoint.x) * maxPoint.y + 
 					(firstPoint.x * secondPoint.y - secondPoint.x * firstPoint.y);
 		
-		if (eval > 0) {
+		if (eval < 0) {
 			// the max point is higher than the line
 			// --> the order will be first point, max point and second point
 			points.add(firstPoint);
