@@ -42,10 +42,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 import org.opencv.core.Core;
+import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.opencv.DistanceEstimator;
+import com.minhld.opencv.FeatureExtractorRed;
 import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ui.supports.AdjustSlider;
 import com.minhld.ui.supports.SettingsPanel;
@@ -569,7 +571,7 @@ public class RosAutoRed extends Thread {
 				ROSUtils.execute(graphCameraName, new CameraNode2(new CameraNode2.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
-						long start = System.currentTimeMillis();
+						// long start = System.currentTimeMillis();
 						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
 						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
 						// long loadImageTime = System.currentTimeMillis() - start;
@@ -579,36 +581,40 @@ public class RosAutoRed extends Thread {
 						
 						// draw on the RIGHT canvas the modify image
 						// Object[] results = OpenCVUtils.processImage(bImage);
-						start = System.currentTimeMillis();
-						Object[] results = ObjectDetectorRed.processImage(image);
-						long processTime = System.currentTimeMillis() - start;
 						
+						// using image processing to detect the pad 
+						long start = System.currentTimeMillis();
+						Object[] results = ObjectDetectorRed.processImage(image);
+						long findPadTime = System.currentTimeMillis() - start;
 						
 						start = System.currentTimeMillis();
 						BufferedImage resultImage = (BufferedImage) results[0];
 						BufferedImage processImage = (BufferedImage) results[1];
 						BufferedImage capturedImage = (BufferedImage) results[2];
-						BufferedImage pad1 = (BufferedImage) results[3];
-						BufferedImage pad2 = (BufferedImage) results[4];
-						Rect objectRect = (Rect) results[5];
-						
-						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
-						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
+						Rect objectRect = (Rect) results[3];
+						Mat padMat = (Mat) results[4];
 						
 						UISupport.drawImage(cameraPanel, resultImage);
 						UISupport.drawImage(processPanel, processImage);
 						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
-						UISupport.drawRatioImage(closedCapturedPanel, pad1);
-						UISupport.drawRatioImage(transformedPanel, pad2);
+						
+						// using feature detection to find the location of the pad
+						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
+						
+						UISupport.drawRatioImage(closedCapturedPanel, (BufferedImage) locs[0]);
+						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
 						
 						long drawTime = System.currentTimeMillis() - start;
-						long rate = (long) (1000 / processTime);
+						long rate = (long) (1000 / findPadTime);
 						RosAutoRed.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
-														"Processing Time: " + processTime + "ms | " + 
+														"Searching Pad Time: " + findPadTime + "ms | " + 
 														"Rate: " + rate + "fps");
 
-						RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)");
+//						RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)");
 						
+						// teach the wheel-chair how to move
+						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
+						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
 						
 						if (RosAutoRed.this.isAuto) {
 							// only automatically moving when flag isAuto is set

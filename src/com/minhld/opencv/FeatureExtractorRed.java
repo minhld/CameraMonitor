@@ -1,5 +1,6 @@
 package com.minhld.opencv;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +48,15 @@ public class FeatureExtractorRed {
 
 	}
 	
-	public static Mat[] extractFeature3(Mat orgMat) { 
+	public static Object[] detectLocation(Mat padMat) {
+		Mat[] results = FeatureExtractorRed.extractFeature(padMat);
+		BufferedImage padEx1 = OpenCVUtils.createAwtImage(results[0]);
+		BufferedImage padEx2 = OpenCVUtils.createAwtImage(results[1]);
+		
+		return new Object[] { padEx1, padEx2 };
+	}
+	
+	public static Mat[] extractFeature(Mat orgMat) { 
 		Mat modMat = new Mat();
 		
 		// ------ define destination perspective matrix ------ 
@@ -182,7 +191,7 @@ public class FeatureExtractorRed {
 		}
 	}
 	
-	public static Mat[] extractFeature(Mat orgMat) {
+	public static Mat[] extractFeature3(Mat orgMat) {
 		try {
 			// Mat orgMat = OpenCVUtils.openImage(source);
 			Imgproc.GaussianBlur(orgMat, orgMat, new Size(Settings.gaussianSize, Settings.gaussianSize), Settings.gaussianStandardDeviation);
