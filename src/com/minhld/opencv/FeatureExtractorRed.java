@@ -64,8 +64,6 @@ public class FeatureExtractorRed {
 		// threshold to eliminate a number of objects
 		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 		
-//		Imgproc.Canny(modMat, modMat, 10, 255);
-		
 		// find contours
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
@@ -75,6 +73,8 @@ public class FeatureExtractorRed {
 		List<Point> srcPoints = new ArrayList<>();
 
 		Point maxPoint = new Point(0, 0);
+		
+		// check if the number of contours is more than 3 areas
 		if (contours.size() >= 3) {
 			MatOfPoint contour;
 			double maxContourSize = 0, contourSize;
@@ -100,12 +100,13 @@ public class FeatureExtractorRed {
 		
 		// System.out.println();
 		
+		// place the found points into the correct order for transformation 
 		List<Point> correctedDestPoints = getCorrectOrder(orgMat, srcPoints, maxPoint);
 		
 		if (correctedDestPoints.size() == 4) {
 			Mat srcMat = Converters.vector_Point2f_to_Mat(correctedDestPoints);
 			Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
-			Imgproc.warpPerspective(orgMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
+			Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
 		}
 		
 		return new Mat[] { orgMat, modMat };
