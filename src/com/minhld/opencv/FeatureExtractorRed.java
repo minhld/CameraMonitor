@@ -128,18 +128,47 @@ public class FeatureExtractorRed {
 	 */
 	private static List<Point> getCorrectOrder(Mat orgMat, List<Point> srcPoint, Point maxPoint) {
 		List<Point> points = new ArrayList<>();
-		Point temp, firstPoint, secondPoint;
+		
+		// 1. get first and second point, ordered by x-coordinate
+		Point temp, firstPoint = new Point(0, 0), secondPoint = new Point(0, 0);
 		for (int i = 0; i < srcPoint.size(); i++) {
 			temp = srcPoint.get(i);
+			
 			// check if temp is not the max point
 			if (temp.x != maxPoint.x && temp.y != maxPoint.y) {
-				
+				if (temp.x >= secondPoint.x) {
+					firstPoint = secondPoint;
+					secondPoint = temp;
+				} else {
+					firstPoint = temp;
+				}
 			}
 		}
 		
+		// 2. establish the line equation going through the two indicated points
+		// (y1 – y2)x + (x2 – x1)y + (x1y2 – x2y1) = 0
 		
+		// 3. check the position of the max point to the above line
+		double eval = (firstPoint.y - secondPoint.y) * maxPoint.x + (secondPoint.x - firstPoint.x) * maxPoint.y + 
+					(firstPoint.x * secondPoint.y - secondPoint.x * firstPoint.y);
+		
+		if (eval > 0) {
+			// the max point is higher than the line
+			// --> the order will be first point, max point and second point
+			points.add(firstPoint);
+			points.add(maxPoint);
+			points.add(secondPoint);
+		} else {
+			// the max point is higher than the line
+			// --> the order will be second point, max point and first point
+			points.add(secondPoint);
+			points.add(maxPoint);
+			points.add(firstPoint);
+		}
+		
+		// add the symmetric point of the max point
 		Point symPoint = new Point(orgMat.cols() - maxPoint.x, orgMat.rows() - maxPoint.y);
-		points.add(0, symPoint);
+		points.add(symPoint);
 
 		return points;
 	}
