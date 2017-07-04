@@ -29,25 +29,25 @@ public class FeatureExtractorRed {
 	static Mat tplMat, tplDesc, outputTpl;
 	static MatOfKeyPoint tplKeys;
 	
-	static {
-		FeatureExtractorRed.init();
-	}
-	
-	public static void init() {
-		detector = FeatureDetector.create(FeatureDetector.ORB);
-        descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-        matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
-
-		tplMat = Imgcodecs.imread("samples/tpl11.png");
-//		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
-		tplDesc = new Mat();
-		tplKeys = new MatOfKeyPoint();
-        detector.detect(tplMat, tplKeys);
-        descriptor.compute(tplMat, tplKeys, tplDesc);
-//        outputTpl = new Mat();
-//        Features2d.drawKeypoints(tplMat, tplKeys, outputTpl);
-
-	}
+//	static {
+//		FeatureExtractorRed.init();
+//	}
+//	
+//	public static void init() {
+//		detector = FeatureDetector.create(FeatureDetector.ORB);
+//        descriptor = DescriptorExtractor.create(DescriptorExtractor.ORB);
+//        matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+//
+//		tplMat = Imgcodecs.imread("samples/tpl11.png");
+////		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
+//		tplDesc = new Mat();
+//		tplKeys = new MatOfKeyPoint();
+//        detector.detect(tplMat, tplKeys);
+//        descriptor.compute(tplMat, tplKeys, tplDesc);
+////        outputTpl = new Mat();
+////        Features2d.drawKeypoints(tplMat, tplKeys, outputTpl);
+//
+//	}
 	
 	public static Object[] detectLocation(Mat padMat) {
 		Mat[] results = FeatureExtractorRed.extractFeature(padMat);
@@ -140,8 +140,16 @@ public class FeatureExtractorRed {
 		return extractSuccessful ? new Mat[] { orgMat, modMat } : null;
 	}
 	
+	/**
+	 * convert 3 main points using the same transformation matrix
+	 * 
+	 * @param orgMat
+	 * @param transfMat
+	 * @param maxPoint
+	 * @return
+	 */
 	private static Point[] getMainPoints(Mat orgMat, Mat transfMat, Point maxPoint) {
-		// 1. prepare for original points
+		// --- 1. prepare for original points --- 
 		List<Point> eyePoints = new ArrayList<>();
 		// bottom point
 		eyePoints.add(new Point(orgMat.cols() / 2, orgMat.rows() - 5));
@@ -149,12 +157,12 @@ public class FeatureExtractorRed {
 		eyePoints.add(new Point(orgMat.cols() / 2, orgMat.rows() / 2));
 		// max point
 		eyePoints.add(maxPoint);
-//		Imgproc.drawMarker(orgMat, eyePoints.get(0), new Scalar(255, 255, 255));
-//		Imgproc.drawMarker(orgMat, eyePoints.get(1), new Scalar(255, 255, 255));
-//		Imgproc.drawMarker(orgMat, eyePoints.get(2), new Scalar(255, 255, 255));
+		// Imgproc.drawMarker(orgMat, eyePoints.get(0), new Scalar(255, 255, 255));
+		// Imgproc.drawMarker(orgMat, eyePoints.get(1), new Scalar(255, 255, 255));
+		// Imgproc.drawMarker(orgMat, eyePoints.get(2), new Scalar(255, 255, 255));
 		Mat eyePointMat = Converters.vector_Point2f_to_Mat(eyePoints);
 		
-		// 2. transform to find the corresponding transformed points
+		// --- 2. transform to find the corresponding transformed points --- 
 		Mat transfPointMat = new Mat();
 		// Imgproc.(eyePoint, eyeOrgPoint, persMat, new Size(eyePoint.rows(), eyePoint.cols()));
 		// Imgproc.warpPerspective(eyePointMat, eyeOrgPointMat, persMat, new Size(1, 3));
@@ -162,7 +170,7 @@ public class FeatureExtractorRed {
 
 		List<Point> transfPoints = new ArrayList<>();
 		Converters.Mat_to_vector_Point2f(transfPointMat, transfPoints);
-		System.out.println(transfPoints);
+		// System.out.println(transfPoints);
 		
 		return transfPoints.toArray(new Point[] {});
 	}
@@ -223,169 +231,169 @@ public class FeatureExtractorRed {
 		return points;
 	}
 	
-	public static Mat[] extractFeature2(Mat orgMat) {
-		try {
-//			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(3, 3));
-//			Imgproc.dilate(orgMat, orgMat, element);
-//			Imgproc.erode(orgMat, orgMat, element);
-
-			Mat[] results = drawContours(orgMat);
-			
-	        return new Mat[] { results[0], results[1] };
-
-		}catch (Exception e) {
-			System.err.println(e.getMessage());
-			return new Mat[] { orgMat };
-		}
-	}
-	
-	public static Mat[] extractFeature3(Mat orgMat) {
-		try {
-			// Mat orgMat = OpenCVUtils.openImage(source);
-			Imgproc.GaussianBlur(orgMat, orgMat, new Size(Settings.gaussianSize, Settings.gaussianSize), Settings.gaussianStandardDeviation);
-
-			Mat modMat = new Mat();
-			
-			// turn to black-white
-			Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
-			
-			// threshold to eliminate a number of objects
-			Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
-			
-			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));
-			Imgproc.erode(modMat, modMat, element);
-			Imgproc.dilate(modMat, modMat, element);
-
-//			Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
-			Mat orgDesc = new Mat();
-			MatOfKeyPoint orgKeys = new MatOfKeyPoint();
-	        detector.detect(orgMat, orgKeys);
-	        descriptor.compute(orgMat, orgKeys, orgDesc);
-	        
-////	        Mat outputImg = new Mat();
-////	        Features2d.drawKeypoints(orgMat, orgKeys, outputImg);
+//	public static Mat[] extractFeature2(Mat orgMat) {
+//		try {
+////			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(3, 3));
+////			Imgproc.dilate(orgMat, orgMat, element);
+////			Imgproc.erode(orgMat, orgMat, element);
+//
+//			Mat[] results = drawContours(orgMat);
+//			
+//	        return new Mat[] { results[0], results[1] };
+//
+//		}catch (Exception e) {
+//			System.err.println(e.getMessage());
+//			return new Mat[] { orgMat };
+//		}
+//	}
+//	
+//	public static Mat[] extractFeature3(Mat orgMat) {
+//		try {
+//			// Mat orgMat = OpenCVUtils.openImage(source);
+//			Imgproc.GaussianBlur(orgMat, orgMat, new Size(Settings.gaussianSize, Settings.gaussianSize), Settings.gaussianStandardDeviation);
+//
+//			Mat modMat = new Mat();
+//			
+//			// turn to black-white
+//			Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
+//			
+//			// threshold to eliminate a number of objects
+//			Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
+//			
+//			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));
+//			Imgproc.erode(modMat, modMat, element);
+//			Imgproc.dilate(modMat, modMat, element);
+//
+////			Imgproc.cvtColor(orgMat, orgMat, Imgproc.COLOR_RGB2GRAY);
+//			Mat orgDesc = new Mat();
+//			MatOfKeyPoint orgKeys = new MatOfKeyPoint();
+//	        detector.detect(orgMat, orgKeys);
+//	        descriptor.compute(orgMat, orgKeys, orgDesc);
+//	        
+//////	        Mat outputImg = new Mat();
+//////	        Features2d.drawKeypoints(orgMat, orgKeys, outputImg);
+//////	
+////	        
+////	        Mat outputTpl = new Mat();
+////	        Features2d.drawKeypoints(tplMat, tplKeys, outputTpl);
 ////	
-//	        
-//	        Mat outputTpl = new Mat();
-//	        Features2d.drawKeypoints(tplMat, tplKeys, outputTpl);
-//	
-//	        // Matching
-//	        MatOfDMatch matches = new MatOfDMatch();
-//	        if (tplMat.type() == orgMat.type()) {
-////	            matcher.match(tplDesc, orgDesc, matches);
-//	        } 
-
-	        // Imgproc.goodFeaturesToTrack
-	        
-//	        List<DMatch> matchesList = matches.toList();
-//	
-//	        Double max_dist = 0.0;
-//	        Double min_dist = 100.0;
-//	
-//	        for (int i = 0; i < matchesList.size(); i++) {
-//	            Double dist = (double) matchesList.get(i).distance;
-//	            if (dist < min_dist)
-//	                min_dist = dist;
-//	            if (dist > max_dist)
-//	                max_dist = dist;
-//	        }
-//	
-//	        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
-//	        for (int i = 0; i < matchesList.size(); i++) {
-//	            if (matchesList.get(i).distance <= (1.5 * min_dist))
-//	                good_matches.addLast(matchesList.get(i));
-//	        }
-//	
-//	        MatOfDMatch goodMatches = new MatOfDMatch();
-//	        goodMatches.fromList(good_matches);
-//	        
-//	        
-//	        Mat outputImg = new Mat(tplMat.rows() + orgMat.rows(), tplMat.cols() + orgMat.cols(), orgMat.type());
-//	        MatOfByte drawnMatches = new MatOfByte();
+////	        // Matching
+////	        MatOfDMatch matches = new MatOfDMatch();
+////	        if (tplMat.type() == orgMat.type()) {
+//////	            matcher.match(tplDesc, orgDesc, matches);
+////	        } 
 //
-////	        Features2d.drawMatches(tplMat, tplKeys, orgMat, orgKeys, goodMatches, outputImg, 
+//	        // Imgproc.goodFeaturesToTrack
+//	        
+////	        List<DMatch> matchesList = matches.toList();
+////	
+////	        Double max_dist = 0.0;
+////	        Double min_dist = 100.0;
+////	
+////	        for (int i = 0; i < matchesList.size(); i++) {
+////	            Double dist = (double) matchesList.get(i).distance;
+////	            if (dist < min_dist)
+////	                min_dist = dist;
+////	            if (dist > max_dist)
+////	                max_dist = dist;
+////	        }
+////	
+////	        LinkedList<DMatch> good_matches = new LinkedList<DMatch>();
+////	        for (int i = 0; i < matchesList.size(); i++) {
+////	            if (matchesList.get(i).distance <= (1.5 * min_dist))
+////	                good_matches.addLast(matchesList.get(i));
+////	        }
+////	
+////	        MatOfDMatch goodMatches = new MatOfDMatch();
+////	        goodMatches.fromList(good_matches);
+////	        
+////	        
+////	        Mat outputImg = new Mat(tplMat.rows() + orgMat.rows(), tplMat.cols() + orgMat.cols(), orgMat.type());
+////	        MatOfByte drawnMatches = new MatOfByte();
+////
+//////	        Features2d.drawMatches(tplMat, tplKeys, orgMat, orgKeys, goodMatches, outputImg, 
+//////	        			OpenCVUtils.BORDER_COLOR, OpenCVUtils.BORDER_RED_COLOR, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
+////
+////	        Features2d.drawMatches(tplMat, tplKeys, orgMat, orgKeys, matches, outputImg, 
 ////	        			OpenCVUtils.BORDER_COLOR, OpenCVUtils.BORDER_RED_COLOR, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
+////
+//////	        Imgproc.resize(outputImg, outputImg, orgMat.size() + tplMat.size());
+////
+//////	        BufferedImage resultImage = OpenCVUtils.createAwtImage(outputImg);
 //
-//	        Features2d.drawMatches(tplMat, tplKeys, orgMat, orgKeys, matches, outputImg, 
-//	        			OpenCVUtils.BORDER_COLOR, OpenCVUtils.BORDER_RED_COLOR, drawnMatches, Features2d.NOT_DRAW_SINGLE_POINTS);
+//			Mat[] results = drawContours(modMat);
+//			
+//	        return new Mat[] { results[0], results[1] };
 //
-////	        Imgproc.resize(outputImg, outputImg, orgMat.size() + tplMat.size());
+//		}catch (Exception e) {
+//			System.err.println(e.getMessage());
+//			return new Mat[] { orgMat };
+//		}
+//	}
+//	
+//	/**
+//	 * finding the circle - updated version
+//	 * 
+//	 * @param source
+//	 * @return
+//	 */
+//	public static Mat[] drawContours(Mat src) {
+////		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(3, 3));
+////		Imgproc.dilate(src, src, element);
+////		Imgproc.erode(src, src, element);
+//		
+//		// find contours
+//		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+//		Mat hierarchy = new Mat();
+//		Imgproc.findContours(src, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+//		hierarchy.release();
 //
-////	        BufferedImage resultImage = OpenCVUtils.createAwtImage(outputImg);
-
-			Mat[] results = drawContours(modMat);
-			
-	        return new Mat[] { results[0], results[1] };
-
-		}catch (Exception e) {
-			System.err.println(e.getMessage());
-			return new Mat[] { orgMat };
-		}
-	}
-	
-	/**
-	 * finding the circle - updated version
-	 * 
-	 * @param source
-	 * @return
-	 */
-	public static Mat[] drawContours(Mat src) {
-//		Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(3, 3));
-//		Imgproc.dilate(src, src, element);
-//		Imgproc.erode(src, src, element);
-		
-		// find contours
-		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		Mat hierarchy = new Mat();
-		Imgproc.findContours(src, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-		hierarchy.release();
-
-//		Point locStartMax = new Point(), locEndMax = new Point();
-		
-		ArrayList<MatOfPoint> maxContours = new ArrayList<MatOfPoint>();
-		
-		
-		
-		if (contours.size() > 0) {
-			MatOfPoint maxContour = new MatOfPoint(), maxContour2 = new MatOfPoint(), contour;
-			double maxContourSize = 0, contourSize;
-//			Point locStart = new Point(), locEnd = new Point();
-//			Rect rect;
-				
-			// fetch through the list of contours
-			for(int i = 0; i < contours.size(); i++) {
-				contour = contours.get(i);
-				
-				// get rid of the small objects found in the camera area
-				contourSize = Imgproc.contourArea(contour);
-//				if (contourSize > 100 && contourSize < 2000) {
-//					rect = Imgproc.boundingRect(contour);
-//					locStart = new Point(rect.x, rect.y);
-//					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
-					
-//					maxContours.add(contour);
+////		Point locStartMax = new Point(), locEndMax = new Point();
+//		
+//		ArrayList<MatOfPoint> maxContours = new ArrayList<MatOfPoint>();
+//		
+//		
+//		
+//		if (contours.size() > 0) {
+//			MatOfPoint maxContour = new MatOfPoint(), maxContour2 = new MatOfPoint(), contour;
+//			double maxContourSize = 0, contourSize;
+////			Point locStart = new Point(), locEnd = new Point();
+////			Rect rect;
+//				
+//			// fetch through the list of contours
+//			for(int i = 0; i < contours.size(); i++) {
+//				contour = contours.get(i);
+//				
+//				// get rid of the small objects found in the camera area
+//				contourSize = Imgproc.contourArea(contour);
+////				if (contourSize > 100 && contourSize < 2000) {
+////					rect = Imgproc.boundingRect(contour);
+////					locStart = new Point(rect.x, rect.y);
+////					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
+//					
+////					maxContours.add(contour);
+////				}
+//				// define the max area
+//				if (maxContourSize < contourSize) {
+//					maxContourSize = contourSize;
+//					
+//					maxContour2 = maxContour;
+//					maxContour = contour;
+//					
+////					locStartMax = locStart;
+////					locEndMax = locEnd;
+//					
 //				}
-				// define the max area
-				if (maxContourSize < contourSize) {
-					maxContourSize = contourSize;
-					
-					maxContour2 = maxContour;
-					maxContour = contour;
-					
-//					locStartMax = locStart;
-//					locEndMax = locEnd;
-					
-				}
-			}
-//			System.out.println("contour max: " + maxContourSize);
-			
-			maxContours.add(maxContour2);
-		}
-
-		Mat src1 = new Mat(src.rows(), src.cols(), src.type(), new Scalar(255, 255, 255));
-		
-		Imgproc.drawContours(src1, maxContours, 0, OpenCVUtils.BORDER_RED_COLOR, 1);
-       
-        return new Mat[] { src, src1 } ;
-	}
+//			}
+////			System.out.println("contour max: " + maxContourSize);
+//			
+//			maxContours.add(maxContour2);
+//		}
+//
+//		Mat src1 = new Mat(src.rows(), src.cols(), src.type(), new Scalar(255, 255, 255));
+//		
+//		Imgproc.drawContours(src1, maxContours, 0, OpenCVUtils.BORDER_RED_COLOR, 1);
+//       
+//        return new Mat[] { src, src1 } ;
+//	}
 }
