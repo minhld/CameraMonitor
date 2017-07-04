@@ -188,7 +188,7 @@ public class RosAutoRed extends Thread {
 		findPadBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(findPadBtn);
 		
-		final JButton initMovingBtn = new JButton("Start Moving Node");
+		final JButton initMovingBtn = new JButton("Start Moving");
 		initMovingBtn.setIcon(new ImageIcon("images/execute.png"));
 		initMovingBtn.addActionListener(new ActionListener() {
 			@Override
@@ -202,6 +202,19 @@ public class RosAutoRed extends Thread {
 		initMovingBtn.setEnabled(false);	// temporarily closed
 		initMovingBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(initMovingBtn);
+		
+		toolbar.addSeparator();
+		
+		final JButton debugBtn = new JButton("Debug");
+		debugBtn.setIcon(new ImageIcon("images/debug.png"));
+		debugBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		debugBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
+		toolbar.add(debugBtn);
 		
 		return toolbar;
 	}

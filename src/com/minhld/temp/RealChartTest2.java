@@ -3,13 +3,10 @@ package com.minhld.temp;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -21,7 +18,7 @@ import org.knowm.xchart.XYChartBuilder;
 import org.knowm.xchart.XYSeries.XYSeriesRenderStyle;
 import org.knowm.xchart.style.Styler.LegendPosition;
 
-public class RealChartTest extends Thread {
+public class RealChartTest2 extends Thread {
 	private final int WINDOW_DEF_WIDTH = 1500;
 	private final int WINDOW_DEF_HEIGHT = 800;
 	private JPanel canvas;
@@ -56,30 +53,16 @@ public class RealChartTest extends Thread {
 	    chart = new XYChartBuilder().width(800).height(600).build();
  
 	    // Customize Chart
-		chart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Scatter);
-		chart.getStyler().setChartTitleVisible(false);
-		chart.getStyler().setLegendPosition(LegendPosition.InsideSW);
-		chart.getStyler().setMarkerSize(16);
-
-//		chart = new BubbleChart(500, 400, ChartTheme.GGPlot2);
-//	    chart.setTitle("Real-time Bubble Chart");
-//	    chart.setXAxisTitle("X");
-//	    chart.setYAxisTitle("Y");
-
+	    chart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Scatter);
+	    chart.getStyler().setChartTitleVisible(false);
+	    chart.getStyler().setLegendPosition(LegendPosition.InsideSW);
+	    chart.getStyler().setMarkerSize(16);
 	    
-	    // Series
-//	    Random random = new Random();
-//	    int size = 5;
-//	    for (int i = 0; i < size; i++) {
-//	      xData.add(random.nextGaussian() / 1000);
-//	      yData.add(-1000000 + random.nextGaussian());
-//	    }
-	    xData = getRandomData(5);
-	    yData = getRandomData(5);
+		xData.add(0d);
+		yData.add(0d);
 	    
 	    chart.addSeries("Gaussian Blob", null, xData, yData);
 	    
-//	    new SwingWrapper(chart).displayChart();
 	    panel = new XChartPanel<XYChart>(chart);
 	    canvas.add(panel, BorderLayout.CENTER);
 	    
@@ -88,10 +71,6 @@ public class RealChartTest extends Thread {
 	    	public void run() {
 		        updateData();
 		        chart.updateXYSeries("Gaussian Blob", null, xData, yData);
-		        // chart.updateBubbleSeries("Gaussian Blob", null, xData, yData);
-		        
-		        // mainFrame.revalidate();
-		        // mainFrame.repaint();
 		        panel.repaint();
 	    	}
 	    };
@@ -102,46 +81,19 @@ public class RealChartTest extends Thread {
 	
 	public void updateData() {
 
-		// Get some new data
-		List<Double> newData = getRandomData(1);
-		yData.addAll(newData);
-		// Limit the total number of points
-		while (yData.size() > 20) {
-			yData.remove(0);
+		if (xData.size() == 2) {
+			xData.remove(1);
 		}
+		xData.add(Math.random() * 5);
 
-		// Get some new data
-		newData = getRandomData(1);
-		xData.addAll(newData);
-		// Limit the total number of points
-		while (xData.size() > 20) {
-			xData.remove(0);
+		if (yData.size() == 2) {
+			yData.remove(1);
 		}
+		yData.add(Math.random() * 5);
 
-	}
-	
-	private List<Double> getRandomData(int numPoints) {
-
-		List<Double> data = new CopyOnWriteArrayList<>();
-		for (int i = 0; i < numPoints; i++) {
-			data.add(Math.random() * 100);
-		}
-		return data;
-	}
-	
-	private void displayImage(BufferedImage bImage) {
-		try {
-			Graphics g = canvas.getGraphics();
-			if (g != null) {
-				int w = canvas.getWidth(), h = canvas.getHeight();
-				g.drawImage(bImage, 0, 0, w, h, null);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public static void main(String args[]) {
-		new RealChartTest().start();
+		new RealChartTest2().start();
 	}
 }
