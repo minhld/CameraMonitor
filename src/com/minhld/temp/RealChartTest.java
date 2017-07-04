@@ -51,9 +51,11 @@ public class RealChartTest extends Thread {
 	private final int WINDOW_DEF_WIDTH = 1500;
 	private final int WINDOW_DEF_HEIGHT = 800;
 	private JPanel canvas;
+	JFrame mainFrame;
+	XChartPanel<XYChart> panel;
 	
 	public void run() {
-		JFrame mainFrame = new JFrame("Find Pad Test");
+		mainFrame = new JFrame("Find Pad Test");
 		Container contentPane = mainFrame.getContentPane();
 		
 		mainFrame.setPreferredSize(new Dimension(WINDOW_DEF_WIDTH, WINDOW_DEF_HEIGHT));
@@ -72,23 +74,23 @@ public class RealChartTest extends Thread {
     // Series
     List<Double> xData = new LinkedList<Double>();
     List<Double> yData = new LinkedList<Double>();
-    // XYChart chart;
-    BubbleChart chart;
+    XYChart chart;
+    // BubbleChart chart;
     
 	private void processImage() {
 	    // Create Chart
-	    // chart = new XYChartBuilder().width(800).height(600).build();
+	    chart = new XYChartBuilder().width(800).height(600).build();
  
 	    // Customize Chart
-	    // chart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Scatter);
-	    // chart.getStyler().setChartTitleVisible(false);
-	    // chart.getStyler().setLegendPosition(LegendPosition.InsideSW);
-	    // chart.getStyler().setMarkerSize(16);
+		chart.getStyler().setDefaultSeriesRenderStyle(XYSeriesRenderStyle.Scatter);
+		chart.getStyler().setChartTitleVisible(false);
+		chart.getStyler().setLegendPosition(LegendPosition.InsideSW);
+		chart.getStyler().setMarkerSize(16);
 
-		chart = new BubbleChart(500, 400, ChartTheme.GGPlot2);
-	    chart.setTitle("Real-time Bubble Chart");
-	    chart.setXAxisTitle("X");
-	    chart.setYAxisTitle("Y");
+//		chart = new BubbleChart(500, 400, ChartTheme.GGPlot2);
+//	    chart.setTitle("Real-time Bubble Chart");
+//	    chart.setXAxisTitle("X");
+//	    chart.setYAxisTitle("Y");
 
 	    
 	    // Series
@@ -103,16 +105,20 @@ public class RealChartTest extends Thread {
 	    
 	    chart.addSeries("Gaussian Blob", null, xData, yData);
 	    
-	    new SwingWrapper(chart).displayChart();
-//	    XChartPanel<XYChart> panel = new XChartPanel<XYChart>(chart);
-//	    canvas.add(panel, BorderLayout.CENTER);
+//	    new SwingWrapper(chart).displayChart();
+	    panel = new XChartPanel<XYChart>(chart);
+	    canvas.add(panel, BorderLayout.CENTER);
 	    
 	    TimerTask chartUpdaterTask = new TimerTask() {
 	    	@Override
 	    	public void run() {
 		        updateData();
-		        // chart.updateXYSeries("Gaussian Blob", null, xData, yData);
-		        chart.updateBubbleSeries("Gaussian Blob", null, xData, yData);
+		        chart.updateXYSeries("Gaussian Blob", null, xData, yData);
+		        // chart.updateBubbleSeries("Gaussian Blob", null, xData, yData);
+		        
+		        // mainFrame.revalidate();
+		        // mainFrame.repaint();
+		        panel.repaint();
 	    	}
 	    };
 
