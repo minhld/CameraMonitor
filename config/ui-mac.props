@@ -9,5 +9,7 @@ button-margin-top=0
 host-text-columns=12
 topic-list-width=230
 topic-list-height=200
+location-width=300
+location-height=300
 topic-text-columns=32
 topic-text-rows=25

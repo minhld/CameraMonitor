@@ -50,6 +50,7 @@ import com.minhld.opencv.DistanceEstimator;
 import com.minhld.opencv.FeatureExtractorRed;
 import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ui.supports.AdjustSlider;
+import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSUtils;
@@ -60,7 +61,7 @@ import sensor_msgs.Image;
 public class RosAutoRed extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
-	JTextArea infoText, controlInfoText;
+	JTextArea topicInfoText, controlInfoText;
 	JButton connectROSButton, stopROSButton;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
@@ -458,33 +459,30 @@ public class RosAutoRed extends Thread {
 		
 		control.add(controlInfo, BorderLayout.CENTER);
 		
-//		// Transformation panel
-//		JPanel transform = new JPanel(new FlowLayout());
-//		transform.setBorder(BorderFactory.createTitledBorder("Transformation"));
-//		transform.setPreferredSize(new Dimension(280, 280));
-//		
-//		transform.add(new JLabel("Captured Image"));
-//		
-//		capturedPanel = new JPanel();
-//		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-//		capturedPanel.setBorder(new TitledBorder(""));
-//		transform.add(capturedPanel);
-//		
-//		transform.add(new JLabel("Transformed Image"));
-//		
-//		transformedPanel = new JPanel();
-//		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-//		transformedPanel.setBorder(new TitledBorder(""));
-//		transform.add(transformedPanel);
-//		
-//		control.add(transform, BorderLayout.EAST);
+		// ------ Coordinate System panel ------ 
+		JPanel topicInfoPanel = new JPanel(new BorderLayout());
+		topicInfoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
+		topicInfoPanel.setPreferredSize(new Dimension(280, 200));
 		
+		topicInfoText = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
+		topicInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
+		topicInfoText.setFont(new Font("courier", Font.PLAIN, 11));
+		topicInfoText.setEditable(false);
+		JScrollPane topicInfoScroller = new JScrollPane(topicInfoText, 
+							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		topicInfoPanel.add(topicInfoScroller, BorderLayout.CENTER);
+
+		topicInfoPanel.add(new JLabel(" "), BorderLayout.SOUTH);
+		
+		control.add(topicInfoPanel, BorderLayout.EAST);
 		
 		totalView.add(control, BorderLayout.SOUTH);
 		
 		return totalView;
 	}
 	
+    
 	/**
 	 * this function is called when user presses on navigation buttons on keyboard
 	 * or uses mouse to click on navigation buttons on the application
@@ -743,6 +741,18 @@ public class RosAutoRed extends Thread {
 		
 		config.add(networkConfig, BorderLayout.NORTH);
 
+		// ------ add Location panel ------ 
+		JPanel locationPanel = new JPanel();
+		locationPanel.setBorder(BorderFactory.createTitledBorder("Location"));
+		
+		JPanel coordPanel = new JPanel(new BorderLayout()); 
+		coordPanel.setPreferredSize(new Dimension(UISupport.getUIProp("location-width"), 
+		 											UISupport.getUIProp("location-height")));
+		coordPanel.add(LocationDrawer.createLocationSystem());
+		
+		locationPanel.add(coordPanel, BorderLayout.CENTER);
+		config.add(locationPanel, BorderLayout.CENTER);
+
 		// ------ add ROS Topic List panel ------
 		JPanel topicPanel = new JPanel(new BorderLayout());
 		topicPanel.setBorder(BorderFactory.createTitledBorder("ROS Topics"));
@@ -770,7 +780,7 @@ public class RosAutoRed extends Thread {
 		        if (e.getClickCount() == 1) {
 		        	// single-click detected
 		        	String topicInfo = ROSUtils.getTopicInfo(selectedTopic);
-		        	infoText.setText(topicInfo);
+		        	topicInfoText.setText(topicInfo);
 		        }
 			}
 		});
@@ -780,25 +790,12 @@ public class RosAutoRed extends Thread {
 		listScroller.setPreferredSize(new Dimension(UISupport.getUIProp("topic-list-width"), 
 													UISupport.getUIProp("topic-list-height")));
 		topicPanel.add(listScroller, BorderLayout.CENTER);
-		config.add(topicPanel, BorderLayout.CENTER);
+		config.add(topicPanel, BorderLayout.SOUTH);
+		
 
 		// crawl topic list and add to the swing view list
 		// addTopicsToList();
 		
-		// ------ add Network Info panel ------ 
-		JPanel infoPanel = new JPanel();
-		infoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
-
-		infoText = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
-		infoText.setBorder(BorderFactory.createLineBorder(Color.gray));
-		infoText.setFont(new Font("courier", Font.PLAIN, 11));
-		infoText.setEditable(false);
-		JScrollPane infoScroller = new JScrollPane(infoText, 
-							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		infoPanel.add(infoScroller, BorderLayout.CENTER);
-
-		config.add(infoPanel, BorderLayout.SOUTH);
 
 		return config;
 	}
@@ -829,7 +826,7 @@ public class RosAutoRed extends Thread {
 			RosAutoRed.this.buttonPanel.requestFocusInWindow();
 			
 		} catch (Exception e) {
-			infoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
+			topicInfoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
 		}
 	}
 	

@@ -2,21 +2,13 @@ package com.minhld.temp;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.AbstractAction;
-import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -26,14 +18,13 @@ import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.data.xy.XYDataItem;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 public class RealChartTest3 extends JFrame {
-	private static final int N = 1;
-    private static final int SIZE = 345;
+	private static final long serialVersionUID = -800431856273352679L;
+	
+	private static final int SIZE = 300;
     private static final String title = "Scatter Add Demo";
     private static final Random rand = new Random();
     private final XYSeries series = new XYSeries("Original");
@@ -44,35 +35,39 @@ public class RealChartTest3 extends JFrame {
         final ChartPanel chartPanel = createDemoPanel();
         chartPanel.setPreferredSize(new Dimension(SIZE, SIZE));
         this.add(chartPanel, BorderLayout.CENTER);
-        JPanel control = new JPanel();
-        control.add(new JButton(new AbstractAction("Move") {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				for (int i = 0; i < N / 2; i++) {
-                    XYDataItem item = series.remove(0);
-                    if (item != null) {
-                        added.add(item);
-                    }
-                }
-			}
-		}));
     }
-
-    private ChartPanel createDemoPanel() {
     
-        JFreeChart jfreechart = ChartFactory.createScatterPlot(
-            title, "", "", createSampleData(),
-            PlotOrientation.VERTICAL, true, true, false);
+    // JFreeChart jfreechart;
+    XYSeriesCollection collection;
+    
+    private ChartPanel createDemoPanel() {
+    	collection = new XYSeriesCollection();
+    	series.add(0, 0);
+    	collection.addSeries(series);
+    	updateData();
+    	
+    	JFreeChart jfreechart = ChartFactory.createScatterPlot("", "", "", collection, PlotOrientation.VERTICAL, true, true, false);
         XYPlot xyPlot = (XYPlot) jfreechart.getPlot();
         xyPlot.setDomainCrosshairVisible(true);
         xyPlot.setRangeCrosshairVisible(true);
         XYItemRenderer renderer = xyPlot.getRenderer();
         renderer.setSeriesPaint(0, Color.blue);
-        renderer.setSeriesPaint(1, Color.red);
+        renderer.setSeriesPaint(1, Color.green);
         adjustAxis((NumberAxis) xyPlot.getDomainAxis(), true);
         adjustAxis((NumberAxis) xyPlot.getRangeAxis(), false);
         xyPlot.setBackgroundPaint(Color.white);
+        
+        TimerTask chartUpdaterTask = new TimerTask() {
+	    	@Override
+	    	public void run() {
+	    		updateData();
+	    		
+	    	}
+	    };
+
+	    Timer timer = new Timer();
+	    timer.scheduleAtFixedRate(chartUpdaterTask, 0, 500);
+        
         return new ChartPanel(jfreechart);
     }
 
@@ -82,15 +77,12 @@ public class RealChartTest3 extends JFrame {
         axis.setVerticalTickLabels(vertical);
     }
 
-    private XYDataset createSampleData() {
-        XYSeriesCollection xySeriesCollection = new XYSeriesCollection();
-        for (int i = 0; i < N * N; i++) {
-            series.add(rand.nextInt(10), rand.nextInt(10));
-            added.add(0, 0);
-        }
-        xySeriesCollection.addSeries(series);
-        xySeriesCollection.addSeries(added);
-        return xySeriesCollection;
+    private void updateData() {
+    	added.clear();
+        added.add(rand.nextInt(10), rand.nextInt(10));
+    	collection.removeSeries(added);
+    	collection.addSeries(added);
+
     }
 
     public static void main(String args[]) {
