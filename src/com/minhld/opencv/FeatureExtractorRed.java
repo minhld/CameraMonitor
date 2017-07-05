@@ -11,11 +11,9 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
-import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.utils.Converters;
 
@@ -49,17 +47,27 @@ public class FeatureExtractorRed {
 //
 //	}
 	
+	/**
+	 * 
+	 * @param padMat
+	 * @return
+	 */
 	public static Object[] detectLocation(Mat padMat) {
-		Mat[] results = FeatureExtractorRed.extractFeature(padMat);
-		if (results == null) return new Object[] { null, null };
+		Object[] results = FeatureExtractorRed.extractFeature(padMat);
+		if (results == null) return new Object[] { null, null, 0 };
 		
-		BufferedImage padEx1 = OpenCVUtils.createAwtImage(results[0]);
-		BufferedImage padEx2 = OpenCVUtils.createAwtImage(results[1]);
+		BufferedImage padEx1 = OpenCVUtils.createAwtImage((Mat) results[0]);
+		BufferedImage padEx2 = OpenCVUtils.createAwtImage((Mat) results[1]);
 		
-		return new Object[] { padEx1, padEx2 };
+		return new Object[] { padEx1, padEx2, results[2] };
 	}
 	
-	public static Mat[] extractFeature(Mat orgMat) {
+	/**
+	 * 
+	 * @param orgMat
+	 * @return
+	 */
+	public static Object[] extractFeature(Mat orgMat) {
 		// check if original matrix is null 
 		if (orgMat == null) return null;
 		
@@ -115,6 +123,9 @@ public class FeatureExtractorRed {
 		}
 		
 		// System.out.println();
+		Mat resultMat = new Mat(orgMat.cols(), orgMat.cols(), orgMat.type());
+		resultMat.setTo(new Scalar(0, 0, 0));
+		double angle = 0;
 		
 		// place the found points into the correct order for transformation 
 		if (srcPoints.size() == 3) {
@@ -125,19 +136,51 @@ public class FeatureExtractorRed {
 			if (correctedDestPoints.size() == 4) {
 				Mat srcMat = Converters.vector_Point2f_to_Mat(correctedDestPoints);
 				Mat persMat = Imgproc.getPerspectiveTransform(srcMat, destMat);
-				Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
-
+				// Imgproc.warpPerspective(modMat, modMat, persMat, new Size(orgMat.cols(), orgMat.cols()));
+				
 				// draw markers on the modified matrix
 				Point[] transPoints = (Point[]) getMainPoints(orgMat, persMat, maxPoint);
-				Imgproc.drawMarker(modMat, transPoints[0], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
-				Imgproc.drawMarker(modMat, transPoints[1], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
-				Imgproc.drawMarker(modMat, transPoints[2], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
+				Imgproc.drawMarker(resultMat, transPoints[0], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
+				Imgproc.drawMarker(resultMat, transPoints[1], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
+				Imgproc.drawMarker(resultMat, transPoints[2], new Scalar(255, 255, 255), Imgproc.MARKER_CROSS, 5, 1, Imgproc.LINE_8);
 
+				angle = findAngle(transPoints);
+				
 				extractSuccessful = true;
 			} 
 		} 
 		
-		return extractSuccessful ? new Mat[] { orgMat, modMat } : null;
+		return extractSuccessful ? new Object[] { orgMat, resultMat, angle } : null;
+	}
+	
+	/**
+	 * find the exact view-point by knowing its distance to the
+	 * center and the angle it made with Y-axis  
+	 * 
+	 * @param distance
+	 * @param angle
+	 * @return
+	 */
+	public static Point findPointByAngle(double distance, double angle) {
+		Point p = new Point();
+		double realAngle = 90 + angle;
+		p.x = distance * Math.cos(realAngle * Math.PI / 180);
+		p.y = distance * Math.sin(realAngle * Math.PI / 180);
+		return p;
+	}
+	
+	/**
+	 * find the angle between the Y-axis and the view-point by knowing 3 points 
+	 * (one on Y-axis, one at the center and one at the view-point)  
+	 * 
+	 * @param p
+	 * @return
+	 */
+	private static double findAngle(Point[] p) {
+		double angba = Math.atan((p[2].y - p[1].y) / (p[2].x - p[1].x));
+		double angbc = Math.atan((p[0].y - p[1].y) / (p[0].x - p[1].y));
+		double rslt = angba - angbc;
+		return (rslt * 180) / Math.PI;
 	}
 	
 	/**

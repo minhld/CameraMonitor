@@ -162,18 +162,18 @@ public class ObjectDetectorRed {
 //        return new Object[] { resultImage, processImage, capturedImage, padEx1, padEx2, new Rect(locStartMax, locEndMax) };
 	}
 	
-	public static Mat[] extractFeature(Mat padMat) {
-		Mat rectMat = new Mat();
-		// Imgproc.GaussianBlur(padMat, rectMat, new Size(3, 3), 0);
-		Imgproc.GaussianBlur(padMat, rectMat, new Size(0, 0), 3);
-		Core.addWeighted(padMat, 1.5, rectMat, -0.5, 0, rectMat);
-
-//		Mat[] results = FeatureExtractorRed.extractFeature(rectMat);
-//		return results[1];
-
-		return FeatureExtractorRed.extractFeature(rectMat);
-
-	}
+//	public static Mat[] extractFeature(Mat padMat) {
+//		Mat rectMat = new Mat();
+//		// Imgproc.GaussianBlur(padMat, rectMat, new Size(3, 3), 0);
+//		Imgproc.GaussianBlur(padMat, rectMat, new Size(0, 0), 3);
+//		Core.addWeighted(padMat, 1.5, rectMat, -0.5, 0, rectMat);
+//
+////		Mat[] results = FeatureExtractorRed.extractFeature(rectMat);
+////		return results[1];
+//
+//		return FeatureExtractorRed.extractFeature(rectMat);
+//
+//	}
 	
 	public static Object[] findPad(Mat capturedMat) {
 		Mat cannyMat = new Mat();

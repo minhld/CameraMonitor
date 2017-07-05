@@ -12,6 +12,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.opencv.core.Point;
 
 public class LocationDrawer {
 	static XYSeriesCollection collection;
@@ -24,10 +25,14 @@ public class LocationDrawer {
      */
 	public static ChartPanel createLocationSystem() {
     	collection = new XYSeriesCollection();
+    	// add the pad series
     	XYSeries padSeries = new XYSeries("Charging Pad");
     	padSeries.add(0, 0);
+    	collection.addSeries(padSeries);
+    	
+    	// add the XY-series to update location of the object (wheel-chair)
     	collection.addSeries(xySeries);
-    	updateData(0, 0);
+    	updateData(new Point());
 
 		JFreeChart jfreechart = ChartFactory.createScatterPlot("", "", "", collection, PlotOrientation.VERTICAL, true, true, false);
         XYPlot xyPlot = (XYPlot) jfreechart.getPlot();
@@ -60,9 +65,9 @@ public class LocationDrawer {
      * @param x
      * @param y
      */
-	public static void updateData(double x, double y) {
+	public static void updateData(Point p) {
 		xySeries.clear();
-		xySeries.add(x, y);
+		xySeries.add(p.x, p.y);
     	collection.removeSeries(xySeries);
     	collection.addSeries(xySeries);
     }

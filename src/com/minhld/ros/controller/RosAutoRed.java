@@ -43,6 +43,7 @@ import javax.swing.border.TitledBorder;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
@@ -619,12 +620,16 @@ public class RosAutoRed extends Thread {
 						RosAutoRed.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
 														"Searching Pad Time: " + findPadTime + "ms | " + 
 														"Rate: " + rate + "fps");
-
+						
 //						RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)");
 						
 						// teach the wheel-chair how to move
 						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
 						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
+						double angle = (Double) locs[2];
+						RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+																"Angle: " + AppUtils.getNumberFormat(angle) + "deg");
+						drawWheelchairPoint(objectDistance, angle);
 						
 						if (RosAutoRed.this.isAuto) {
 							// only automatically moving when flag isAuto is set
@@ -658,6 +663,11 @@ public class RosAutoRed extends Thread {
 		nodeThread.start();
 		
 		
+	}
+	
+	private void drawWheelchairPoint(double distance, double angle) {
+		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
+		LocationDrawer.updateData(wcPoint);
 	}
 	
 	
