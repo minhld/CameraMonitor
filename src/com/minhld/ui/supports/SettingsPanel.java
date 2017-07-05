@@ -72,8 +72,8 @@ public class SettingsPanel extends JPanel {
 		distancePanel.setPreferredSize(new Dimension(650, 80));
 		distancePanel.setBorder(BorderFactory.createTitledBorder("Focal Length"));
 		distancePanel.add(new AdjustTexter(Settings.LABEL_STD_DISTANCE));
-		distancePanel.add(new AdjustTexter(Settings.LABEL_STD_PIXEL_HEIGHT));
-		distancePanel.add(new AdjustTexter(Settings.LABEL_STD_HEIGHT));
+		distancePanel.add(new AdjustTexter(Settings.LABEL_STD_PIXEL_WIDTH));
+		distancePanel.add(new AdjustTexter(Settings.LABEL_STD_WIDTH));
 		add(distancePanel);
 	}
 }

@@ -54,7 +54,7 @@ public class FeatureExtractorRed {
 	 */
 	public static Object[] detectLocation(Mat padMat) {
 		Object[] results = FeatureExtractorRed.extractFeature(padMat);
-		if (results == null) return new Object[] { null, null, 0 };
+		if (results == null) return new Object[] { null, null, 0d };
 		
 		BufferedImage padEx1 = OpenCVUtils.createAwtImage((Mat) results[0]);
 		BufferedImage padEx2 = OpenCVUtils.createAwtImage((Mat) results[1]);
@@ -177,8 +177,10 @@ public class FeatureExtractorRed {
 	 * @return
 	 */
 	private static double findAngle(Point[] p) {
-		double angba = Math.atan((p[2].y - p[1].y) / (p[2].x - p[1].x));
-		double angbc = Math.atan((p[0].y - p[1].y) / (p[0].x - p[1].y));
+		// double angba = Math.atan((p[2].y - p[1].y) / (p[2].x - p[1].x));
+		// double angbc = Math.atan((p[0].y - p[1].y) / (p[0].x - p[1].y));
+		double angba = Math.atan2((p[2].y - p[1].y), (p[2].x - p[1].x));
+		double angbc = Math.atan2((p[0].y - p[1].y), (p[0].x - p[1].y));
 		double rslt = angba - angbc;
 		return (rslt * 180) / Math.PI;
 	}
