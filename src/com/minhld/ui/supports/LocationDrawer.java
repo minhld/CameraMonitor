@@ -50,7 +50,7 @@ public class LocationDrawer {
         XYItemRenderer renderer = xyPlot.getRenderer();
         renderer.setSeriesPaint(0, Color.red);
         renderer.setSeriesPaint(1, Color.blue);
-        renderer.setSeriesShape(1, new Ellipse2D.Double(-3, -3, 3, 3));
+        // renderer.setSeriesShape(1, new Ellipse2D.Double(-3, -3, 3, 3));
         adjustAxis((NumberAxis) xyPlot.getDomainAxis(), true);
         adjustAxis((NumberAxis) xyPlot.getRangeAxis(), false);
         xyPlot.setBackgroundPaint(Color.white);
