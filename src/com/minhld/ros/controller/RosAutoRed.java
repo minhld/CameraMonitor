@@ -63,7 +63,7 @@ public class RosAutoRed extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
 	JTextArea topicInfoText, controlInfoText;
-	JButton connectROSButton, stopROSButton;
+	JButton connectROSButton, stopROSButton, findPadBtn;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JPanel cameraPanel, processPanel, buttonPanel, templatePanel; 
@@ -173,7 +173,7 @@ public class RosAutoRed extends Thread {
 		toolbar.addSeparator();
 		
 		
-		final JButton findPadBtn = new JButton("Find Pad");
+		findPadBtn = new JButton("Find Pad");
 		findPadBtn.setIcon(new ImageIcon("images/search.png"));
 		findPadBtn.addActionListener(new ActionListener() {
 			@Override
@@ -626,10 +626,10 @@ public class RosAutoRed extends Thread {
 						// teach the wheel-chair how to move
 						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
 						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
-						double angle = (Double) locs[2];
+						double objectAngle = (Double) locs[2];
 						RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-																"Angle: " + AppUtils.getNumberFormat(angle) + "deg");
-						drawWheelchairPoint(objectDistance, angle);
+																"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
+						drawWheelchairPoint(objectDistance, objectAngle);
 						
 						if (RosAutoRed.this.isAuto) {
 							// only automatically moving when flag isAuto is set
@@ -648,7 +648,13 @@ public class RosAutoRed extends Thread {
 								// MoveInstructor2.moveRight(-1 * vel);
 							} else if (moveInstructor == MoveInstructor2.MOVE_FORWARD) {
 								controlInfoText.setText("MOVING FORWARD...");
-								MoveInstructor2.move(vel, 0);
+								if (objectDistance > 5) {
+									MoveInstructor2.move(vel, 0);
+								} else {
+									MoveInstructor2.moveForward(vel, objectDistance);
+									setFindingPadStatus(false);
+								}
+								
 								// MoveInstructor2.moveForward(vel);
 							}
 						}
@@ -663,6 +669,13 @@ public class RosAutoRed extends Thread {
 		nodeThread.start();
 		
 		
+	}
+	
+	private void setFindingPadStatus(boolean isAuto) {
+		RosAutoRed.this.isAuto = isAuto;
+		controlInfoText.setText("AUTOMATION IS " + (RosAutoRed.this.isAuto ? "SET" : "CLEARED"));
+		findPadBtn.setText(RosAutoRed.this.isAuto ? "Stop Finding" : "Find Pad");
+
 	}
 	
 	private void drawWheelchairPoint(double distance, double angle) {

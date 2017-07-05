@@ -64,69 +64,85 @@ public class MoveInstructor2 extends AbstractNodeMain {
         pub.publish(twist);
     }
 	
-	public static void moveForward(double vel) {
-		// increase to expected speed
-		if (vel > 0 && cVel < vel) {
-			cVel += MOVE_STEP;
-		}
-		
-		// slow down rotating -> 0
-		if (cRot < 0) {
-			cRot += MOVE_STEP;
-		} else if (cRot > 0) {
-			cRot -= MOVE_STEP;
-		}
-		
-		move(cVel, cRot);
-	}
+	public static void moveForward(double vel, double distance) {
+        Twist twist = pub.newMessage();
+        twist.getLinear().setX(vel);
+        twist.getAngular().setZ(0);
+        pub.publish(twist);
+        
+        // estimate time to move
+        try {
+        	long sleepTime = (long) (distance * 1000 / (vel * 3.5));
+        	Thread.sleep(sleepTime);
+        } catch (Exception e) { }
+        
+        // then stop
+        move(0, 0);
+    }
 	
-	public static void moveBackward(double vel) {
-		// increase to expected speed
-		if (vel < 0 && cVel > vel) {
-			cVel -= MOVE_STEP;
-		}
-		
-		// slow down rotating -> 0
-		if (cRot < 0) {
-			cRot += MOVE_STEP;
-		} else if (cRot > 0) {
-			cRot -= MOVE_STEP;
-		}
-		
-		move(cVel, cRot);
-	}
-	
-	public static void moveLeft(double rot) {
-		// slow down moving back and forth
-		if (cVel < 0) {
-			cVel += MOVE_STEP;
-		} else if (cVel > 0) {
-			cVel -= MOVE_STEP;
-		}
-		
-		// increase to expected speed
-		if (rot > 0 && cRot < rot) {
-			cRot += MOVE_STEP;
-		}
-		
-		move(cVel, cRot);
-	}
-
-	public static void moveRight(double rot) {
-		// slow down moving back and forth
-		if (cVel < 0) {
-			cVel += MOVE_STEP;
-		} else if (cVel > 0) {
-			cVel -= MOVE_STEP;
-		}
-		
-		// increase to expected speed
-		if (rot < 0 && cRot > rot) {
-			cRot -= MOVE_STEP;
-		}
-		
-		move(cVel, cRot);
-	}
+//	public static void moveForward(double vel) {
+//		// increase to expected speed
+//		if (vel > 0 && cVel < vel) {
+//			cVel += MOVE_STEP;
+//		}
+//		
+//		// slow down rotating -> 0
+//		if (cRot < 0) {
+//			cRot += MOVE_STEP;
+//		} else if (cRot > 0) {
+//			cRot -= MOVE_STEP;
+//		}
+//		
+//		move(cVel, cRot);
+//	}
+//	
+//	public static void moveBackward(double vel) {
+//		// increase to expected speed
+//		if (vel < 0 && cVel > vel) {
+//			cVel -= MOVE_STEP;
+//		}
+//		
+//		// slow down rotating -> 0
+//		if (cRot < 0) {
+//			cRot += MOVE_STEP;
+//		} else if (cRot > 0) {
+//			cRot -= MOVE_STEP;
+//		}
+//		
+//		move(cVel, cRot);
+//	}
+//	
+//	public static void moveLeft(double rot) {
+//		// slow down moving back and forth
+//		if (cVel < 0) {
+//			cVel += MOVE_STEP;
+//		} else if (cVel > 0) {
+//			cVel -= MOVE_STEP;
+//		}
+//		
+//		// increase to expected speed
+//		if (rot > 0 && cRot < rot) {
+//			cRot += MOVE_STEP;
+//		}
+//		
+//		move(cVel, cRot);
+//	}
+//
+//	public static void moveRight(double rot) {
+//		// slow down moving back and forth
+//		if (cVel < 0) {
+//			cVel += MOVE_STEP;
+//		} else if (cVel > 0) {
+//			cVel -= MOVE_STEP;
+//		}
+//		
+//		// increase to expected speed
+//		if (rot < 0 && cRot > rot) {
+//			cRot -= MOVE_STEP;
+//		}
+//		
+//		move(cVel, cRot);
+//	}
 	
 	public static int instruct(int orgImgWidth, Rect objectRect) {
 		int avgX = objectRect.x + (int) (objectRect.width / 2);
