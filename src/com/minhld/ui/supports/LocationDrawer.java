@@ -1,10 +1,14 @@
 package com.minhld.ui.supports;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.geom.Ellipse2D;
+
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYShapeAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.plot.PlotOrientation;
@@ -12,14 +16,18 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+
 import org.opencv.core.Point;
 
 public class LocationDrawer {
 	static XYSeriesCollection collection;
     static XYSeries xySeries = new XYSeries("Wheelchair");
+    static XYPlot xyPlot;
     static final double RANGE_MAX = 25;
     
     /**
+     * setup and install the coordinate system with jFreeChart
+     * coming along with a container. 
      * 
      * @return
      */
@@ -32,20 +40,27 @@ public class LocationDrawer {
     	
     	// add the XY-series to update location of the object (wheel-chair)
     	collection.addSeries(xySeries);
-    	updateData(new Point());
+    	updateData(new Point(), 0);
 
+    	// setup the chart
 		JFreeChart jfreechart = ChartFactory.createScatterPlot("", "", "", collection, PlotOrientation.VERTICAL, true, true, false);
-        XYPlot xyPlot = (XYPlot) jfreechart.getPlot();
+        xyPlot = (XYPlot) jfreechart.getPlot();
         xyPlot.setDomainCrosshairVisible(true);
         xyPlot.setRangeCrosshairVisible(true);
         XYItemRenderer renderer = xyPlot.getRenderer();
         renderer.setSeriesPaint(0, Color.red);
         renderer.setSeriesPaint(1, Color.blue);
+        renderer.setSeriesShape(1, new Ellipse2D.Double(-3, -3, 3, 3));
         adjustAxis((NumberAxis) xyPlot.getDomainAxis(), true);
         adjustAxis((NumberAxis) xyPlot.getRangeAxis(), false);
         xyPlot.setBackgroundPaint(Color.white);
         
-        return new ChartPanel(jfreechart);
+        // setup the container of the chart
+        ChartPanel parent = new ChartPanel(jfreechart);
+        parent.setPopupMenu(null);
+        parent.setDomainZoomable(false);
+        parent.setRangeZoomable(false);
+        return parent;
 	}
 	
 	/**
@@ -61,15 +76,23 @@ public class LocationDrawer {
     }
 	
     /**
+     * update the location of the object 
      * 
-     * @param x
-     * @param y
      */
-	public static void updateData(Point p) {
+	public static void updateData(Point p, double error) {
 		xySeries.clear();
 		xySeries.add(p.x, p.y);
+		
     	collection.removeSeries(xySeries);
     	collection.addSeries(xySeries);
+    	
+    	if (xyPlot != null) {
+    		xyPlot.clearAnnotations();
+    		XYShapeAnnotation circle = new XYShapeAnnotation(
+							new Ellipse2D.Double(p.x - error, p.y - error, error * 2, error * 2),
+    						new BasicStroke(1), Color.blue);
+    		xyPlot.addAnnotation(circle);
+    	}
     }
 	
 }

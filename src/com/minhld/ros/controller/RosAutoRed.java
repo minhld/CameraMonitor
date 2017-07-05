@@ -665,9 +665,37 @@ public class RosAutoRed extends Thread {
 		
 	}
 	
+	int count = 0;
+	double maxX = -100, minX = 100, maxY = -100, minY = 100;
+	
 	private void drawWheelchairPoint(double distance, double angle) {
 		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
-		LocationDrawer.updateData(wcPoint);
+		if (count < 5) {
+			count++;
+			if (maxX < wcPoint.x) {
+				maxX = wcPoint.x;
+			}
+			if (minX > wcPoint.x) {
+				minX = wcPoint.x;
+			}
+			if (maxY < wcPoint.y) {
+				maxY = wcPoint.y;
+			}
+			if (minY > wcPoint.y) {
+				minY = wcPoint.y;
+			}
+		} else {
+			double x = (minX + maxX) / 2;
+			double y = (minY + maxY) / 2;
+			double rad = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxY - minY, 2));
+			LocationDrawer.updateData(new Point(x, y), rad / 2);
+			count = 0;
+//			maxX = -100;
+//			minX = 100; 
+//			maxY = -100;
+//			minY = 100;
+		}
+		
 	}
 	
 	
