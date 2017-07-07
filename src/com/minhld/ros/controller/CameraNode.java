@@ -16,15 +16,15 @@ import com.minhld.utils.ROSUtils;
  * @author lee
  *
  */
-public class CameraNode2 extends AbstractNodeMain {
+public class CameraNode extends AbstractNodeMain {
 	// public static String topicTitle = "/rrbot/camera1/image_raw";
 	public static String topicTitle = "/camera/image_raw";
 	
 	private String subscriberName;
 	private ImageListener listener;
 	
-	public CameraNode2(ImageListener listener) {
-		this.subscriberName = ROSUtils.getNodeName(CameraNode2.topicTitle);
+	public CameraNode(ImageListener listener) {
+		this.subscriberName = ROSUtils.getNodeName(CameraNode.topicTitle);
 		this.listener = listener;
 	}
 	
@@ -35,7 +35,7 @@ public class CameraNode2 extends AbstractNodeMain {
 	
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-	    Subscriber<sensor_msgs.Image> subscriber = connectedNode.newSubscriber(CameraNode2.topicTitle, sensor_msgs.Image._TYPE);
+	    Subscriber<sensor_msgs.Image> subscriber = connectedNode.newSubscriber(CameraNode.topicTitle, sensor_msgs.Image._TYPE);
 	    subscriber.addMessageListener(new MessageListener<sensor_msgs.Image>() {
 			@Override
 			public void onNewMessage(sensor_msgs.Image image) {

@@ -18,7 +18,7 @@ import geometry_msgs.Twist;
  * @author lee
  *
  */
-public class MoveInstructor2 extends AbstractNodeMain {
+public class MoveInstructor extends AbstractNodeMain {
 	public static final double MOVE_STEP = 0.05;
 
 	public static final int MOVE_STOP = 0;
@@ -38,8 +38,8 @@ public class MoveInstructor2 extends AbstractNodeMain {
 
 	static double cVel = 0, cRot = 0;
 	
-	public MoveInstructor2() {
-		this.publisherName = ROSUtils.getNodeName(MoveInstructor2.moveTopicTitle);
+	public MoveInstructor() {
+		this.publisherName = ROSUtils.getNodeName(MoveInstructor.moveTopicTitle);
 	}
 
 	
