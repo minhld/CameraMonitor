@@ -610,7 +610,7 @@ public class RosAutoRed extends Thread {
 						RosAutoRed.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
 															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
 															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
-															"---------------------\n" + 
+															"------------------------------\n" + 
 															"Reading: " + timers[0] + "ms\n" + 
 															"Gaussian Blur: " + timers[1] + "ms\n" +
 															"HSV Converting: " + timers[2] + "ms\n" +
