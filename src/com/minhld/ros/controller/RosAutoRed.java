@@ -593,6 +593,7 @@ public class RosAutoRed extends Thread {
 						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
 						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
 						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
+						double[] extractTimers = (double[]) locs[2];
 						
 						long drawTime = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / findPadTime);
@@ -603,7 +604,7 @@ public class RosAutoRed extends Thread {
 						// teach the wheel-chair how to move
 						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
 						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
-						double objectAngle = (Double) locs[2];
+						double objectAngle = extractTimers[0];
 						
 						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
 						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
@@ -612,11 +613,17 @@ public class RosAutoRed extends Thread {
 															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
 															"------------------------------\n" + 
 															"Reading: " + timers[0] + "ms\n" + 
-															"Gaussian Blur: " + timers[1] + "ms\n" +
+															// "Gaussian Blur: " + timers[1] + "ms\n" +
 															"HSV Converting: " + timers[2] + "ms\n" +
 															"Dilating: " + timers[3] + "ms\n" + 
 															"Coutouring: " + timers[4] + "ms\n" + 
-															"Bitmap Converting: " + timers[5] + "ms\n");
+															"Bitmap Converting: " + timers[5] + "ms\n" + 
+															"------------------------------\n" +
+															"Gray Converting: " + extractTimers[1] + "ms\n" + 
+															"Threshold: " + extractTimers[2] + "ms\n" + 
+															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
+															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
+															"Transformation: " + extractTimers[5] + "ms\n");
 
 						drawWheelchairPoint(objectDistance, objectAngle);
 						

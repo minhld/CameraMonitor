@@ -54,7 +54,7 @@ public class FeatureExtractorRed {
 	 */
 	public static Object[] detectLocation(Mat padMat) {
 		Object[] results = FeatureExtractorRed.extractFeature(padMat);
-		if (results == null) return new Object[] { null, null, 0d };
+		if (results == null) return new Object[] { null, null, new double[] { 0, 0, 0, 0, 0, 0 } };
 		
 		BufferedImage padEx1 = OpenCVUtils.createAwtImage((Mat) results[0]);
 		BufferedImage padEx2 = OpenCVUtils.createAwtImage((Mat) results[1]);
@@ -82,23 +82,37 @@ public class FeatureExtractorRed {
 		destPoints.add(new Point(orgMat.cols() / 2, orgMat.cols() - 5));
 		Mat destMat = Converters.vector_Point2f_to_Mat(destPoints);
 		
-		// turn to black-white
+		// ------ 1. turn to black-white ------ 
+		long start = System.currentTimeMillis();
+		
 		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
 		
-		// threshold to eliminate a number of objects
+		long grayTime = System.currentTimeMillis() - start;
+		
+		// ------ 2. threshold to eliminate a number of objects ------
+		start = System.currentTimeMillis();
+		
 		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
 		
-		// find contours
+		long thresholdTime = System.currentTimeMillis() - start;
+		
+		// ------ 3. find contours ------ 
+		start = System.currentTimeMillis();
+		
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
 		Imgproc.findContours(modMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 		hierarchy.release();
 		
+		long contourTime = System.currentTimeMillis() - start;
+		
 		List<Point> srcPoints = new ArrayList<>();
 
 		Point maxPoint = new Point(0, 0);
 		
-		// check if the number of contours is more than 3 areas
+		// ------ 4. check if the number of contours is more than 3 areas ------
+		start = System.currentTimeMillis();
+		
 		if (contours.size() >= 3) {
 			MatOfPoint contour;
 			double maxContourSize = 0, contourSize;
@@ -122,12 +136,16 @@ public class FeatureExtractorRed {
 			}
 		}
 		
+		long findContourTime = System.currentTimeMillis() - start;
+		
 		// System.out.println();
 		Mat resultMat = new Mat(orgMat.cols(), orgMat.cols(), orgMat.type());
 		resultMat.setTo(new Scalar(0, 0, 0));
 		double angle = 0;
 		
-		// place the found points into the correct order for transformation 
+		// ------ 5. place the found points into the correct order for transformation ------ 
+		start = System.currentTimeMillis();
+		
 		if (srcPoints.size() == 3) {
 			List<Point> correctedDestPoints = getCorrectOrder(orgMat, srcPoints, maxPoint);
 			
@@ -150,7 +168,11 @@ public class FeatureExtractorRed {
 			} 
 		} 
 		
-		return extractSuccessful ? new Object[] { orgMat, resultMat, angle } : null;
+		long transformTime = System.currentTimeMillis() - start;
+		
+		double[] outputs = new double[] { angle, grayTime, thresholdTime, contourTime, findContourTime, transformTime };
+		
+		return extractSuccessful ? new Object[] { orgMat, resultMat, outputs } : null;
 	}
 	
 	/**
