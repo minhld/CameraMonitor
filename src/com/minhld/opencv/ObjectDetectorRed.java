@@ -20,24 +20,7 @@ import com.minhld.utils.Settings;
 import sensor_msgs.Image;
 
 public class ObjectDetectorRed {
-	public static int THRESHOLD_MIN_AREA = 200;
 
-	public static Mat tplMat;
-	static int tplWidth, tplHeight;
-	
-//	static {
-//		readTemplate();
-//	}
-//	
-//	public static void readTemplate() {
-//		tplMat = Imgcodecs.imread(Settings.templatePath);
-//		tplWidth = tplMat.cols();
-//		tplHeight = tplMat.rows();
-//		Imgproc.cvtColor(tplMat, tplMat, Imgproc.COLOR_BGR2GRAY);
-//		Imgproc.threshold(tplMat, tplMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
-//	}
-//	
-	
 	/**
 	 * comparing with a known template
 	 * using matchTemplate function 
@@ -46,10 +29,18 @@ public class ObjectDetectorRed {
 	 * @return
 	 */
 	public static Object[] processImage(Image source) {
+		// ------ 1. read the source to Mat ------
+		long start = System.currentTimeMillis();
+		
 		// Mat orgMat = Imgcodecs.imread("samples/multiobjects.png");
 		Mat orgMat = OpenCVUtils.openImage(source);
 		
+		long readImageTime = System.currentTimeMillis() - start;
+		
 		Mat modMat = new Mat();
+		
+		// ------ 2. apply gaussian convolution ------ 
+		start = System.currentTimeMillis();
 		
 		// set it blur (to remove noise)
 		if (Settings.gaussianEnable == 1) {
@@ -57,34 +48,45 @@ public class ObjectDetectorRed {
 		}
 		// Imgproc.GaussianBlur(orgMat, orgMat, new Size(3, 3), 1);
 		
-		// 1. turns it to HSV color image
+		long gaussianTime = System.currentTimeMillis() - start;
+		
+		// ------ 3. turns it to HSV color image ------
+		start = System.currentTimeMillis();
+		
+		// 3.1. convert the image to HSV color template
 		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2HSV);
 		
-		// 2. filter out the red color in a wide range 
+		// 3.2. filter out the red color in a wide range 
 		Mat lowMask = new Mat(), highMask = new Mat();
 		Core.inRange(modMat, new Scalar(Settings.lowHColor, Settings.lowSColor, Settings.lowVColor), new Scalar(Settings.lowHColor + 10, 255, 255), lowMask);
 		Core.inRange(modMat, new Scalar(Settings.highHColor, Settings.highSColor, Settings.highVColor), new Scalar(Settings.highHColor + 10, 255, 255), highMask);
 		
-		// ... merge the two masks
+		// 3.3 merge the two masks
 		Mat finalMask = new Mat();
 		Core.addWeighted(lowMask, 1, highMask, 1, 0, finalMask);
-		// Core.bitwise_and(lowMask, highMask, finalMask);
 		
-		// 3. remove more noise
+		long convertHSVTime = System.currentTimeMillis() - start;
+		
+		// ------ 4. remove more noise ------
+		start = System.currentTimeMillis();
+		
 		if (Settings.dilateEnable == 1) {
 			Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(Settings.dilateSize, Settings.dilateSize));
 			Imgproc.dilate(finalMask, finalMask, element);
 			Imgproc.erode(finalMask, finalMask, element);
 		}
 
-		// 4. try to find the contour of the pad
+		long dilateTime = System.currentTimeMillis() - start;
+		
+		// ------ 5. find the contour of the pad ------ 
+		start = System.currentTimeMillis();
+		
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
 		Imgproc.findContours(finalMask, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 		hierarchy.release();
 
 		Point locStartMax = new Point(), locEndMax = new Point();
-		
 		
 		if (contours.size() > 0) {
 			MatOfPoint contour;
@@ -112,16 +114,15 @@ public class ObjectDetectorRed {
 					locEndMax = locEnd;
 				}
 			}
-//			System.out.println("contour max: " + maxContourSize);
 		}
 
-		// 5. draw the rectangle surrounding the object
+		// ------ 6. draw the rectangle surrounding the object ------ 
 		Mat rectMat = new Mat();
 		orgMat.copyTo(rectMat);
 		Imgproc.rectangle(rectMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
 
 		
-		// 6. capture the image containing the object
+		// ------ 7. capture the image containing the object ------ 
 		Mat capturedMat = new Mat(1, 1, orgMat.type());
 		if (locEndMax.x > 0 && locEndMax.y > 0) {
 			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
@@ -137,43 +138,28 @@ public class ObjectDetectorRed {
 			// capturedMat = new Mat(finalMask, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
 		}
 
-		// 8. prepare to flush out the output results
+		// ------ 8. prepare to flush out the output results ------ 
         BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
         BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
 
-        // 9. get the matrix containing the pad
+        // ------ 9. get the matrix containing the pad ------ 
         Mat padMat = (locEndMax.x > 0 && locEndMax.y > 0) ? new Mat(orgMat, new Rect(locStartMax, locEndMax)) : null;
 
-        return new Object[] { resultImage, processImage, capturedImage, new Rect(locStartMax, locEndMax), padMat };
+        return new Object[] { 	resultImage, 
+        						processImage, 
+        						capturedImage, 
+        						new Rect(locStartMax, locEndMax), 
+        						padMat, 
+        						new double[] {	readImageTime, 
+        										gaussianTime,
+        										convertHSVTime,
+        										dilateTime,
+        										
+        									} };
         
-//        BufferedImage padEx1 = null, padEx2 = null;
-//        if (locEndMax.x > 0 && locEndMax.y > 0) {
-//    		Mat padMat = new Mat(orgMat, new Rect(locStartMax, locEndMax));
-//    		// Mat padMat = new Mat(finalMask, new Rect(locStartMax, locEndMax));
-//    		
-//    		Mat[] results = FeatureExtractorRed.extractFeature3(padMat);
-//    		// Mat[] results = FeatureExtractorRed.extractFeature2(padMat);
-//
-//    		padEx1 = OpenCVUtils.createAwtImage(results[0]);
-//    		padEx2 = OpenCVUtils.createAwtImage(results[1]);
-//        }
-//        
-//        return new Object[] { resultImage, processImage, capturedImage, padEx1, padEx2, new Rect(locStartMax, locEndMax) };
 	}
 	
-//	public static Mat[] extractFeature(Mat padMat) {
-//		Mat rectMat = new Mat();
-//		// Imgproc.GaussianBlur(padMat, rectMat, new Size(3, 3), 0);
-//		Imgproc.GaussianBlur(padMat, rectMat, new Size(0, 0), 3);
-//		Core.addWeighted(padMat, 1.5, rectMat, -0.5, 0, rectMat);
-//
-////		Mat[] results = FeatureExtractorRed.extractFeature(rectMat);
-////		return results[1];
-//
-//		return FeatureExtractorRed.extractFeature(rectMat);
-//
-//	}
 	
 	public static Object[] findPad(Mat capturedMat) {
 		Mat cannyMat = new Mat();

@@ -256,13 +256,6 @@ public class RosAutoRed extends Thread {
 		slidesPanel.setLayout(new GridLayout(1, 5));
 //		slidesPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 245));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 1, 255));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 255));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_COLOR_THRESHOLD, 1, 255));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 255));
-//		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 1, 255));
-
 		// Velocity slider
 		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		
@@ -321,21 +314,6 @@ public class RosAutoRed extends Thread {
 		
 		
 		adjustPanel.add(slidesPanel, BorderLayout.CENTER);
-		
-//		templatePanel = new JPanel(new BorderLayout());
-//		templatePanel.setPreferredSize(new Dimension(170, 100));
-//		templatePanel.add(new JLabel("Template"), BorderLayout.NORTH);
-//		templatePanel.addMouseListener(new MouseAdapter() {
-//			@Override
-//			public void mouseReleased(MouseEvent e) {
-//				// choose another template
-//			}
-//		});
-		
-		// templatePanel.add(templateDrawPanel, BorderLayout.SOUTH);
-		
-		// adjustPanel.add(templatePanel, BorderLayout.EAST);
-		
 		
 		totalView.add(adjustPanel, BorderLayout.CENTER);
 		
@@ -621,14 +599,17 @@ public class RosAutoRed extends Thread {
 														"Searching Pad Time: " + findPadTime + "ms | " + 
 														"Rate: " + rate + "fps");
 						
-//						RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)");
-						
 						// teach the wheel-chair how to move
 						int moveInstructor = (Integer) MoveInstructor2.instruct(resultImage.getWidth(), objectRect);
 						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
 						double objectAngle = (Double) locs[2];
-						RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-																"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
+						
+						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
+						RosAutoRed.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
+															"Wheel Velocity: " + WheelVelocityListener.velocity);
+						
 						drawWheelchairPoint(objectDistance, objectAngle);
 						
 						if (RosAutoRed.this.isAuto) {

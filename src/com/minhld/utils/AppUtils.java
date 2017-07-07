@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class AppUtils {
-	static final DecimalFormat formatter = new DecimalFormat("#,###.00");
+	static final DecimalFormat formatter = new DecimalFormat("#,##0.00");
 
 	/**
 	 * hold the application ID
