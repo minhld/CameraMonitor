@@ -115,12 +115,13 @@ public class ObjectDetectorRed {
 				}
 			}
 		}
+		
+		long coutourTime = System.currentTimeMillis() - start;
 
 		// ------ 6. draw the rectangle surrounding the object ------ 
 		Mat rectMat = new Mat();
 		orgMat.copyTo(rectMat);
 		Imgproc.rectangle(rectMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
-
 		
 		// ------ 7. capture the image containing the object ------ 
 		Mat capturedMat = new Mat(1, 1, orgMat.type());
@@ -139,10 +140,14 @@ public class ObjectDetectorRed {
 		}
 
 		// ------ 8. prepare to flush out the output results ------ 
-        BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
+		start = System.currentTimeMillis();
+
+		BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
         BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
 
+        long bufferImageTime = System.currentTimeMillis() - start;
+        
         // ------ 9. get the matrix containing the pad ------ 
         Mat padMat = (locEndMax.x > 0 && locEndMax.y > 0) ? new Mat(orgMat, new Rect(locStartMax, locEndMax)) : null;
 
@@ -155,7 +160,8 @@ public class ObjectDetectorRed {
         										gaussianTime,
         										convertHSVTime,
         										dilateTime,
-        										
+        										coutourTime,
+        										bufferImageTime
         									} };
         
 	}

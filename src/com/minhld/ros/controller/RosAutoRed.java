@@ -583,7 +583,8 @@ public class RosAutoRed extends Thread {
 						BufferedImage capturedImage = (BufferedImage) results[2];
 						Rect objectRect = (Rect) results[3];
 						Mat padMat = (Mat) results[4];
-						
+						double[] timers = (double[]) results[5];
+								
 						UISupport.drawImage(cameraPanel, resultImage);
 						UISupport.drawImage(processPanel, processImage);
 						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
@@ -608,8 +609,15 @@ public class RosAutoRed extends Thread {
 						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
 						RosAutoRed.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
 															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
-															"Wheel Velocity: " + WheelVelocityListener.velocity);
-						
+															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
+															"---------------------\n" + 
+															"Reading: " + timers[0] + "ms\n" + 
+															"Gaussian Blur: " + timers[1] + "ms\n" +
+															"HSV Converting: " + timers[2] + "ms\n" +
+															"Dilating: " + timers[3] + "ms\n" + 
+															"Coutouring: " + timers[4] + "ms\n" + 
+															"Bitmap Converting: " + timers[5] + "ms\n");
+
 						drawWheelchairPoint(objectDistance, objectAngle);
 						
 						if (RosAutoRed.this.isAuto) {
