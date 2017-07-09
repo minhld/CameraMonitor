@@ -120,6 +120,7 @@
 	</dependency>
 	
 	<!-- JCUDA declaration -->
+	<!--  
 	<dependency>
       <groupId>org.jcuda</groupId>
 	  <artifactId>jcuda</artifactId>
@@ -167,6 +168,7 @@
 	  <artifactId>jcudnn</artifactId>
 	  <version>${jcuda-version}</version>
 	</dependency>		
+	-->
 	
   </dependencies>
 </project>
