@@ -1,6 +1,6 @@
 #ROS CONTROLLER SETTINGS
-#Fri Jul 07 14:25:12 MDT 2017
-dilate-enable=1
+#Sun Jul 09 16:56:13 MDT 2017
+dilate-enable=0
 high-green-v-color=100
 low-h-color=1
 color-threshold=100

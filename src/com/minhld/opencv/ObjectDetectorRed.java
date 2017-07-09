@@ -2,6 +2,7 @@ package com.minhld.opencv;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -20,7 +21,8 @@ import com.minhld.utils.Settings;
 import sensor_msgs.Image;
 
 public class ObjectDetectorRed {
-
+	public static final int NUM_MAX_CONTOURS = 3;
+	
 	/**
 	 * comparing with a known template
 	 * using matchTemplate function 
@@ -166,6 +168,44 @@ public class ObjectDetectorRed {
         
 	}
 	
+	private static Object[] selectMaxContours(ArrayList<MatOfPoint> contours) {
+		TreeMap<Double, MatOfPoint> maxContours = new TreeMap<>();
+		Point locStartMax = new Point(), locEndMax = new Point();
+		
+		if (contours.size() > 0) {
+			MatOfPoint contour;
+			double maxContourSize = 0, contourSize;
+			Point locStart = new Point(), locEnd = new Point();
+			Rect rect;
+				
+			// fetch through the list of contours
+			for(int i = 0; i < contours.size(); i++) {
+				contour = contours.get(i);
+				
+				// get rid of the small objects found in the camera area
+				contourSize = Imgproc.contourArea(contour);
+				if (contourSize > Settings.contourAreaMin) {
+					rect = Imgproc.boundingRect(contour);
+					locStart = new Point(rect.x, rect.y);
+					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
+					
+					
+				}
+				// define the max area
+				if (maxContourSize < contourSize) {
+					maxContourSize = contourSize;
+					locStartMax = locStart;
+					locEndMax = locEnd;
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	private static boolean checkPad() {
+		return true;
+	}
 	
 	public static Object[] findPad(Mat capturedMat) {
 		Mat cannyMat = new Mat();
