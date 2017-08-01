@@ -44,6 +44,7 @@ import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.MoveInstructor;
 import com.minhld.ros.controller.OdomListener;
+import com.minhld.ros.controller.OdomWriter;
 import com.minhld.ros.controller.UISupport;
 import com.minhld.ui.supports.AdjustSlider;
 import com.minhld.ui.supports.LocationDrawer;
@@ -66,6 +67,8 @@ public class GazeboProcNode extends Thread {
 	JPanel cameraPanel, buttonPanel, templatePanel; 
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
+	
+	OdomWriter odomWriter;
 	
 	boolean isServerInUsed = false;
 	
@@ -418,6 +421,7 @@ public class GazeboProcNode extends Thread {
 					public void odomUpdated(Odometry pos) {
 						Pose p = pos.getPose().getPose();
 						Twist t = pos.getTwist().getTwist();
+						
 						double x = p.getPosition().getX(), y = p.getPosition().getY();
 						String xyz = "(X=" + AppUtils.getSmallNumberFormat(p.getPosition().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(p.getPosition().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(p.getPosition().getZ()) + ")"; 
 						String o = "(X=" + AppUtils.getSmallNumberFormat(p.getOrientation().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(p.getOrientation().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(p.getOrientation().getZ()) + ",W=" + AppUtils.getSmallNumberFormat(p.getOrientation().getW()) + ")";
@@ -430,8 +434,12 @@ public class GazeboProcNode extends Thread {
 											"Orientation: \n" + o + "\n" +
 											"Linear: \n" + l + "\n" + 
 											"Angular: \n" + a);
-								
+						
+						// update location on graph
 						LocationDrawer.updateData(new Point(x, y), 0);
+						
+						// publish to our location channel
+						odomWriter.publish(pos);
 					}
 				}));
 				
@@ -439,6 +447,10 @@ public class GazeboProcNode extends Thread {
 				String graphMoveName = ROSUtils.getNodeName(MoveInstructor.moveTopicTitle);
 				ROSUtils.execute(graphMoveName, new MoveInstructor());
 
+				// start the Odometry publisher
+				odomWriter = new OdomWriter();
+				// String odomTitle = ROSUtils.getNodeName(OdomWriter.topicTitle);
+				ROSUtils.execute(OdomWriter.topicTitle, odomWriter);
 			}
 		};
 		nodeThread.start();

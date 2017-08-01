@@ -6,7 +6,6 @@ import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Subscriber;
 
 import nav_msgs.Odometry;
-import sensor_msgs.Image;
 
 public class OdomListener extends AbstractNodeMain {
 	public static final String topicTitle = "/odom";
