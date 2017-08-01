@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public class AppUtils {
 	static final DecimalFormat formatter = new DecimalFormat("#,##0.00");
+	static final DecimalFormat smallFormatter = new DecimalFormat("#,##0.0000");
 
 	/**
 	 * hold the application ID
@@ -82,5 +83,9 @@ public class AppUtils {
 	
 	public static String getNumberFormat(double num) {
 		return formatter.format(num);
+	}
+	
+	public static String getSmallNumberFormat(double num) {
+		return smallFormatter.format(num);
 	}
 }

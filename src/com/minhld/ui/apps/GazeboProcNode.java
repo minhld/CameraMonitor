@@ -38,6 +38,7 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import org.opencv.core.Core;
+import org.opencv.core.Point;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.ros.controller.CameraNode;
@@ -50,6 +51,8 @@ import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
+import geometry_msgs.Pose;
+import geometry_msgs.Twist;
 import nav_msgs.Odometry;
 import sensor_msgs.Image;
 
@@ -405,25 +408,6 @@ public class GazeboProcNode extends Thread {
 						GazeboProcNode.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
 														"Rate: " + rate + "fps");
 						
-//						GazeboProcNode.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-//															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
-//															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
-//															"------------------------------\n" + 
-//															"Reading: " + timers[0] + "ms\n" + 
-//															// "Gaussian Blur: " + timers[1] + "ms\n" +
-//															"HSV Converting: " + timers[2] + "ms\n" +
-//															"Dilating: " + timers[3] + "ms\n" + 
-//															"Coutouring: " + timers[4] + "ms\n" + 
-//															"Bitmap Converting: " + timers[5] + "ms\n" + 
-//															"------------------------------\n" +
-//															"Gray Converting: " + extractTimers[1] + "ms\n" + 
-//															"Threshold: " + extractTimers[2] + "ms\n" + 
-//															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
-//															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
-//															"Transformation: " + extractTimers[5] + "ms\n");
-
-//						drawWheelchairPoint(objectDistance, objectAngle);
-						
 					}
 				}));
 
@@ -432,8 +416,22 @@ public class GazeboProcNode extends Thread {
 				ROSUtils.execute(graphOdomName, new OdomListener(new OdomListener.OdomUpdater() {
 					@Override
 					public void odomUpdated(Odometry pos) {
-						GazeboProcNode.this.topicInfoText.setText("velocity: " + pos.getTwist().getTwist().getLinear().getX() + "\n" + 
-																"rotate: " + pos.getTwist().getTwist().getAngular().getZ());
+						Pose p = pos.getPose().getPose();
+						Twist t = pos.getTwist().getTwist();
+						double x = p.getPosition().getX(), y = p.getPosition().getY();
+						String xyz = "(X=" + AppUtils.getSmallNumberFormat(p.getPosition().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(p.getPosition().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(p.getPosition().getZ()) + ")"; 
+						String o = "(X=" + AppUtils.getSmallNumberFormat(p.getOrientation().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(p.getOrientation().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(p.getOrientation().getZ()) + ",W=" + AppUtils.getSmallNumberFormat(p.getOrientation().getW()) + ")";
+						String l = "(X=" + AppUtils.getSmallNumberFormat(t.getLinear().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(t.getLinear().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(t.getLinear().getZ()) + ")";
+						String a = "(X=" + AppUtils.getSmallNumberFormat(t.getAngular().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(t.getAngular().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(t.getAngular().getZ()) + ")";
+
+						// update location text
+						GazeboProcNode.this.topicInfoText.setText(
+											"Location: \n" + xyz + "\n" + 
+											"Orientation: \n" + o + "\n" +
+											"Linear: \n" + l + "\n" + 
+											"Angular: \n" + a);
+								
+						LocationDrawer.updateData(new Point(x, y), 0);
 					}
 				}));
 				
@@ -449,10 +447,10 @@ public class GazeboProcNode extends Thread {
 	}
 	
 	
-	private void drawWheelchairPoint(double distance, double angle) {
+//	private void drawWheelchairPoint(double distance, double angle) {
 //		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
 //		LocationDrawer.updateData(wcPoint, 0);
-	}
+//	}
 	
 	
 	/**
