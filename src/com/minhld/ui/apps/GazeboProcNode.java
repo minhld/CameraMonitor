@@ -65,7 +65,7 @@ public class GazeboProcNode extends Thread {
 	JButton connectROSButton, stopROSButton;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
-	JPanel cameraPanel, processPanel, buttonPanel, templatePanel; 
+	JPanel cameraPanel, buttonPanel, templatePanel; 
 //	JPanel capturedPanel, closedCapturedPanel, transformedPanel;
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
@@ -84,7 +84,7 @@ public class GazeboProcNode extends Thread {
 		// load UI properties
 		UISupport.loadUIProps("gaz");
 		
-		// load settings (for RED OBJECT configuration)
+		// load settings
 		Settings.init(Settings.SETTING_GAZ);
 		
 	    // ------ set the View panel ------ 
@@ -102,10 +102,7 @@ public class GazeboProcNode extends Thread {
 		
 		// set window size
 		mainFrame.setSize(UISupport.getUIProp("main-window-width"), UISupport.getUIProp("main-window-height"));
-		// mainFrame.setSize(1390, 860);
-		// mainFrame.setSize(1660, 1060);
 		mainFrame.setResizable(false);
-		// mainFrame.setMinimumSize(new Dimension(1380, 860));
 		mainFrame.setLocationRelativeTo(null);
 		mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		mainFrame.addWindowListener(new WindowAdapter() {
@@ -142,9 +139,11 @@ public class GazeboProcNode extends Thread {
 	private JPanel buildViewPanel() {
 		JPanel totalView = new JPanel(new BorderLayout());
 		
+		JPanel mainView = new JPanel(new FlowLayout());
+		
 		// ------ Viewer panel ------
 		JPanel viewer = new JPanel(new FlowLayout());
-		viewer.setPreferredSize(new Dimension(1000, 415));
+		viewer.setPreferredSize(new Dimension(530, 415));
 		viewer.setBorder(BorderFactory.createTitledBorder("Camera View"));
 
 		cameraPanel = new JPanel();
@@ -152,12 +151,28 @@ public class GazeboProcNode extends Thread {
 		cameraPanel.setBackground(new Color(150, 150, 150));
 		viewer.add(cameraPanel);
 		
-		processPanel = new JPanel();
-		processPanel.setPreferredSize(new Dimension(500, 375));
-		processPanel.setBackground(new Color(200, 200, 200));
-		viewer.add(processPanel);
+		mainView.add(viewer);
+
+//		processPanel = new JPanel();
+//		processPanel.setPreferredSize(new Dimension(375, 375));
+//		processPanel.setBackground(new Color(200, 200, 200));
+//		viewer.add(processPanel);
+
+		// ------ add Location panel ------ 
+		JPanel locationPanel = new JPanel();
+		locationPanel.setBorder(BorderFactory.createTitledBorder("Location"));
 		
-		totalView.add(viewer, BorderLayout.NORTH);
+		JPanel coordPanel = new JPanel(new BorderLayout()); 
+		coordPanel.setPreferredSize(new Dimension(UISupport.getUIProp("location-width"), 
+		 											UISupport.getUIProp("location-height")));
+		coordPanel.add(LocationDrawer.createLocationSystem());
+		
+		locationPanel.add(coordPanel, BorderLayout.CENTER);
+		mainView.add(locationPanel);
+		
+		
+		totalView.add(mainView, BorderLayout.NORTH);
+		
 		
 		// ------ Control + Control Info panel ------
 		JPanel control = new JPanel(new BorderLayout()); 
@@ -285,23 +300,7 @@ public class GazeboProcNode extends Thread {
 		
 		control.add(controlInfo, BorderLayout.CENTER);
 		
-		// ------ Coordinate System panel ------ 
-		JPanel topicInfoPanel = new JPanel(new BorderLayout());
-		topicInfoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
-		topicInfoPanel.setPreferredSize(new Dimension(280, 200));
 		
-		topicInfoText = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
-		topicInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
-		topicInfoText.setFont(new Font("courier", Font.PLAIN, 11));
-		topicInfoText.setEditable(false);
-		JScrollPane topicInfoScroller = new JScrollPane(topicInfoText, 
-							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		topicInfoPanel.add(topicInfoScroller, BorderLayout.CENTER);
-
-		topicInfoPanel.add(new JLabel(" "), BorderLayout.SOUTH);
-		
-		control.add(topicInfoPanel, BorderLayout.EAST);
 		
 		totalView.add(control, BorderLayout.SOUTH);
 		
@@ -433,13 +432,10 @@ public class GazeboProcNode extends Thread {
 						double[] timers = (double[]) results[5];
 								
 						UISupport.drawImage(cameraPanel, resultImage);
-						UISupport.drawImage(processPanel, processImage);
-//						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
 						
 						// using feature detection to find the location of the pad
 						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
-//						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
-//						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
+
 						double[] extractTimers = (double[]) locs[2];
 						
 						long drawTime = System.currentTimeMillis() - start;
@@ -514,12 +510,6 @@ public class GazeboProcNode extends Thread {
 		
 	}
 	
-//	private void setFindingPadStatus(boolean isAuto) {
-//		GazeboProcNode.this.isAuto = isAuto;
-//		controlInfoText.setText("AUTOMATION IS " + (GazeboProcNode.this.isAuto ? "SET" : "CLEARED"));
-//		findPadBtn.setText(GazeboProcNode.this.isAuto ? "Stop Finding" : "Find Pad");
-//
-//	}
 	
 	private void drawWheelchairPoint(double distance, double angle) {
 		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
@@ -574,17 +564,21 @@ public class GazeboProcNode extends Thread {
 		
 		config.add(networkConfig, BorderLayout.NORTH);
 
-		// ------ add Location panel ------ 
-		JPanel locationPanel = new JPanel();
-		locationPanel.setBorder(BorderFactory.createTitledBorder("Location"));
+		// ------ Coordinate System panel ------ 
+		JPanel topicInfoPanel = new JPanel(new BorderLayout());
+		topicInfoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
+		topicInfoPanel.setPreferredSize(new Dimension(320, 200));
 		
-		JPanel coordPanel = new JPanel(new BorderLayout()); 
-		coordPanel.setPreferredSize(new Dimension(UISupport.getUIProp("location-width"), 
-		 											UISupport.getUIProp("location-height")));
-		coordPanel.add(LocationDrawer.createLocationSystem());
+		topicInfoText = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
+		topicInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
+		topicInfoText.setFont(new Font("courier", Font.PLAIN, 11));
+		topicInfoText.setEditable(false);
+		JScrollPane topicInfoScroller = new JScrollPane(topicInfoText, 
+							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		topicInfoPanel.add(topicInfoScroller, BorderLayout.CENTER);
+		config.add(topicInfoPanel, BorderLayout.EAST);
 		
-		locationPanel.add(coordPanel, BorderLayout.CENTER);
-		config.add(locationPanel, BorderLayout.CENTER);
 
 		// ------ add ROS Topic List panel ------
 		JPanel topicPanel = new JPanel(new BorderLayout());
@@ -683,7 +677,7 @@ public class GazeboProcNode extends Thread {
 	 * as well as save to props file
 	 */
 	private void prepareCloseApp() {
-		Settings.saveProps(Settings.SETTING_RED);
+		Settings.saveProps(Settings.SETTING_GAZ);
 	}
 	
 	/**
