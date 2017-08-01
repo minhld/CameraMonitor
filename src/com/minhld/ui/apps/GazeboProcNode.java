@@ -38,18 +38,11 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
-import com.minhld.opencv.DistanceEstimator;
-import com.minhld.opencv.FeatureExtractorRed;
-import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.MoveInstructor;
 import com.minhld.ros.controller.UISupport;
-import com.minhld.ros.controller.WheelVelocityListener;
 import com.minhld.ui.supports.AdjustSlider;
 import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.utils.AppUtils;
@@ -66,12 +59,9 @@ public class GazeboProcNode extends Thread {
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JPanel cameraPanel, buttonPanel, templatePanel; 
-//	JPanel capturedPanel, closedCapturedPanel, transformedPanel;
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
 	
-//	boolean isAuto = false;
-	boolean isMovingNode = false;
 	boolean isServerInUsed = false;
 	
 	public void run() {
@@ -152,11 +142,6 @@ public class GazeboProcNode extends Thread {
 		viewer.add(cameraPanel);
 		
 		mainView.add(viewer);
-
-//		processPanel = new JPanel();
-//		processPanel.setPreferredSize(new Dimension(375, 375));
-//		processPanel.setBackground(new Color(200, 200, 200));
-//		viewer.add(processPanel);
 
 		// ------ add Location panel ------ 
 		JPanel locationPanel = new JPanel();
@@ -407,96 +392,36 @@ public class GazeboProcNode extends Thread {
 				ROSUtils.execute(graphCameraName, new CameraNode(new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
-						// long start = System.currentTimeMillis();
-						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
-						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
-						// long loadImageTime = System.currentTimeMillis() - start;
-						
-						// // draw on the LEFT canvas the original camera image
-						// drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
-						
-						// draw on the RIGHT canvas the modify image
-						// Object[] results = OpenCVUtils.processImage(bImage);
-						
-						// using image processing to detect the pad 
 						long start = System.currentTimeMillis();
-						Object[] results = ObjectDetectorRed.processImage(image);
-						long findPadTime = System.currentTimeMillis() - start;
-						
-						start = System.currentTimeMillis();
-						BufferedImage resultImage = (BufferedImage) results[0];
-						BufferedImage processImage = (BufferedImage) results[1];
-//						BufferedImage capturedImage = (BufferedImage) results[2];
-						Rect objectRect = (Rect) results[3];
-						Mat padMat = (Mat) results[4];
-						double[] timers = (double[]) results[5];
-								
-						UISupport.drawImage(cameraPanel, resultImage);
-						
-						// using feature detection to find the location of the pad
-						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
+						BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+						long loadImageTime = System.currentTimeMillis() - start;
+							
+						UISupport.drawImage(cameraPanel, bImage);
 
-						double[] extractTimers = (double[]) locs[2];
-						
 						long drawTime = System.currentTimeMillis() - start;
-						long rate = (long) (1000 / findPadTime);
+						long rate = (long) (1000 / loadImageTime);
 						GazeboProcNode.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
-														"Searching Pad Time: " + findPadTime + "ms | " + 
 														"Rate: " + rate + "fps");
 						
-						// teach the wheel-chair how to move
-//						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
-						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
-						double objectAngle = extractTimers[0];
-						
-						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
-						GazeboProcNode.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
-															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
-															"------------------------------\n" + 
-															"Reading: " + timers[0] + "ms\n" + 
-															// "Gaussian Blur: " + timers[1] + "ms\n" +
-															"HSV Converting: " + timers[2] + "ms\n" +
-															"Dilating: " + timers[3] + "ms\n" + 
-															"Coutouring: " + timers[4] + "ms\n" + 
-															"Bitmap Converting: " + timers[5] + "ms\n" + 
-															"------------------------------\n" +
-															"Gray Converting: " + extractTimers[1] + "ms\n" + 
-															"Threshold: " + extractTimers[2] + "ms\n" + 
-															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
-															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
-															"Transformation: " + extractTimers[5] + "ms\n");
+//						GazeboProcNode.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+//															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
+//															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
+//															"------------------------------\n" + 
+//															"Reading: " + timers[0] + "ms\n" + 
+//															// "Gaussian Blur: " + timers[1] + "ms\n" +
+//															"HSV Converting: " + timers[2] + "ms\n" +
+//															"Dilating: " + timers[3] + "ms\n" + 
+//															"Coutouring: " + timers[4] + "ms\n" + 
+//															"Bitmap Converting: " + timers[5] + "ms\n" + 
+//															"------------------------------\n" +
+//															"Gray Converting: " + extractTimers[1] + "ms\n" + 
+//															"Threshold: " + extractTimers[2] + "ms\n" + 
+//															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
+//															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
+//															"Transformation: " + extractTimers[5] + "ms\n");
 
-						drawWheelchairPoint(objectDistance, objectAngle);
+//						drawWheelchairPoint(objectDistance, objectAngle);
 						
-//						if (GazeboProcNode.this.isAuto) {
-//							// only automatically moving when flag isAuto is set
-//							double vel = (double) Settings.velocity / 10;
-//							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
-//								controlInfoText.setText("SEARCHING PAD...");
-//								MoveInstructor.move(0, vel);
-//								// MoveInstructor2.moveRight(vel);
-//							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
-//								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
-//								MoveInstructor.move(0, vel);
-//								// MoveInstructor2.moveLeft(vel);
-//							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
-//								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
-//								MoveInstructor.move(0, -1 * vel);
-//								// MoveInstructor2.moveRight(-1 * vel);
-//							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
-//								controlInfoText.setText("MOVING FORWARD...");
-//								if (objectDistance > 5) {
-//									MoveInstructor.move(vel, 0);
-//								} else {
-//									MoveInstructor.moveForward(vel, objectDistance);
-////									setFindingPadStatus(false);
-//								}
-//								
-//								// MoveInstructor2.moveForward(vel);
-//							}
-//						}
 					}
 				}));
 				
@@ -512,8 +437,8 @@ public class GazeboProcNode extends Thread {
 	
 	
 	private void drawWheelchairPoint(double distance, double angle) {
-		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
-		LocationDrawer.updateData(wcPoint, 0);
+//		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
+//		LocationDrawer.updateData(wcPoint, 0);
 	}
 	
 	

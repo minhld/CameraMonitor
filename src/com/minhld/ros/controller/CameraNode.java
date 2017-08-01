@@ -17,8 +17,8 @@ import com.minhld.utils.ROSUtils;
  *
  */
 public class CameraNode extends AbstractNodeMain {
-	// public static String topicTitle = "/rrbot/camera1/image_raw";
-	public static String topicTitle = "/camera/image_raw";
+	public static String topicTitle = "/rrbot/camera1/image_raw";
+	// public static String topicTitle = "/camera/image_raw";
 	
 	private String subscriberName;
 	private ImageListener listener;
