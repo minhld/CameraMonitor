@@ -42,6 +42,7 @@ import org.opencv.core.Core;
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.MoveInstructor;
+import com.minhld.ros.controller.OdomListener;
 import com.minhld.ros.controller.UISupport;
 import com.minhld.ui.supports.AdjustSlider;
 import com.minhld.ui.supports.LocationDrawer;
@@ -49,6 +50,7 @@ import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
+import nav_msgs.Odometry;
 import sensor_msgs.Image;
 
 public class GazeboProcNode extends Thread {
@@ -424,10 +426,21 @@ public class GazeboProcNode extends Thread {
 						
 					}
 				}));
+
+				// start Odometry listener
+				String graphOdomName = ROSUtils.getNodeName(OdomListener.topicTitle);
+				ROSUtils.execute(graphOdomName, new OdomListener(new OdomListener.OdomUpdater() {
+					@Override
+					public void odomUpdated(Odometry pos) {
+						GazeboProcNode.this.topicInfoText.setText("velocity: " + pos.getTwist().getTwist().getLinear().getX() + "\n" + 
+																"rotate: " + pos.getTwist().getTwist().getAngular().getZ());
+					}
+				}));
 				
 				// start the Movement Instructor
 				String graphMoveName = ROSUtils.getNodeName(MoveInstructor.moveTopicTitle);
 				ROSUtils.execute(graphMoveName, new MoveInstructor());
+
 			}
 		};
 		nodeThread.start();
