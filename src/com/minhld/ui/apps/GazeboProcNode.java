@@ -53,6 +53,7 @@ import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
 import geometry_msgs.Pose;
+import geometry_msgs.Quaternion;
 import geometry_msgs.Twist;
 import nav_msgs.Odometry;
 import sensor_msgs.Image;
@@ -422,9 +423,21 @@ public class GazeboProcNode extends Thread {
 						Pose p = pos.getPose().getPose();
 						Twist t = pos.getTwist().getTwist();
 						
+						
+						
 						double x = p.getPosition().getX(), y = p.getPosition().getY();
+						
+						double yaw = p.getOrientation().getW();
+						
+						double angle = 0;
+						angle = Math.acos((yaw + 1) / 2) * 360 / Math.PI;
+//						if (yaw < 0) {
+//							angle = 360 - angle;
+//						}
+						
 						String xyz = "(X=" + AppUtils.getSmallNumberFormat(p.getPosition().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(p.getPosition().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(p.getPosition().getZ()) + ")"; 
-						String o = "(X=" + AppUtils.getSmallNumberFormat(p.getOrientation().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(p.getOrientation().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(p.getOrientation().getZ()) + ",W=" + AppUtils.getSmallNumberFormat(p.getOrientation().getW()) + ")";
+						// String o = "(X=" + AppUtils.getSmallNumberFormat(p.getOrientation().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(p.getOrientation().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(p.getOrientation().getZ()) + ",W=" + AppUtils.getSmallNumberFormat(p.getOrientation().getW()) + ")";
+						String o = "(X=" + AppUtils.getSmallNumberFormat(p.getOrientation().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(p.getOrientation().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(p.getOrientation().getZ()) + ",W=" + AppUtils.getSmallNumberFormat(p.getOrientation().getW()) + ",A=" + AppUtils.getSmallNumberFormat(angle) + ")";
 						String l = "(X=" + AppUtils.getSmallNumberFormat(t.getLinear().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(t.getLinear().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(t.getLinear().getZ()) + ")";
 						String a = "(X=" + AppUtils.getSmallNumberFormat(t.getAngular().getX()) + ",Y=" + AppUtils.getSmallNumberFormat(t.getAngular().getY()) + ",Z=" + AppUtils.getSmallNumberFormat(t.getAngular().getZ()) + ")";
 
