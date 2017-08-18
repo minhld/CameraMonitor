@@ -53,7 +53,6 @@ import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
 import geometry_msgs.Pose;
-import geometry_msgs.Quaternion;
 import geometry_msgs.Twist;
 import nav_msgs.Odometry;
 import sensor_msgs.Image;
