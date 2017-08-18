@@ -2,15 +2,12 @@ package com.minhld.console.apps;
 
 import java.awt.image.BufferedImage;
 
-
 import org.opencv.core.Core;
-import org.opencv.core.Point;
 
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.MoveInstructor;
 import com.minhld.ros.controller.OdomListener;
 import com.minhld.ros.controller.OdomWriter;
-import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
@@ -64,9 +61,9 @@ public class GazeboProcConsoleNode extends Thread {
 				ROSUtils.execute(graphCameraName, new CameraNode(new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
-						long start = System.currentTimeMillis();
+						// long start = System.currentTimeMillis();
 						BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
-						long loadImageTime = System.currentTimeMillis() - start;
+						// long loadImageTime = System.currentTimeMillis() - start;
 							
 						// long drawTime = System.currentTimeMillis() - start;
 						// long rate = (long) (1000 / loadImageTime);
@@ -128,61 +125,61 @@ public class GazeboProcConsoleNode extends Thread {
 		
 	}
 	
-	/**
-	 * this function is called when user presses on navigation buttons on keyboard
-	 * or uses mouse to click on navigation buttons on the application
-	 * 
-	 * @param keyCode
-	 */
-	private void navButtonClicked(int keyCode) {
-		// skip if server is not set
-		if (!this.isServerInUsed) return;
-		
-		// go otherwise
-		float actualVel = (float) Settings.velocity / 10;
-		String move = "";
-		switch (keyCode) {
-			case NavButtonClickListener.KEY_UP: {
-				// move up
-				MoveInstructor.move(actualVel, 0);
-				// MoveInstructor2.moveForward(actualVel);
-				move = "FORWARD";
-				break;
-			} case NavButtonClickListener.KEY_DOWN: {
-				// move down
-				MoveInstructor.move(-1 * actualVel, 0);
-				// MoveInstructor2.moveBackward(actualVel);
-				move = "BACKWARD";
-				break;
-			} case NavButtonClickListener.KEY_LEFT: {
-				// move left
-				MoveInstructor.move(0, actualVel);
-				// MoveInstructor2.moveLeft(actualVel);
-				move = "LEFT";
-				break;
-			} case NavButtonClickListener.KEY_RIGHT: {
-				// move right
-				MoveInstructor.move(0, -1 * actualVel);
-				// MoveInstructor2.moveRight(-1 * actualVel);
-				move = "RIGHT";
-				break;
-			}
-		}
-		// controlInfoText.setText("move: " + move + " | velocity: " + actualVel);
-	}
+//	/**
+//	 * this function is called when user presses on navigation buttons on keyboard
+//	 * or uses mouse to click on navigation buttons on the application
+//	 * 
+//	 * @param keyCode
+//	 */
+//	private void navButtonClicked(int keyCode) {
+//		// skip if server is not set
+//		if (!this.isServerInUsed) return;
+//		
+//		// go otherwise
+//		float actualVel = (float) Settings.velocity / 10;
+//		String move = "";
+//		switch (keyCode) {
+//			case NavButtonClickListener.KEY_UP: {
+//				// move up
+//				MoveInstructor.move(actualVel, 0);
+//				// MoveInstructor2.moveForward(actualVel);
+//				move = "FORWARD";
+//				break;
+//			} case NavButtonClickListener.KEY_DOWN: {
+//				// move down
+//				MoveInstructor.move(-1 * actualVel, 0);
+//				// MoveInstructor2.moveBackward(actualVel);
+//				move = "BACKWARD";
+//				break;
+//			} case NavButtonClickListener.KEY_LEFT: {
+//				// move left
+//				MoveInstructor.move(0, actualVel);
+//				// MoveInstructor2.moveLeft(actualVel);
+//				move = "LEFT";
+//				break;
+//			} case NavButtonClickListener.KEY_RIGHT: {
+//				// move right
+//				MoveInstructor.move(0, -1 * actualVel);
+//				// MoveInstructor2.moveRight(-1 * actualVel);
+//				move = "RIGHT";
+//				break;
+//			}
+//		}
+//		// controlInfoText.setText("move: " + move + " | velocity: " + actualVel);
+//	}
 	
-	/**
-	 * 
-	 */
-	private void navButtonReleased() {
-		// skip if server is not set
-		if (!this.isServerInUsed) return;
-		
-		// go otherwise
-		MoveInstructor.move(0, 0);
-		
-		// controlInfoText.setText("move: STOP");
-	}
+//	/**
+//	 * 
+//	 */
+//	private void navButtonReleased() {
+//		// skip if server is not set
+//		if (!this.isServerInUsed) return;
+//		
+//		// go otherwise
+//		MoveInstructor.move(0, 0);
+//		
+//		// controlInfoText.setText("move: STOP");
+//	}
 	
 	/**
 	 * call this when user wants to connect to a new server
@@ -202,16 +199,16 @@ public class GazeboProcConsoleNode extends Thread {
 		}
 	}
 	
-	/**
-	 * call this when user wants to disconnect from the current server
-	 */
-	private void stopServer() {
-		// disable current server 
-		ROSUtils.shutdownAllNodes();
-		
-		// update the controls & variables
-		this.isServerInUsed = false;
-	}
+//	/**
+//	 * call this when user wants to disconnect from the current server
+//	 */
+//	private void stopServer() {
+//		// disable current server 
+//		ROSUtils.shutdownAllNodes();
+//		
+//		// update the controls & variables
+//		this.isServerInUsed = false;
+//	}
 	
 	/**
 	 * this function is called to clean all the parameters
@@ -221,25 +218,25 @@ public class GazeboProcConsoleNode extends Thread {
 		Settings.saveProps(Settings.SETTING_GAZ);
 	}
 	
-	/**
-	 * this class declares mouse pressed and released events for
-	 * the navigation buttons. 
-	 * 
-	 * @author lee
-	 *
-	 */
-	private class NavButtonClickListener {
-		public static final int KEY_UP = 38;
-		public static final int KEY_DOWN = 40;
-		public static final int KEY_LEFT = 37;
-		public static final int KEY_RIGHT = 39;
-		
-		private int keyCode;
-		
-		public NavButtonClickListener(int keyCode) {
-			this.keyCode = keyCode;
-		}
-	}
+//	/**
+//	 * this class declares mouse pressed and released events for
+//	 * the navigation buttons. 
+//	 * 
+//	 * @author lee
+//	 *
+//	 */
+//	private class NavButtonClickListener {
+//		public static final int KEY_UP = 38;
+//		public static final int KEY_DOWN = 40;
+//		public static final int KEY_LEFT = 37;
+//		public static final int KEY_RIGHT = 39;
+//		
+//		private int keyCode;
+//		
+//		public NavButtonClickListener(int keyCode) {
+//			this.keyCode = keyCode;
+//		}
+//	}
 	
 	/**
 	 * entry point
