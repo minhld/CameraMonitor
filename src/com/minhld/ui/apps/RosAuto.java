@@ -1,4 +1,4 @@
-package com.minhld.ros.controller;
+package com.minhld.ui.apps;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -7,6 +7,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
@@ -42,16 +43,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
-import com.minhld.opencv.DistanceEstimator;
-import com.minhld.opencv.FeatureExtractorRed;
-import com.minhld.opencv.ObjectDetectorRed;
+import com.minhld.opencv.ObjectDetector;
+import com.minhld.ros.controller.CameraNode;
+import com.minhld.ros.controller.MoveInstructor;
+import com.minhld.ros.controller.CameraNode.ImageListener;
 import com.minhld.ui.supports.AdjustSlider;
-import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSUtils;
@@ -59,20 +57,18 @@ import com.minhld.utils.Settings;
 
 import sensor_msgs.Image;
 
-public class RosAutoRed extends Thread {
+public class RosAuto extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
-	JTextArea topicInfoText, controlInfoText;
-	JButton connectROSButton, stopROSButton, findPadBtn;
+	JTextArea infoText, controlInfoText;
+	JButton connectROSButton, stopROSButton;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
-	JPanel cameraPanel, processPanel, buttonPanel, templatePanel; 
-	JPanel capturedPanel, closedCapturedPanel, transformedPanel;
+	JPanel cameraPanel, processPanel, buttonPanel, templatePanel, capturedPanel, transformedPanel;
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
 	
 	boolean isAuto = false;
-	boolean isMovingNode = false;
 	boolean isServerInUsed = false;
 	
 	public void run() {
@@ -82,11 +78,8 @@ public class RosAutoRed extends Thread {
 		
 		Container contentPane = mainFrame.getContentPane();
 		
-		// load UI properties
-		UISupport.loadUIProps();
-		
-		// load settings (for RED OBJECT configuration)
-		Settings.init(Settings.SETTING_RED);
+		// load settings (for WHITE OBJECT configuration)
+		Settings.init(Settings.SETTING_ORG);
 		
 		// ------ set Tool-bar and Buttons ------ 
 		contentPane.add(buildToolBar(), BorderLayout.NORTH);
@@ -105,8 +98,7 @@ public class RosAutoRed extends Thread {
 		} catch (Exception e) { }
 		
 		// set window size
-		mainFrame.setSize(UISupport.getUIProp("main-window-width"), UISupport.getUIProp("main-window-height"));
-		// mainFrame.setSize(1390, 860);
+		mainFrame.setSize(1390, 860);
 		// mainFrame.setSize(1660, 1060);
 		mainFrame.setResizable(false);
 		// mainFrame.setMinimumSize(new Dimension(1380, 860));
@@ -115,7 +107,7 @@ public class RosAutoRed extends Thread {
 		mainFrame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
-				int response = JOptionPane.showConfirmDialog(RosAutoRed.this.mainFrame, 
+				int response = JOptionPane.showConfirmDialog(RosAuto.this.mainFrame, 
 									"Are you sure you want to quit?", "Confirm", 
 									JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
 			    if (response == JOptionPane.YES_OPTION) {
@@ -135,8 +127,8 @@ public class RosAutoRed extends Thread {
 		// load OpenCV
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-//		// initiate some remaining objects
-//		startInitObjects();
+		// initiate some remaining objects
+		startInitObjects();
 	}
 	
 	/**
@@ -155,9 +147,26 @@ public class RosAutoRed extends Thread {
 				addTopicsToList();
 			}
 		});
-		refreshBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(refreshBtn);
+		toolbar.addSeparator();
 		
+		final JButton findPadBtn = new JButton("Find Pad");
+		findPadBtn.setIcon(new ImageIcon("images/search.png"));
+		findPadBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (RosAuto.this.isAuto) {
+					MoveInstructor.move(0, 0);
+				} 
+				RosAuto.this.isAuto = !RosAuto.this.isAuto;
+				controlInfoText.setText("AUTOMATION IS " + (RosAuto.this.isAuto ? "SET" : "CLEARED"));
+				findPadBtn.setText(RosAuto.this.isAuto ? "Stop Finding" : "Find Pad");
+				
+			}
+		});
+		toolbar.add(findPadBtn);
+		
+		toolbar.addSeparator();
 		
 		JButton settingsBtn = new JButton("Settings");
 		settingsBtn.setIcon(new ImageIcon("images/settings.png"));
@@ -167,56 +176,8 @@ public class RosAutoRed extends Thread {
 				showSettingsDialog();
 			}
 		});
-		settingsBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(settingsBtn);
 		
-		toolbar.addSeparator();
-		
-		
-		findPadBtn = new JButton("Find Pad");
-		findPadBtn.setIcon(new ImageIcon("images/search.png"));
-		findPadBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (RosAutoRed.this.isAuto) {
-					MoveInstructor.move(0, 0);
-				} 
-				RosAutoRed.this.isAuto = !RosAutoRed.this.isAuto;
-				controlInfoText.setText("AUTOMATION IS " + (RosAutoRed.this.isAuto ? "SET" : "CLEARED"));
-				findPadBtn.setText(RosAutoRed.this.isAuto ? "Stop Finding" : "Find Pad");
-				
-			}
-		});
-		findPadBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
-		toolbar.add(findPadBtn);
-		
-		final JButton initMovingBtn = new JButton("Start Moving");
-		initMovingBtn.setIcon(new ImageIcon("images/execute.png"));
-		initMovingBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				RosAutoRed.this.isMovingNode = !RosAutoRed.this.isMovingNode;
-				// controlInfoText.setText("AUTOMATION IS " + (RosAutoRed.this.isMovingNode ? "SET" : "CLEARED"));
-				initMovingBtn.setText(RosAutoRed.this.isMovingNode ? "Stop Node" : "Start Moving Node");
-				
-			}
-		});
-		initMovingBtn.setEnabled(false);	// temporarily closed
-		initMovingBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
-		toolbar.add(initMovingBtn);
-		
-		toolbar.addSeparator();
-		
-		final JButton debugBtn = new JButton("Debug");
-		debugBtn.setIcon(new ImageIcon("images/debug.png"));
-		debugBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-			}
-		});
-		debugBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
-		toolbar.add(debugBtn);
 		
 		return toolbar;
 	}
@@ -250,70 +211,33 @@ public class RosAutoRed extends Thread {
 		
 		JPanel adjustPanel = new JPanel(new BorderLayout());
 		adjustPanel.setBorder(BorderFactory.createTitledBorder("Adjustment"));
-		adjustPanel.setPreferredSize(new Dimension(1000, 200));
 		
-		JPanel slidesPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		slidesPanel.setLayout(new GridLayout(1, 5));
-//		slidesPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
+		JPanel slidesPanel = new JPanel(new BorderLayout());
+		slidesPanel.setLayout(new GridLayout(2, 3));
+		slidesPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
 
-		// Velocity slider
-		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		
-		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 3, 15);
-		velocityPanel.add(velSlider, BorderLayout.NORTH);
-		velocityPanel.setPreferredSize(new Dimension(200, 30));
-		slidesPanel.add(velocityPanel, BorderLayout.NORTH);
-		
-		// 1. Captured panel
-		JPanel capture = new JPanel(new FlowLayout());
-		capture.setPreferredSize(new Dimension(280, 280));
-		capture.add(new JLabel("Centered Image"));
-		
-		capturedPanel = new JPanel();
-		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-		capturedPanel.setBorder(new TitledBorder(""));
-		capture.add(capturedPanel);
-		
-		slidesPanel.add(capture);
-		
-		// 1. Captured panel
-		JPanel capture2 = new JPanel(new FlowLayout());
-		capture2.setPreferredSize(new Dimension(280, 280));
-		capture2.add(new JLabel("Captured Pad"));
-		
-		closedCapturedPanel = new JPanel();
-		closedCapturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-		closedCapturedPanel.setBorder(new TitledBorder(""));
-		capture2.add(closedCapturedPanel);
-		
-		slidesPanel.add(capture2);
-		
-		// 1. Captured panel
-		JPanel capture3 = new JPanel(new FlowLayout());
-		capture3.setPreferredSize(new Dimension(280, 280));
-		capture3.add(new JLabel("Transformed Pad"));
-		
-		transformedPanel = new JPanel();
-		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-		transformedPanel.setBorder(new TitledBorder(""));
-		capture3.add(transformedPanel);
-		
-		slidesPanel.add(capture3);
-		
-		// 1. Captured panel
-		JPanel capture4 = new JPanel(new FlowLayout());
-		capture4.setPreferredSize(new Dimension(280, 280));
-		capture4.add(new JLabel("Captured Image"));
-		
-		JPanel capturedPanel4 = new JPanel();
-		capturedPanel4.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
-		capturedPanel4.setBorder(new TitledBorder(""));
-		capture4.add(capturedPanel4);
-		
-		slidesPanel.add(capture4);
-		
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_THRESHOLD, 1, 255));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 0, 15, 2));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_SIDES, 1, 20));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_DILATE_SIZE, 1, 15, 2));
+		slidesPanel.add(new AdjustSlider(Settings.LABEL_CONTOUR_AREA_MIN, 200, 900));
 		
 		adjustPanel.add(slidesPanel, BorderLayout.CENTER);
+		
+		templatePanel = new JPanel(new BorderLayout());
+		templatePanel.setPreferredSize(new Dimension(170, 100));
+		templatePanel.add(new JLabel("Template"), BorderLayout.NORTH);
+		templatePanel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				// choose another template
+			}
+		});
+		
+		// templatePanel.add(templateDrawPanel, BorderLayout.SOUTH);
+		
+		adjustPanel.add(templatePanel, BorderLayout.EAST);
+		
 		
 		totalView.add(adjustPanel, BorderLayout.CENTER);
 		
@@ -322,15 +246,12 @@ public class RosAutoRed extends Thread {
 		
 		JPanel controller = new JPanel(new BorderLayout());
 		controller.setBorder(BorderFactory.createTitledBorder("Controller"));
-		controller.setPreferredSize(new Dimension(300, UISupport.getUIProp("controller-height")));
+		controller.setPreferredSize(new Dimension(300, 280));
 		
 		// Navigation buttons panel
 		this.buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(3, 3));
-		buttonPanel.setBorder(new EmptyBorder(UISupport.getUIProp("button-margin-top"), 
-										UISupport.getUIProp("button-margin-left"), 
-										UISupport.getUIProp("button-margin-top"), 
-										UISupport.getUIProp("button-margin-left")));
+		buttonPanel.setBorder(new EmptyBorder(30, 50, 30, 50));
 		buttonPanel.setFocusable(true);
 		buttonPanel.requestFocusInWindow();
 		buttonPanel.addKeyListener(new KeyAdapter() {
@@ -351,8 +272,8 @@ public class RosAutoRed extends Thread {
 			@Override
 			public void focusLost(FocusEvent e) {
 				switchKeyFocus(false);
-				if (RosAutoRed.this.isServerInUsed) {
-					RosAutoRed.this.buttonPanel.requestFocusInWindow();
+				if (RosAuto.this.isServerInUsed) {
+					RosAuto.this.buttonPanel.requestFocusInWindow();
 				}
 			}
 			
@@ -407,8 +328,8 @@ public class RosAutoRed extends Thread {
 		keyFocusLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				if (RosAutoRed.this.isServerInUsed) {
-					RosAutoRed.this.buttonPanel.requestFocusInWindow();
+				if (RosAuto.this.isServerInUsed) {
+					RosAuto.this.buttonPanel.requestFocusInWindow();
 				}
 			}
 		});
@@ -422,6 +343,13 @@ public class RosAutoRed extends Thread {
 		JPanel controlInfo = new JPanel(new BorderLayout());
 		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
 		
+		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+		
+		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 3, 15);
+		velocityPanel.add(velSlider, BorderLayout.NORTH);
+		velSlider.setPreferredSize(new Dimension(200, 50));
+		//velocityPanel.setPreferredSize(new Dimension(200, 50));
+		controlInfo.add(velocityPanel, BorderLayout.NORTH);
 		
 		controlInfoText = new JTextArea(10, 63);
 		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
@@ -438,30 +366,33 @@ public class RosAutoRed extends Thread {
 		
 		control.add(controlInfo, BorderLayout.CENTER);
 		
-		// ------ Coordinate System panel ------ 
-		JPanel topicInfoPanel = new JPanel(new BorderLayout());
-		topicInfoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
-		topicInfoPanel.setPreferredSize(new Dimension(280, 200));
+		// Transformation panel
+		JPanel transform = new JPanel(new FlowLayout());
+		transform.setBorder(BorderFactory.createTitledBorder("Transformation"));
+		transform.setPreferredSize(new Dimension(280, 280));
 		
-		topicInfoText = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
-		topicInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
-		topicInfoText.setFont(new Font("courier", Font.PLAIN, 11));
-		topicInfoText.setEditable(false);
-		JScrollPane topicInfoScroller = new JScrollPane(topicInfoText, 
-							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		topicInfoPanel.add(topicInfoScroller, BorderLayout.CENTER);
-
-		topicInfoPanel.add(new JLabel(" "), BorderLayout.SOUTH);
+		transform.add(new JLabel("Captured Image"));
 		
-		control.add(topicInfoPanel, BorderLayout.EAST);
+		capturedPanel = new JPanel();
+		capturedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+		capturedPanel.setBorder(new TitledBorder(""));
+		transform.add(capturedPanel);
+		
+		transform.add(new JLabel("Transformed Image"));
+		
+		transformedPanel = new JPanel();
+		transformedPanel.setPreferredSize(new Dimension(Settings.TEMPLATE_WIDTH, Settings.TEMPLATE_HEIGHT));
+		transformedPanel.setBorder(new TitledBorder(""));
+		transform.add(transformedPanel);
+		
+		control.add(transform, BorderLayout.EAST);
+		
 		
 		totalView.add(control, BorderLayout.SOUTH);
 		
 		return totalView;
 	}
 	
-    
 	/**
 	 * this function is called when user presses on navigation buttons on keyboard
 	 * or uses mouse to click on navigation buttons on the application
@@ -561,97 +492,62 @@ public class RosAutoRed extends Thread {
 				ROSUtils.execute(graphCameraName, new CameraNode(new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
-						// long start = System.currentTimeMillis();
+						long start = System.currentTimeMillis();
 						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
 						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
-						// long loadImageTime = System.currentTimeMillis() - start;
+						long loadImageTime = System.currentTimeMillis() - start;
 						
 						// // draw on the LEFT canvas the original camera image
 						// drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
 						
 						// draw on the RIGHT canvas the modify image
 						// Object[] results = OpenCVUtils.processImage(bImage);
-						
-						// using image processing to detect the pad 
-						long start = System.currentTimeMillis();
-						Object[] results = ObjectDetectorRed.processImage(image);
-						long findPadTime = System.currentTimeMillis() - start;
-						
 						start = System.currentTimeMillis();
+						// Object[] results = OpenCVUtils.processImage(image);
+						// Object[] results = OpenCVUtils.processImage2(image);
+						// Object[] results = OpenCVUtils.processImage3(image);
+						// Object[] results = OpenCVUtils.processImage6(image);
+						// Object[] results = OpenCVUtils.processImage7(image);
+						// Object[] results = FeatureExtractor.processImage(image);
+						// Object[] results = ObjectDetector.processImage0(image);
+						Object[] results = ObjectDetector.processImage(image);
+						// Object[] results = ObjectDetector.processImage11(image);
+						// Object[] results = ObjectDetector.processImage2(image);
+						// Object[] results = ObjectDetector.processImage21(image);
+						// Object[] results = ObjectDetector2.processImage(image);
+						
+						long durr = System.currentTimeMillis() - start;
+						long rate = (long) (1000 / durr);
+						RosAuto.this.processTimeLabel.setText("Displaying Time: " + loadImageTime + "ms | " +  
+														"Processing Time: " + durr + "ms | " + 
+														"Rate: " + rate + "fps");
+						
 						BufferedImage resultImage = (BufferedImage) results[0];
 						BufferedImage processImage = (BufferedImage) results[1];
 						BufferedImage capturedImage = (BufferedImage) results[2];
-						Rect objectRect = (Rect) results[3];
-						Mat padMat = (Mat) results[4];
-						double[] timers = (double[]) results[5];
-								
-						UISupport.drawImage(cameraPanel, resultImage);
-						UISupport.drawImage(processPanel, processImage);
-						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
 						
-						// using feature detection to find the location of the pad
-						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
-						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
-						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
-						double[] extractTimers = (double[]) locs[2];
+						// boolean isAtCenter = (Boolean) results[2];
+						int moveInstructor = (Integer) results[3];
 						
-						long drawTime = System.currentTimeMillis() - start;
-						long rate = (long) (1000 / findPadTime);
-						RosAutoRed.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
-														"Searching Pad Time: " + findPadTime + "ms | " + 
-														"Rate: " + rate + "fps");
+						drawImage(cameraPanel, resultImage, cameraPanel.getWidth(), cameraPanel.getHeight());
+						drawImage(processPanel, processImage, processPanel.getWidth(), processPanel.getHeight());
+						drawImage(capturedPanel, capturedImage, capturedPanel.getWidth(), capturedPanel.getHeight());
 						
-						// teach the wheel-chair how to move
-						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
-						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
-						double objectAngle = extractTimers[0];
-						
-						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
-						RosAutoRed.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
-															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
-															"------------------------------\n" + 
-															"Reading: " + timers[0] + "ms\n" + 
-															// "Gaussian Blur: " + timers[1] + "ms\n" +
-															"HSV Converting: " + timers[2] + "ms\n" +
-															"Dilating: " + timers[3] + "ms\n" + 
-															"Coutouring: " + timers[4] + "ms\n" + 
-															"Bitmap Converting: " + timers[5] + "ms\n" + 
-															"------------------------------\n" +
-															"Gray Converting: " + extractTimers[1] + "ms\n" + 
-															"Threshold: " + extractTimers[2] + "ms\n" + 
-															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
-															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
-															"Transformation: " + extractTimers[5] + "ms\n");
-
-						drawWheelchairPoint(objectDistance, objectAngle);
-						
-						if (RosAutoRed.this.isAuto) {
+						if (RosAuto.this.isAuto) {
 							// only automatically moving when flag isAuto is set
 							double vel = (double) Settings.velocity / 10;
 							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
 								controlInfoText.setText("SEARCHING PAD...");
 								MoveInstructor.move(0, vel);
-								// MoveInstructor2.moveRight(vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
 								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
 								MoveInstructor.move(0, vel);
-								// MoveInstructor2.moveLeft(vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
 								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
 								MoveInstructor.move(0, -1 * vel);
-								// MoveInstructor2.moveRight(-1 * vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
 								controlInfoText.setText("MOVING FORWARD...");
-								if (objectDistance > 5) {
-									MoveInstructor.move(vel, 0);
-								} else {
-									MoveInstructor.moveForward(vel, objectDistance);
-									setFindingPadStatus(false);
-								}
-								
-								// MoveInstructor2.moveForward(vel);
+								MoveInstructor.move(vel, 0);
 							}
 						}
 					}
@@ -667,76 +563,43 @@ public class RosAutoRed extends Thread {
 		
 	}
 	
-	private void setFindingPadStatus(boolean isAuto) {
-		RosAutoRed.this.isAuto = isAuto;
-		controlInfoText.setText("AUTOMATION IS " + (RosAutoRed.this.isAuto ? "SET" : "CLEARED"));
-		findPadBtn.setText(RosAutoRed.this.isAuto ? "Stop Finding" : "Find Pad");
-
+	
+	private void startInitObjects() {
+		// add a template image
+		addTemplateImage();
+        
 	}
 	
-	private void drawWheelchairPoint(double distance, double angle) {
-		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
-		LocationDrawer.updateData(wcPoint, 0);
+	@SuppressWarnings("serial")
+	private void addTemplateImage() {
+		// final BufferedImage templateImage = OpenCVUtils.createAwtImage(ObjectDetector.tplMat);
+		
+		JPanel tplImagePanel = new JPanel() {
+//            @Override
+//            protected void paintComponent(Graphics g) {
+//                super.paintComponent(g);
+//                g.drawImage(templateImage, 0, 0, 150, 80, null);
+//            }
+        };
+        tplImagePanel.setSize(new Dimension(150, 80));
+        templatePanel.add(tplImagePanel, BorderLayout.CENTER);
 	}
 	
-//	int count = 1;
-//	double maxX = -100, minX = 100, maxY = -100, minY = 100;
-//	
-//	private void drawWheelchairPoint(double distance, double angle) {
-//		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
-//		if (count % 5 != 0) {
-//			count++;
-//			if (maxX < wcPoint.x) {
-//				maxX = wcPoint.x;
-//			}
-//			if (minX > wcPoint.x) {
-//				minX = wcPoint.x;
-//			}
-//			if (maxY < wcPoint.y) {
-//				maxY = wcPoint.y;
-//			}
-//			if (minY > wcPoint.y) {
-//				minY = wcPoint.y;
-//			}
-//		} else {
-//			if (count < 50) {
-//				double x = (minX + maxX) / 2;
-//				double y = (minY + maxY) / 2;
-//				double rad = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxY - minY, 2));
-//				LocationDrawer.updateData(new Point(x, y), rad / 2);
-//				count++;
-//			} else {
-//				count = 1;
-//				maxX = -100;
-//				minX = 100; 
-//				maxY = -100;
-//				minY = 100;
-//			}
-//		}
-//		
-//	}
-	
-	
-//	private void startInitObjects() {
-//		// add a template image
-//		addTemplateImage();
-//        
-//	}
-	
-//	@SuppressWarnings("serial")
-//	private void addTemplateImage() {
-//		// final BufferedImage templateImage = OpenCVUtils.createAwtImage(ObjectDetector.tplMat);
-//		
-//		JPanel tplImagePanel = new JPanel() {
-////            @Override
-////            protected void paintComponent(Graphics g) {
-////                super.paintComponent(g);
-////                g.drawImage(templateImage, 0, 0, 150, 80, null);
-////            }
-//        };
-//        tplImagePanel.setSize(new Dimension(150, 80));
-//        templatePanel.add(tplImagePanel, BorderLayout.CENTER);
-//	}
+	/**
+	 * draw an image to the panel - this function to draw 
+	 * on-the-fly image on a canvas of the panel 
+	 * 
+	 * @param panel
+	 * @param img
+	 * @param w
+	 * @param h
+	 */
+	private void drawImage(JPanel panel, BufferedImage img, int w, int h) {
+		Graphics g = panel.getGraphics();
+		if (g != null) {
+			g.drawImage(img, 0, 0, w, h, null);
+		}
+	}
 	
 	/**
 	 * open Settings dialog
@@ -764,10 +627,10 @@ public class RosAutoRed extends Thread {
 		
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
-		ipText = new JTextField(UISupport.getUIProp("host-text-columns"));
+		ipText = new JTextField(20);
 		ipText.grabFocus();
-		String currentIP = "129.123.7.100";
-		// String currentIP = AppUtils.getCurrentIP();
+		// String currentIP = "129.123.7.100";
+		String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);
@@ -797,18 +660,6 @@ public class RosAutoRed extends Thread {
 		
 		config.add(networkConfig, BorderLayout.NORTH);
 
-		// ------ add Location panel ------ 
-		JPanel locationPanel = new JPanel();
-		locationPanel.setBorder(BorderFactory.createTitledBorder("Location"));
-		
-		JPanel coordPanel = new JPanel(new BorderLayout()); 
-		coordPanel.setPreferredSize(new Dimension(UISupport.getUIProp("location-width"), 
-		 											UISupport.getUIProp("location-height")));
-		coordPanel.add(LocationDrawer.createLocationSystem());
-		
-		locationPanel.add(coordPanel, BorderLayout.CENTER);
-		config.add(locationPanel, BorderLayout.CENTER);
-
 		// ------ add ROS Topic List panel ------
 		JPanel topicPanel = new JPanel(new BorderLayout());
 		topicPanel.setBorder(BorderFactory.createTitledBorder("ROS Topics"));
@@ -836,22 +687,34 @@ public class RosAutoRed extends Thread {
 		        if (e.getClickCount() == 1) {
 		        	// single-click detected
 		        	String topicInfo = ROSUtils.getTopicInfo(selectedTopic);
-		        	topicInfoText.setText(topicInfo);
+		        	infoText.setText(topicInfo);
 		        }
 			}
 		});
 		JScrollPane listScroller = new JScrollPane(topicList, 
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		listScroller.setPreferredSize(new Dimension(UISupport.getUIProp("topic-list-width"), 
-													UISupport.getUIProp("topic-list-height")));
+		listScroller.setPreferredSize(new Dimension(300, 250));
 		topicPanel.add(listScroller, BorderLayout.CENTER);
-		config.add(topicPanel, BorderLayout.SOUTH);
-		
+		config.add(topicPanel, BorderLayout.CENTER);
 
 		// crawl topic list and add to the swing view list
 		// addTopicsToList();
 		
+		// ------ add Network Info panel ------ 
+		JPanel infoPanel = new JPanel();
+		infoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
+
+		infoText = new JTextArea(25, 46);
+		infoText.setBorder(BorderFactory.createLineBorder(Color.gray));
+		infoText.setFont(new Font("courier", Font.PLAIN, 11));
+		infoText.setEditable(false);
+		JScrollPane infoScroller = new JScrollPane(infoText, 
+							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		infoPanel.add(infoScroller, BorderLayout.CENTER);
+
+		config.add(infoPanel, BorderLayout.SOUTH);
 
 		return config;
 	}
@@ -879,10 +742,10 @@ public class RosAutoRed extends Thread {
 			ipText.setEditable(false);
 			connectROSButton.setEnabled(false);
 			stopROSButton.setEnabled(true);
-			RosAutoRed.this.buttonPanel.requestFocusInWindow();
+			RosAuto.this.buttonPanel.requestFocusInWindow();
 			
 		} catch (Exception e) {
-			topicInfoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
+			infoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
 		}
 	}
 	
@@ -928,6 +791,6 @@ public class RosAutoRed extends Thread {
 	}
 	
 	public static void main(String args[]) {
-		new RosAutoRed().start();
+		new RosAuto().start();
 	}
 }
