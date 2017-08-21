@@ -1,4 +1,4 @@
-package com.minhld.ros.controller;
+package com.minhld.ui.apps;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

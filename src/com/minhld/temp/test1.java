@@ -1,4 +1,4 @@
-package com.minhld.console.apps;
+package com.minhld.temp;
 
 public class test1 extends Thread {
 	public void run() {
