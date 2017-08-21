@@ -54,7 +54,6 @@ import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.MoveInstructor;
 import com.minhld.ros.controller.UISupport;
 import com.minhld.ros.controller.WheelVelocityListener;
-import com.minhld.ros.controller.CameraNode.ImageListener;
 import com.minhld.ui.supports.AdjustSlider;
 import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.ui.supports.SettingsPanel;
