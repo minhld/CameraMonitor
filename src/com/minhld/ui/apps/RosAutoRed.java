@@ -63,6 +63,13 @@ import com.minhld.utils.Settings;
 
 import sensor_msgs.Image;
 
+/**
+ * the early version of the controller application
+ * to detect red pad
+ * 
+ * @author lee
+ *
+ */
 public class RosAutoRed extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;

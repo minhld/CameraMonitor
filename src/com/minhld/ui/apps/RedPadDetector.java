@@ -63,6 +63,12 @@ import com.minhld.utils.Settings;
 
 import sensor_msgs.Image;
 
+/**
+ * differentiate 
+ * 
+ * @author lee
+ *
+ */
 public class RedPadDetector extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
@@ -770,8 +776,8 @@ public class RedPadDetector extends Thread {
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(UISupport.getUIProp("host-text-columns"));
 		ipText.grabFocus();
-		// String currentIP = "129.123.7.100";
-		String currentIP = AppUtils.getCurrentIP();
+		String currentIP = "129.123.7.41";
+		// String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);
@@ -840,7 +846,8 @@ public class RedPadDetector extends Thread {
 		        if (e.getClickCount() == 1) {
 		        	// single-click detected
 		        	String topicInfo = ROSUtils.getTopicInfo(selectedTopic);
-		        	topicInfoText.setText(topicInfo);
+		        	// topicInfoText.setText(topicInfo);
+		        	controlInfoText.setText(topicInfo);
 		        }
 			}
 		});
