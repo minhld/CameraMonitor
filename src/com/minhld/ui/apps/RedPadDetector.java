@@ -635,6 +635,8 @@ public class RedPadDetector extends Thread {
 															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
 															"Transformation: " + extractTimers[5] + "ms\n");
 
+						//
+						// draw the current location of the wheel-chair on the map 
 						drawWheelchairPoint(objectDistance, objectAngle);
 						
 						if (RedPadDetector.this.isAuto) {
@@ -684,6 +686,12 @@ public class RedPadDetector extends Thread {
 
 	}
 	
+	/**
+	 * draw the current location of the wheel-chair on to the map
+	 * 
+	 * @param distance
+	 * @param angle
+	 */
 	private void drawWheelchairPoint(double distance, double angle) {
 		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
 		LocationDrawer.updateData(wcPoint, 0);
