@@ -1,5 +1,10 @@
 package com.minhld.ros.controller;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.PriorityQueue;
+import java.util.Queue;
+
 import org.opencv.core.Point;
 
 /**
@@ -10,7 +15,14 @@ import org.opencv.core.Point;
  *
  */
 public class LocationInstructor {
+	public static final int REPEATED_COUNT = 20;  
 	
+	/**
+	 * holds a GPS location with a center point and radius
+	 *  
+	 * @author lee
+	 *
+	 */
 	public static class GPSLocation {
 		public double radius;
 		public Point center;
@@ -29,15 +41,36 @@ public class LocationInstructor {
 		}
 	}
 	
-	static int count = 1;
-	static double maxX = -100, minX = 100, maxY = -100, minY = 100;
 	
+	static int count = 1;
+	
+	static Queue<Point> queue = new LinkedList<Point>();
 	
 	public static GPSLocation getGPSLocation(Point p) {
 		GPSLocation loc = new GPSLocation();
 		
-		if (count % 5 != 0) {
-			count++;
+		if (queue.size() < LocationInstructor.REPEATED_COUNT) {
+			queue.add(p);
+		} else {
+			queue.poll();
+			queue.add(p);
+			double[] b = getBoundary();
+			double x = (b[0] + b[1]) / 2;
+			double y = (b[2] + b[3]) / 2;
+			double rad = Math.sqrt(Math.pow(b[1] - b[0], 2) + Math.pow(b[3] - b[2], 2));
+			loc = new GPSLocation(new Point(x, y), rad / 2);
+		}
+		
+		return loc;
+	}
+	
+	public static double[] getBoundary() {
+		double maxX = -100, minX = 100, maxY = -100, minY = 100;
+		
+		Iterator<Point> pList = queue.iterator();
+		while (pList.hasNext()) {
+			Point p = pList.next();
+			
 			if (maxX < p.x) {
 				maxX = p.x;
 			}
@@ -50,22 +83,8 @@ public class LocationInstructor {
 			if (minY > p.y) {
 				minY = p.y;
 			}
-		} else {
-			if (count < 50) {
-				double x = (minX + maxX) / 2;
-				double y = (minY + maxY) / 2;
-				double rad = Math.sqrt(Math.pow(maxX - minX, 2) + Math.pow(maxY - minY, 2));
-				loc = new GPSLocation(new Point(x, y), rad / 2);
-				count++;
-			} else {
-				count = 1;
-				maxX = -100;
-				minX = 100; 
-				maxY = -100;
-				minY = 100;
-			}
 		}
 		
-		return loc;
+		return new double[] { minX, maxX, minY, maxY };
 	}
 }

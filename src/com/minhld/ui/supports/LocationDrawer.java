@@ -82,9 +82,10 @@ public class LocationDrawer {
      * 
      */
 	public static void updateData(GPSLocation gpsPoint) {
+		if (!gpsPoint.hasData) return;
+		
 		Point p = gpsPoint.center;
 		double error = gpsPoint.radius;
-		
 		updateData(p, error);
     }
     

@@ -697,9 +697,8 @@ public class RedPadDetector extends Thread {
 	private void drawWheelchairPoint(double distance, double angle) {
 		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
 		GPSLocation gpsPoint = LocationInstructor.getGPSLocation(wcPoint);
-		if (gpsPoint.hasData) {
-			LocationDrawer.updateData(gpsPoint, 0);
-		}
+		// update the location by gps location
+		LocationDrawer.updateData(gpsPoint);
 	}
 	
 //	int count = 1;
