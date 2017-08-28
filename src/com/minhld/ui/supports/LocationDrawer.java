@@ -19,6 +19,8 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import org.opencv.core.Point;
 
+import com.minhld.ros.controller.LocationInstructor.GPSLocation;
+
 public class LocationDrawer {
 	static XYSeriesCollection collection;
     static XYSeries xySeries = new XYSeries("Wheelchair");
@@ -75,6 +77,17 @@ public class LocationDrawer {
         axis.setVerticalTickLabels(vertical);
     }
 	
+    /**
+     * update the location of the object 
+     * 
+     */
+	public static void updateData(GPSLocation gpsPoint) {
+		Point p = gpsPoint.center;
+		double error = gpsPoint.radius;
+		
+		updateData(p, error);
+    }
+    
     /**
      * update the location of the object 
      * 

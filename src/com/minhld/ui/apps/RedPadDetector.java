@@ -51,6 +51,8 @@ import com.minhld.opencv.DistanceEstimator;
 import com.minhld.opencv.FeatureExtractorRed;
 import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ros.controller.CameraNode;
+import com.minhld.ros.controller.LocationInstructor;
+import com.minhld.ros.controller.LocationInstructor.GPSLocation;
 import com.minhld.ros.controller.MoveInstructor;
 import com.minhld.ros.controller.UISupport;
 import com.minhld.ros.controller.WheelVelocityListener;
@@ -694,7 +696,10 @@ public class RedPadDetector extends Thread {
 	 */
 	private void drawWheelchairPoint(double distance, double angle) {
 		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
-		LocationDrawer.updateData(wcPoint, 0);
+		GPSLocation gpsPoint = LocationInstructor.getGPSLocation(wcPoint);
+		if (gpsPoint.hasData) {
+			LocationDrawer.updateData(gpsPoint, 0);
+		}
 	}
 	
 //	int count = 1;
