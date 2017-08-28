@@ -46,6 +46,12 @@ public class LocationInstructor {
 	
 	static Queue<Point> queue = new LinkedList<Point>();
 	
+	/**
+	 * finds the GPS style location from the list of the point
+	 * 
+	 * @param p
+	 * @return
+	 */
 	public static GPSLocation getGPSLocation(Point p) {
 		GPSLocation loc = new GPSLocation();
 		
@@ -64,6 +70,11 @@ public class LocationInstructor {
 		return loc;
 	}
 	
+	/**
+	 * finds the rectangle boundary of all the points in the queue
+	 * 
+	 * @return
+	 */
 	public static double[] getBoundary() {
 		double maxX = -100, minX = 100, maxY = -100, minY = 100;
 		
