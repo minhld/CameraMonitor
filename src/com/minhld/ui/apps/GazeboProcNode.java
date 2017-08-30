@@ -49,6 +49,7 @@ import com.minhld.ros.controller.UISupport;
 import com.minhld.ui.supports.AdjustSlider;
 import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.utils.AppUtils;
+import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
@@ -401,8 +402,10 @@ public class GazeboProcNode extends Thread {
 					@Override
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
-						BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+						BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
 						long loadImageTime = System.currentTimeMillis() - start;
+						if (loadImageTime == 0) loadImageTime = 1;	// too fast!
 							
 						UISupport.drawImage(cameraPanel, bImage);
 

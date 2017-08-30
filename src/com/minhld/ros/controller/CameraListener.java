@@ -7,6 +7,7 @@ import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Subscriber;
 
+import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 
 public class CameraListener extends AbstractNodeMain {
@@ -31,7 +32,7 @@ public class CameraListener extends AbstractNodeMain {
 	    subscriber.addMessageListener(new MessageListener<sensor_msgs.Image>() {
 			@Override
 			public void onNewMessage(sensor_msgs.Image image) {
-				BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+				BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
 				listener.imageArrived(bImage);
 			}
 		});

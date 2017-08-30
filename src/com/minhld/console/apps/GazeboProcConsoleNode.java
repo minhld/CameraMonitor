@@ -9,6 +9,7 @@ import com.minhld.ros.controller.MoveInstructor;
 import com.minhld.ros.controller.OdomListener;
 import com.minhld.ros.controller.OdomWriter;
 import com.minhld.utils.AppUtils;
+import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
@@ -62,7 +63,7 @@ public class GazeboProcConsoleNode extends Thread {
 					@Override
 					public void imageArrived(Image image) {
 						// long start = System.currentTimeMillis();
-						BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
+						BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
 						// long loadImageTime = System.currentTimeMillis() - start;
 							
 						// long drawTime = System.currentTimeMillis() - start;
