@@ -54,6 +54,7 @@ import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.LocationInstructor;
 import com.minhld.ros.controller.LocationInstructor.GPSLocation;
 import com.minhld.ros.controller.MoveInstructor;
+import com.minhld.ros.controller.OdomWriter;
 import com.minhld.ros.controller.UISupport;
 import com.minhld.ros.controller.WheelVelocityListener;
 import com.minhld.ui.supports.AdjustSlider;
@@ -63,6 +64,7 @@ import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
+import nav_msgs.Odometry;
 import sensor_msgs.Image;
 
 /**
@@ -82,6 +84,8 @@ public class RedPadDetector extends Thread {
 	JPanel capturedPanel, closedCapturedPanel, transformedPanel;
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
+	
+	OdomWriter odomWriter;
 	
 	boolean isAuto = false;
 	boolean isMovingNode = false;
@@ -674,6 +678,12 @@ public class RedPadDetector extends Thread {
 				// start the Movement Instructor
 				String graphMoveName = ROSUtils.getNodeName(MoveInstructor.moveTopicTitle);
 				ROSUtils.execute(graphMoveName, new MoveInstructor());
+				
+				// start the Odometry publisher
+				odomWriter = new OdomWriter();
+				// String odomTitle = ROSUtils.getNodeName(OdomWriter.topicTitle);
+				ROSUtils.execute(OdomWriter.topicTitle, odomWriter);
+
 			}
 		};
 		nodeThread.start();
@@ -699,6 +709,10 @@ public class RedPadDetector extends Thread {
 		GPSLocation gpsPoint = LocationInstructor.getGPSLocation(wcPoint);
 		// update the location by gps location
 		LocationDrawer.updateData(gpsPoint);
+		
+		// publish to our location channel
+		
+		// odomWriter.publish(pos);
 	}
 	
 //	int count = 1;
