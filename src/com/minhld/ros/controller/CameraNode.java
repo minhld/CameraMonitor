@@ -27,6 +27,12 @@ public class CameraNode extends AbstractNodeMain {
 		this.listener = listener;
 	}
 	
+	public CameraNode(String title, ImageListener listener) {
+		CameraNode.topicTitle = title;
+		this.subscriberName = ROSUtils.getNodeName(CameraNode.topicTitle);
+		this.listener = listener;
+	}
+	
 	@Override
 	public GraphName getDefaultNodeName() {
 		return GraphName.of(this.subscriberName);
