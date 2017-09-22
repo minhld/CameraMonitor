@@ -76,11 +76,11 @@ import sensor_msgs.Image;
 public class TwoCamsRedPadDetector extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
-	JTextArea topicInfoText, controlInfoText;
+	JTextArea topicInfoText, topicInfoText2, controlInfoText;
 	JButton connectROSButton, stopROSButton, findPadBtn;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
-	JPanel cameraPanel, processPanel, buttonPanel, templatePanel; 
+	JPanel cameraPanel, processPanel, cameraPanel2, processPanel2, buttonPanel, templatePanel; 
 	JPanel capturedPanel, closedCapturedPanel, transformedPanel;
 	JLabel keyFocusLabel, processTimeLabel;
 	Thread nodeThread;
@@ -248,18 +248,28 @@ public class TwoCamsRedPadDetector extends Thread {
 		
 		// ------ Viewer panel ------
 		JPanel viewer = new JPanel(new FlowLayout());
-		viewer.setPreferredSize(new Dimension(1000, 415));
+		viewer.setPreferredSize(new Dimension(990, 230));
 		viewer.setBorder(BorderFactory.createTitledBorder("Camera View"));
 
 		cameraPanel = new JPanel();
-		cameraPanel.setPreferredSize(new Dimension(500, 375));
+		cameraPanel.setPreferredSize(new Dimension(250, 188));
 		cameraPanel.setBackground(new Color(150, 150, 150));
 		viewer.add(cameraPanel);
 		
 		processPanel = new JPanel();
-		processPanel.setPreferredSize(new Dimension(500, 375));
+		processPanel.setPreferredSize(new Dimension(250, 188));
 		processPanel.setBackground(new Color(200, 200, 200));
 		viewer.add(processPanel);
+		
+		cameraPanel2 = new JPanel();
+		cameraPanel2.setPreferredSize(new Dimension(250, 188));
+		cameraPanel2.setBackground(new Color(150, 150, 150));
+		viewer.add(cameraPanel2);
+		
+		processPanel2 = new JPanel();
+		processPanel2.setPreferredSize(new Dimension(250, 188));
+		processPanel2.setBackground(new Color(200, 200, 200));
+		viewer.add(processPanel2);
 		
 		totalView.add(viewer, BorderLayout.NORTH);
 		
@@ -339,7 +349,7 @@ public class TwoCamsRedPadDetector extends Thread {
 		
 		JPanel controller = new JPanel(new BorderLayout());
 		controller.setBorder(BorderFactory.createTitledBorder("Controller"));
-		controller.setPreferredSize(new Dimension(300, UISupport.getUIProp("controller-height")));
+		controller.setPreferredSize(new Dimension(200, UISupport.getUIProp("controller-height")));
 		
 		// Navigation buttons panel
 		this.buttonPanel = new JPanel();
@@ -440,9 +450,9 @@ public class TwoCamsRedPadDetector extends Thread {
 		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
 		
 		
-		controlInfoText = new JTextArea(10, 63);
+		controlInfoText = new JTextArea(10, 50);
 		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
-		controlInfoText.setFont(new Font("courier", Font.PLAIN, 11));
+		controlInfoText.setFont(new Font("courier", Font.PLAIN, 10));
 		controlInfoText.setEditable(false);
 		JScrollPane infoScroller = new JScrollPane(controlInfoText, 
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -451,18 +461,22 @@ public class TwoCamsRedPadDetector extends Thread {
 
 		processTimeLabel = new JLabel("Processing Time");
 		processTimeLabel.setIcon(new ImageIcon("images/settings.png"));
+		processTimeLabel.setFont(new Font("", Font.PLAIN, 9));
 		controlInfo.add(processTimeLabel, BorderLayout.SOUTH);
 		
 		control.add(controlInfo, BorderLayout.CENTER);
+
+		JPanel allTopicPanel = new JPanel(new BorderLayout());
+		allTopicPanel.setPreferredSize(new Dimension(460, 200));
 		
-		// ------ Coordinate System panel ------ 
+		// ------ Topic Info panel ------ 
 		JPanel topicInfoPanel = new JPanel(new BorderLayout());
-		topicInfoPanel.setBorder(BorderFactory.createTitledBorder("Topic Info"));
-		topicInfoPanel.setPreferredSize(new Dimension(280, 200));
+		topicInfoPanel.setBorder(BorderFactory.createTitledBorder("Camera Info"));
+		topicInfoPanel.setPreferredSize(new Dimension(230, 200));
 		
 		topicInfoText = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
 		topicInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
-		topicInfoText.setFont(new Font("courier", Font.PLAIN, 11));
+		topicInfoText.setFont(new Font("courier", Font.PLAIN, 10));
 		topicInfoText.setEditable(false);
 		JScrollPane topicInfoScroller = new JScrollPane(topicInfoText, 
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -471,8 +485,28 @@ public class TwoCamsRedPadDetector extends Thread {
 
 		topicInfoPanel.add(new JLabel(" "), BorderLayout.SOUTH);
 		
-		control.add(topicInfoPanel, BorderLayout.EAST);
+		allTopicPanel.add(topicInfoPanel, BorderLayout.WEST);
+
+		// ------ Topic Info 2 panel ------ 
+		JPanel topicInfoPanel2 = new JPanel(new BorderLayout());
+		topicInfoPanel2.setBorder(BorderFactory.createTitledBorder("Camera Info 2"));
+		topicInfoPanel2.setPreferredSize(new Dimension(230, 200));
 		
+		topicInfoText2 = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
+		topicInfoText2.setBorder(BorderFactory.createLineBorder(Color.gray));
+		topicInfoText2.setFont(new Font("courier", Font.PLAIN, 11));
+		topicInfoText2.setEditable(false);
+		JScrollPane topicInfoScroller2 = new JScrollPane(topicInfoText2, 
+							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		topicInfoPanel2.add(topicInfoScroller2, BorderLayout.CENTER);
+
+		topicInfoPanel2.add(new JLabel(" "), BorderLayout.SOUTH);
+		
+		allTopicPanel.add(topicInfoPanel2, BorderLayout.EAST);
+		
+		control.add(allTopicPanel, BorderLayout.EAST);
+				
 		totalView.add(control, BorderLayout.SOUTH);
 		
 		return totalView;
@@ -666,100 +700,101 @@ public class TwoCamsRedPadDetector extends Thread {
 					}
 				}));
 				
-				// ====== INITIATING THE SECOND CAMERA ======
-				// this will be the name of the subscriber to this topic
-				String cameraTitle2 = "/camera2/image_raw";
-				String graphCameraName2 = ROSUtils.getNodeName(cameraTitle2);
-				
-				ROSUtils.execute(graphCameraName2, new CameraNode(cameraTitle2, new CameraNode.ImageListener() {
-					@Override
-					public void imageArrived(Image image) {
-						// using image processing to detect the pad 
-						long start = System.currentTimeMillis();
-						Object[] results = ObjectDetectorRed.processImage(image);
-						long findPadTime = System.currentTimeMillis() - start;
-						
-						start = System.currentTimeMillis();
-						BufferedImage resultImage = (BufferedImage) results[0];
-						BufferedImage processImage = (BufferedImage) results[1];
-						BufferedImage capturedImage = (BufferedImage) results[2];
-						Rect objectRect = (Rect) results[3];
-						Mat padMat = (Mat) results[4];
-						double[] timers = (double[]) results[5];
-								
-						UISupport.drawImage(cameraPanel, resultImage);
-						UISupport.drawImage(processPanel, processImage);
-						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
-						
-						// using feature detection to find the location of the pad
-						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
-						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
-						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
-						double[] extractTimers = (double[]) locs[2];
-						
-						long drawTime = System.currentTimeMillis() - start;
-						long rate = (long) (1000 / findPadTime);
-						TwoCamsRedPadDetector.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
-														"Searching Pad Time: " + findPadTime + "ms | " + 
-														"Rate: " + rate + "fps");
-						
-						// teach the wheel-chair how to move
-						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
-						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
-						double objectAngle = extractTimers[0];
-						
-						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
-						TwoCamsRedPadDetector.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
-															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
-															"------------------------------\n" + 
-															"Reading: " + timers[0] + "ms\n" + 
-															// "Gaussian Blur: " + timers[1] + "ms\n" +
-															"HSV Converting: " + timers[2] + "ms\n" +
-															"Dilating: " + timers[3] + "ms\n" + 
-															"Coutouring: " + timers[4] + "ms\n" + 
-															"Bitmap Converting: " + timers[5] + "ms\n" + 
-															"------------------------------\n" +
-															"Gray Converting: " + extractTimers[1] + "ms\n" + 
-															"Threshold: " + extractTimers[2] + "ms\n" + 
-															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
-															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
-															"Transformation: " + extractTimers[5] + "ms\n");
-
-						//
-						// draw the current location of the wheel-chair on the map 
-						drawWheelchairPoint(objectDistance, objectAngle);
-						
-						if (TwoCamsRedPadDetector.this.isAuto) {
-							// only automatically moving when flag isAuto is set
-							double vel = (double) Settings.velocity / 10;
-							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
-								controlInfoText.setText("SEARCHING PAD...");
-								MoveInstructor.move(0, vel);
-								// MoveInstructor2.moveRight(vel);
-							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
-								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
-								MoveInstructor.move(0, vel);
-								// MoveInstructor2.moveLeft(vel);
-							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
-								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
-								MoveInstructor.move(0, -1 * vel);
-								// MoveInstructor2.moveRight(-1 * vel);
-							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
-								controlInfoText.setText("MOVING FORWARD...");
-								if (objectDistance > 5) {
-									MoveInstructor.move(vel, 0);
-								} else {
-									MoveInstructor.moveForward(vel, objectDistance);
-									setFindingPadStatus(false);
-								}
-								
-								// MoveInstructor2.moveForward(vel);
-							}
-						}
-					}
-				}));
+//				// ====== INITIATING THE SECOND CAMERA ======
+//				// this will be the name of the subscriber to this topic
+//				// String cameraTitle2 = "/camera2/image_raw";
+//				String cameraTitle2 = "/camera/image_raw";
+//				String graphCameraName2 = ROSUtils.getNodeName(cameraTitle2);
+//				
+//				ROSUtils.execute(graphCameraName2, new CameraNode(cameraTitle2, new CameraNode.ImageListener() {
+//					@Override
+//					public void imageArrived(Image image) {
+//						// using image processing to detect the pad 
+//						long start = System.currentTimeMillis();
+//						Object[] results = ObjectDetectorRed.processImage(image);
+//						long findPadTime = System.currentTimeMillis() - start;
+//						
+//						start = System.currentTimeMillis();
+//						BufferedImage resultImage = (BufferedImage) results[0];
+//						BufferedImage processImage = (BufferedImage) results[1];
+//						BufferedImage capturedImage = (BufferedImage) results[2];
+//						Rect objectRect = (Rect) results[3];
+//						Mat padMat = (Mat) results[4];
+//						double[] timers = (double[]) results[5];
+//								
+//						UISupport.drawImage(cameraPanel2, resultImage);
+//						UISupport.drawImage(processPanel2, processImage);
+////						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
+////						
+////						// using feature detection to find the location of the pad
+////						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
+////						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
+////						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
+////						double[] extractTimers = (double[]) locs[2];
+////						
+////						long drawTime = System.currentTimeMillis() - start;
+////						long rate = (long) (1000 / findPadTime);
+////						TwoCamsRedPadDetector.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
+////														"Searching Pad Time: " + findPadTime + "ms | " + 
+////														"Rate: " + rate + "fps");
+////						
+////						// teach the wheel-chair how to move
+////						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
+////						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
+////						double objectAngle = extractTimers[0];
+////						
+////						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+////						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
+////						TwoCamsRedPadDetector.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+////															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
+////															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
+////															"------------------------------\n" + 
+////															"Reading: " + timers[0] + "ms\n" + 
+////															// "Gaussian Blur: " + timers[1] + "ms\n" +
+////															"HSV Converting: " + timers[2] + "ms\n" +
+////															"Dilating: " + timers[3] + "ms\n" + 
+////															"Coutouring: " + timers[4] + "ms\n" + 
+////															"Bitmap Converting: " + timers[5] + "ms\n" + 
+////															"------------------------------\n" +
+////															"Gray Converting: " + extractTimers[1] + "ms\n" + 
+////															"Threshold: " + extractTimers[2] + "ms\n" + 
+////															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
+////															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
+////															"Transformation: " + extractTimers[5] + "ms\n");
+////
+////						//
+////						// draw the current location of the wheel-chair on the map 
+////						drawWheelchairPoint(objectDistance, objectAngle);
+////						
+////						if (TwoCamsRedPadDetector.this.isAuto) {
+////							// only automatically moving when flag isAuto is set
+////							double vel = (double) Settings.velocity / 10;
+////							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
+////								controlInfoText.setText("SEARCHING PAD...");
+////								MoveInstructor.move(0, vel);
+////								// MoveInstructor2.moveRight(vel);
+////							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
+////								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
+////								MoveInstructor.move(0, vel);
+////								// MoveInstructor2.moveLeft(vel);
+////							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
+////								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
+////								MoveInstructor.move(0, -1 * vel);
+////								// MoveInstructor2.moveRight(-1 * vel);
+////							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
+////								controlInfoText.setText("MOVING FORWARD...");
+////								if (objectDistance > 5) {
+////									MoveInstructor.move(vel, 0);
+////								} else {
+////									MoveInstructor.moveForward(vel, objectDistance);
+////									setFindingPadStatus(false);
+////								}
+////								
+////								// MoveInstructor2.moveForward(vel);
+////							}
+////						}
+//					}
+//				}));
 				
 				// start the Movement Instructor
 				String graphMoveName = ROSUtils.getNodeName(MoveInstructor.moveTopicTitle);
