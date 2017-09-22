@@ -99,10 +99,11 @@ public class TwoCamsRedPadDetector extends Thread {
 		Container contentPane = mainFrame.getContentPane();
 		
 		// load UI properties
-		UISupport.loadUIProps();
+		// UISupport.loadUIProps();
+		UISupport.loadUIProps("2-others");
 		
 		// load settings (for RED OBJECT configuration)
-		Settings.init(Settings.SETTING_RED);
+		Settings.init(Settings.SETTING_2_RED);
 		
 		// ------ set Tool-bar and Buttons ------ 
 		contentPane.add(buildToolBar(), BorderLayout.NORTH);
@@ -571,24 +572,108 @@ public class TwoCamsRedPadDetector extends Thread {
 		nodeThread = new Thread() {
 			@Override
 			public void run() {
+				// ====== INITIATING THE FIRST CAMERA ======
 				// this will be the name of the subscriber to this topic
-				String cameraTitle = "/camera2/image_raw";
-				String graphCameraName = ROSUtils.getNodeName(cameraTitle);
+				String graphCameraName = ROSUtils.getNodeName(CameraNode.topicTitle);
 				
-				ROSUtils.execute(graphCameraName, new CameraNode(cameraTitle, new CameraNode.ImageListener() {
+				ROSUtils.execute(graphCameraName, new CameraNode(new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
-						// long start = System.currentTimeMillis();
-						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
-						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
-						// long loadImageTime = System.currentTimeMillis() - start;
+						// using image processing to detect the pad 
+						long start = System.currentTimeMillis();
+						Object[] results = ObjectDetectorRed.processImage(image);
+						long findPadTime = System.currentTimeMillis() - start;
 						
-						// // draw on the LEFT canvas the original camera image
-						// drawImage(cameraPanel, bImage, cameraPanel.getWidth(), cameraPanel.getHeight());
+						start = System.currentTimeMillis();
+						BufferedImage resultImage = (BufferedImage) results[0];
+						BufferedImage processImage = (BufferedImage) results[1];
+						BufferedImage capturedImage = (BufferedImage) results[2];
+						Rect objectRect = (Rect) results[3];
+						Mat padMat = (Mat) results[4];
+						double[] timers = (double[]) results[5];
+								
+						UISupport.drawImage(cameraPanel, resultImage);
+						UISupport.drawImage(processPanel, processImage);
+						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
 						
-						// draw on the RIGHT canvas the modify image
-						// Object[] results = OpenCVUtils.processImage(bImage);
+						// using feature detection to find the location of the pad
+						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
+						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
+						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
+						double[] extractTimers = (double[]) locs[2];
 						
+						long drawTime = System.currentTimeMillis() - start;
+						long rate = (long) (1000 / findPadTime);
+						TwoCamsRedPadDetector.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
+														"Searching Pad Time: " + findPadTime + "ms | " + 
+														"Rate: " + rate + "fps");
+						
+						// teach the wheel-chair how to move
+						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
+						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
+						double objectAngle = extractTimers[0];
+						
+						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
+						TwoCamsRedPadDetector.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
+															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
+															"------------------------------\n" + 
+															"Reading: " + timers[0] + "ms\n" + 
+															// "Gaussian Blur: " + timers[1] + "ms\n" +
+															"HSV Converting: " + timers[2] + "ms\n" +
+															"Dilating: " + timers[3] + "ms\n" + 
+															"Coutouring: " + timers[4] + "ms\n" + 
+															"Bitmap Converting: " + timers[5] + "ms\n" + 
+															"------------------------------\n" +
+															"Gray Converting: " + extractTimers[1] + "ms\n" + 
+															"Threshold: " + extractTimers[2] + "ms\n" + 
+															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
+															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
+															"Transformation: " + extractTimers[5] + "ms\n");
+
+						//
+						// draw the current location of the wheel-chair on the map 
+						drawWheelchairPoint(objectDistance, objectAngle);
+						
+						if (TwoCamsRedPadDetector.this.isAuto) {
+							// only automatically moving when flag isAuto is set
+							double vel = (double) Settings.velocity / 10;
+							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
+								controlInfoText.setText("SEARCHING PAD...");
+								MoveInstructor.move(0, vel);
+								// MoveInstructor2.moveRight(vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
+								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
+								MoveInstructor.move(0, vel);
+								// MoveInstructor2.moveLeft(vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
+								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
+								MoveInstructor.move(0, -1 * vel);
+								// MoveInstructor2.moveRight(-1 * vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
+								controlInfoText.setText("MOVING FORWARD...");
+								if (objectDistance > 5) {
+									MoveInstructor.move(vel, 0);
+								} else {
+									MoveInstructor.moveForward(vel, objectDistance);
+									setFindingPadStatus(false);
+								}
+								
+								// MoveInstructor2.moveForward(vel);
+							}
+						}
+					}
+				}));
+				
+				// ====== INITIATING THE SECOND CAMERA ======
+				// this will be the name of the subscriber to this topic
+				String cameraTitle2 = "/camera2/image_raw";
+				String graphCameraName2 = ROSUtils.getNodeName(cameraTitle2);
+				
+				ROSUtils.execute(graphCameraName2, new CameraNode(cameraTitle2, new CameraNode.ImageListener() {
+					@Override
+					public void imageArrived(Image image) {
 						// using image processing to detect the pad 
 						long start = System.currentTimeMillis();
 						Object[] results = ObjectDetectorRed.processImage(image);
