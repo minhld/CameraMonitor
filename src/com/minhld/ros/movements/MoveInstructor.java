@@ -1,4 +1,4 @@
-package com.minhld.ros.controller;
+package com.minhld.ros.movements;
 
 import org.opencv.core.Point;
 import org.opencv.core.Rect;

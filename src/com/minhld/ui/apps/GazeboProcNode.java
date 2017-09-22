@@ -42,10 +42,10 @@ import org.opencv.core.Point;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.ros.controller.CameraNode;
-import com.minhld.ros.controller.MoveInstructor;
 import com.minhld.ros.controller.OdomListener;
 import com.minhld.ros.controller.OdomWriter;
 import com.minhld.ros.controller.UISupport;
+import com.minhld.ros.movements.MoveInstructor;
 import com.minhld.ui.supports.AdjustSlider;
 import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.utils.AppUtils;

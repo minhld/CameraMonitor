@@ -53,7 +53,7 @@ import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.LocationInstructor;
 import com.minhld.ros.controller.LocationInstructor.GPSLocation;
-import com.minhld.ros.controller.MoveInstructor;
+import com.minhld.ros.movements.MoveInstructor;
 import com.minhld.ros.controller.OdomWriter;
 import com.minhld.ros.controller.UISupport;
 import com.minhld.ros.controller.WheelVelocityListener;

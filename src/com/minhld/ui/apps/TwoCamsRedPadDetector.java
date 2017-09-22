@@ -53,7 +53,7 @@ import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.LocationInstructor;
 import com.minhld.ros.controller.LocationInstructor.GPSLocation;
-import com.minhld.ros.controller.MoveInstructor;
+import com.minhld.ros.movements.MoveInstructor;
 import com.minhld.ros.controller.OdomWriter;
 import com.minhld.ros.controller.UISupport;
 import com.minhld.ros.controller.WheelVelocityListener;
@@ -466,6 +466,7 @@ public class TwoCamsRedPadDetector extends Thread {
 		
 		control.add(controlInfo, BorderLayout.CENTER);
 
+		// ------ ALL TOPIC PANELS ------  
 		JPanel allTopicPanel = new JPanel(new BorderLayout());
 		allTopicPanel.setPreferredSize(new Dimension(460, 200));
 		
@@ -482,9 +483,7 @@ public class TwoCamsRedPadDetector extends Thread {
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		topicInfoPanel.add(topicInfoScroller, BorderLayout.CENTER);
-
 		topicInfoPanel.add(new JLabel(" "), BorderLayout.SOUTH);
-		
 		allTopicPanel.add(topicInfoPanel, BorderLayout.WEST);
 
 		// ------ Topic Info 2 panel ------ 
@@ -500,9 +499,7 @@ public class TwoCamsRedPadDetector extends Thread {
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		topicInfoPanel2.add(topicInfoScroller2, BorderLayout.CENTER);
-
 		topicInfoPanel2.add(new JLabel(" "), BorderLayout.SOUTH);
-		
 		allTopicPanel.add(topicInfoPanel2, BorderLayout.EAST);
 		
 		control.add(allTopicPanel, BorderLayout.EAST);

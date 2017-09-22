@@ -15,7 +15,7 @@ import org.opencv.core.Core.MinMaxLocResult;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import com.minhld.ros.controller.MoveInstructor;
+import com.minhld.ros.movements.MoveInstructor;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.Settings;
 
