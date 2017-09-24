@@ -216,13 +216,15 @@ public class TwoCamsRedPadDetector extends Thread {
 		findPadBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				// if the wheelchair is already in AUTO mode, then stop it
 				if (TwoCamsRedPadDetector.this.isAuto) {
 					MoveInstructor.move(0, 0);
 				} 
-				TwoCamsRedPadDetector.this.isAuto = !TwoCamsRedPadDetector.this.isAuto;
-				controlInfoText.setText("AUTOMATION IS " + (TwoCamsRedPadDetector.this.isAuto ? "SET" : "CLEARED"));
-				findPadBtn.setText(TwoCamsRedPadDetector.this.isAuto ? "Stop Finding" : "Find Pad");
-				
+				// and update the status as well
+				// TwoCamsRedPadDetector.this.isAuto = !TwoCamsRedPadDetector.this.isAuto;
+				// controlInfoText.setText("AUTOMATION IS " + (TwoCamsRedPadDetector.this.isAuto ? "SET" : "CLEARED"));
+				// findPadBtn.setText(TwoCamsRedPadDetector.this.isAuto ? "Stop Finding" : "Find Pad");
+				setFindingPadStatus(!TwoCamsRedPadDetector.this.isAuto);
 			}
 		});
 		findPadBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
@@ -269,6 +271,11 @@ public class TwoCamsRedPadDetector extends Thread {
 		debugBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(debugBtn);
 		
+		// IMPORTANT: disable the DEBUG button
+		debugBtn.setEnabled(false);
+		TwoCamsRedPadDetector.this.isCamera1Load = true;
+		TwoCamsRedPadDetector.this.isCamera2Load = false;
+		
 		// this button switches back and forth camera usage
 		// - when the app starts, the camera #1 will be used first
 		// - when user clicks on this button, the camera #1 will be closed and the camera #2 will start
@@ -287,9 +294,12 @@ public class TwoCamsRedPadDetector extends Thread {
 			}
 		});
 		switchCameraBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
-		switchCameraBtn.setEnabled(TwoCamsRedPadDetector.this.isDebugMode);
 		toolbar.add(switchCameraBtn);
 
+		// IMPORTANT: for the test, the switch camera button is always on
+		// switchCameraBtn.setEnabled(TwoCamsRedPadDetector.this.isDebugMode);
+				
+		
 		return toolbar;
 	}
 	
@@ -548,7 +558,7 @@ public class TwoCamsRedPadDetector extends Thread {
 		
 		topicInfoText2 = new JTextArea(UISupport.getUIProp("topic-text-rows"), UISupport.getUIProp("topic-text-columns"));
 		topicInfoText2.setBorder(BorderFactory.createLineBorder(Color.gray));
-		topicInfoText2.setFont(new Font("courier", Font.PLAIN, 11));
+		topicInfoText2.setFont(new Font("courier", Font.PLAIN, 10));
 		topicInfoText2.setEditable(false);
 		JScrollPane topicInfoScroller2 = new JScrollPane(topicInfoText2, 
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -667,6 +677,7 @@ public class TwoCamsRedPadDetector extends Thread {
 					public void imageArrived(Image image) {
 						// if the camera #1 is disabled, no further process is necessary
 						if (!isCamera1Load) {
+							TwoCamsRedPadDetector.this.topicInfoText.setText("");
 							return;
 						}
 						
@@ -772,31 +783,25 @@ public class TwoCamsRedPadDetector extends Thread {
 					public void imageArrived(Image image) {
 						// if the camera #2 is disabled, no further process is necessary
 						if (!isCamera2Load) {
+							TwoCamsRedPadDetector.this.topicInfoText2.setText("");
 							return;
 						}
 						
+						// using image processing to detect the pad 
 						long start = System.currentTimeMillis();
-						BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
-						long loadImageTime = System.currentTimeMillis() - start;
+						Object[] results = ObjectDetectorRed.processImage(image);
+						long findPadTime = System.currentTimeMillis() - start;
 						
-						// draw on the LEFT canvas the original camera image
-						UISupport.drawImage(cameraPanel2, bImage);
-						
-//						// using image processing to detect the pad 
-//						long start = System.currentTimeMillis();
-//						Object[] results = ObjectDetectorRed.processImage(image);
-//						long findPadTime = System.currentTimeMillis() - start;
-//						
-//						start = System.currentTimeMillis();
-//						BufferedImage resultImage = (BufferedImage) results[0];
-//						BufferedImage processImage = (BufferedImage) results[1];
-//						BufferedImage capturedImage = (BufferedImage) results[2];
-//						Rect objectRect = (Rect) results[3];
-//						Mat padMat = (Mat) results[4];
-//						double[] timers = (double[]) results[5];
-//								
-//						UISupport.drawImage(cameraPanel2, resultImage);
-//						UISupport.drawImage(processPanel2, processImage);
+						start = System.currentTimeMillis();
+						BufferedImage resultImage = (BufferedImage) results[0];
+						BufferedImage processImage = (BufferedImage) results[1];
+						BufferedImage capturedImage = (BufferedImage) results[2];
+						Rect objectRect = (Rect) results[3];
+						Mat padMat = (Mat) results[4];
+						double[] timers = (double[]) results[5];
+								
+						UISupport.drawImage(cameraPanel2, resultImage);
+						UISupport.drawImage(processPanel2, processImage);
 //						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
 //						
 //						// using feature detection to find the location of the pad
@@ -818,6 +823,18 @@ public class TwoCamsRedPadDetector extends Thread {
 //						
 //						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
 //						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
+
+						TwoCamsRedPadDetector.this.topicInfoText2.setText( 
+															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
+															"------------------------------\n" + 
+															"Reading: " + timers[0] + "ms\n" + 
+															// "Gaussian Blur: " + timers[1] + "ms\n" +
+															"HSV Converting: " + timers[2] + "ms\n" +
+															"Dilating: " + timers[3] + "ms\n" + 
+															"Coutouring: " + timers[4] + "ms\n" + 
+															"Bitmap Converting: " + timers[5] + "ms\n" + 
+															"------------------------------\n");
+						
 //						TwoCamsRedPadDetector.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
 //															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
 //															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
