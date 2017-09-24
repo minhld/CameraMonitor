@@ -88,7 +88,14 @@ public class TwoCamsRedPadDetector extends Thread {
 	
 	OdomWriter odomWriter;
 	
+	// this flag is set when the controller is in the AUTO mode
+	// it will automatically search for the charging pad by rotating 
+	// and move to the destination 
 	boolean isAuto = false;
+	// this flag is set when the controller docks on the charging pad 
+	// and it turns around to find the correct direction. This 
+	// process will be controlled by the camera at the bottom  
+	boolean isAutoRotate = false;
 	boolean isMovingNode = false;
 	boolean isServerInUsed = false;
 	
@@ -685,6 +692,9 @@ public class TwoCamsRedPadDetector extends Thread {
 								// MoveInstructor2.moveRight(-1 * vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
 								controlInfoText.setText("MOVING FORWARD...");
+								// MOVE FORWARD: this will move the wheelchair forward until it is
+								// 5 feet away from the pad. Then it will estimate the number of 
+								// seconds by velocity to move the wheelchair without controlling
 								if (objectDistance > 5) {
 									MoveInstructor.move(vel, 0);
 								} else {
