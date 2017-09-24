@@ -81,7 +81,7 @@ public class TwoCamsRedPadDetector extends Thread {
 	JFrame mainFrame;
 	JTextField ipText;
 	JTextArea topicInfoText, topicInfoText2, controlInfoText;
-	JButton connectROSButton, stopROSButton, findPadBtn, switchCameraBtn;
+	JButton connectROSButton, stopROSButton, findPadBtn, findDockBtn, switchCameraBtn;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JPanel cameraPanel, processPanel, cameraPanel2, processPanel2, buttonPanel, templatePanel; 
@@ -232,6 +232,17 @@ public class TwoCamsRedPadDetector extends Thread {
 		findPadBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(findPadBtn);
 		
+		findDockBtn = new JButton("Find Dock");
+		findDockBtn.setIcon(new ImageIcon("images/location.png"));
+		findDockBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		findDockBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
+		toolbar.add(findDockBtn);
+		
 		final JButton initMovingBtn = new JButton("Start Moving");
 		initMovingBtn.setIcon(new ImageIcon("images/execute.png"));
 		initMovingBtn.addActionListener(new ActionListener() {
@@ -249,13 +260,13 @@ public class TwoCamsRedPadDetector extends Thread {
 		
 		toolbar.addSeparator();
 		
-		final JButton debugBtn = new JButton(Constants.TBAR_START_DEBUG);
+		final JButton debugBtn = new JButton(Constants.TBAR_ENABLE_CAMS);
 		debugBtn.setIcon(new ImageIcon("images/debug.png"));
 		debugBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TwoCamsRedPadDetector.this.isDebugMode = !TwoCamsRedPadDetector.this.isDebugMode; 
-				debugBtn.setText(TwoCamsRedPadDetector.this.isDebugMode ? Constants.TBAR_STOP_DEBUG : Constants.TBAR_START_DEBUG);
+				debugBtn.setText(TwoCamsRedPadDetector.this.isDebugMode ? Constants.TBAR_DISABLE_CAMS : Constants.TBAR_ENABLE_CAMS);
 				switchCameraBtn.setEnabled(TwoCamsRedPadDetector.this.isDebugMode);
 				
 				// reload camera usage by DEBUG mode 

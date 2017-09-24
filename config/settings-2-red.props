@@ -1,14 +1,14 @@
 #ROS CONTROLLER SETTINGS
-#Fri Sep 22 12:03:27 MDT 2017
+#Sun Sep 24 16:42:25 MDT 2017
 dilate-enable=1
 high-green-v-color=100
 low-h-color=1
 color-threshold=100
 low-green-s-color=1
-low-v-color=155
-threshold=187
+low-v-color=200
+threshold=206
 contour-enable=1
-high-s-color=110
+high-s-color=131
 contour-sides=1
 high-green-s-color=1
 dilate-size=3
@@ -17,7 +17,7 @@ velocity=5
 high-h-color=169
 low-green-v-color=100
 standard-distance=130
-high-v-color=150
+high-v-color=200
 gaussian-standard-deviation=0
 gaussian-size=1
 gaussian-enable=0
