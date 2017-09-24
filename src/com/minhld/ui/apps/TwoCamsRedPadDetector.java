@@ -61,24 +61,27 @@ import com.minhld.ui.supports.AdjustSlider;
 import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
+import com.minhld.utils.Constants;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
-import nav_msgs.Odometry;
 import sensor_msgs.Image;
 
 /**
- * differentiate 
+ * this is the controller running on the wheelchair which accepts two cameras for
+ * the automatic movements. one front-camera to move the wheelchair to the dock
+ * and the second one rotates the wheelchair to find the correct direction.  
  * 
  * @author lee
  *
  */
 public class TwoCamsRedPadDetector extends Thread {
+	// main components
 	JFrame mainFrame;
 	JTextField ipText;
 	JTextArea topicInfoText, topicInfoText2, controlInfoText;
-	JButton connectROSButton, stopROSButton, findPadBtn;
+	JButton connectROSButton, stopROSButton, findPadBtn, switchCameraBtn;
 	JDesktopPane frameContainer;
 	JList<String> topicList;
 	JPanel cameraPanel, processPanel, cameraPanel2, processPanel2, buttonPanel, templatePanel; 
@@ -92,11 +95,21 @@ public class TwoCamsRedPadDetector extends Thread {
 	// it will automatically search for the charging pad by rotating 
 	// and move to the destination 
 	boolean isAuto = false;
+	boolean isCamera1Load = false;
+	boolean isDebugMode = false;
+	
 	// this flag is set when the controller docks on the charging pad 
 	// and it turns around to find the correct direction. This 
 	// process will be controlled by the camera at the bottom  
 	boolean isAutoRotate = false;
+	boolean isCamera2Load = false;
+	
+	// this indicates this app is a running node on the wheelchair
+	// (it is currently disabled)
 	boolean isMovingNode = false;
+	
+	// this indicates whether the server with IP (in the server IP textbox)
+	// on the right panel has currently been used or not
 	boolean isServerInUsed = false;
 	
 	public void run() {
@@ -160,12 +173,12 @@ public class TwoCamsRedPadDetector extends Thread {
 		// load OpenCV
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-//		// initiate some remaining objects
-//		startInitObjects();
+		// // initiate some remaining objects
+		// startInitObjects();
 	}
 	
 	/**
-	 * add a tool-bar with buttons are on it
+	 * add a tool-bar with buttons on it
 	 * @return
 	 */
 	private JToolBar buildToolBar() {
@@ -232,17 +245,51 @@ public class TwoCamsRedPadDetector extends Thread {
 		
 		toolbar.addSeparator();
 		
-		final JButton debugBtn = new JButton("Debug");
+		final JButton debugBtn = new JButton(Constants.TBAR_START_DEBUG);
 		debugBtn.setIcon(new ImageIcon("images/debug.png"));
 		debugBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				TwoCamsRedPadDetector.this.isDebugMode = !TwoCamsRedPadDetector.this.isDebugMode; 
+				debugBtn.setText(TwoCamsRedPadDetector.this.isDebugMode ? Constants.TBAR_STOP_DEBUG : Constants.TBAR_START_DEBUG);
+				switchCameraBtn.setEnabled(TwoCamsRedPadDetector.this.isDebugMode);
 				
+				// reload camera usage by DEBUG mode 
+				if (TwoCamsRedPadDetector.this.isDebugMode) {
+					// when DEBUG mode is enabled, camera #1 is enable and #2 is disabled
+					TwoCamsRedPadDetector.this.isCamera1Load = true;
+					TwoCamsRedPadDetector.this.isCamera2Load = false;
+				} else {
+					// when DEBUG mode is disabled, both cameras are disabled
+					TwoCamsRedPadDetector.this.isCamera1Load = false;
+					TwoCamsRedPadDetector.this.isCamera2Load = false;
+				}
 			}
 		});
 		debugBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
 		toolbar.add(debugBtn);
 		
+		// this button switches back and forth camera usage
+		// - when the app starts, the camera #1 will be used first
+		// - when user clicks on this button, the camera #1 will be closed and the camera #2 will start
+		// (camera #1 helps goto the pad, camera #2 helps finding the correct direction while on the pad)
+		// (camera #1 looks at the horizontal direction, camera #2 looks down to the ground)
+		switchCameraBtn = new JButton(Constants.TBAR_SWITCH_CAMERA_2);
+		switchCameraBtn.setIcon(new ImageIcon("images/camera.png"));
+		switchCameraBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// flip the camera usage flags
+				TwoCamsRedPadDetector.this.isCamera1Load = !TwoCamsRedPadDetector.this.isCamera1Load;
+				TwoCamsRedPadDetector.this.isCamera2Load = !TwoCamsRedPadDetector.this.isCamera2Load;
+				switchCameraBtn.setText(TwoCamsRedPadDetector.this.isCamera1Load ? Constants.TBAR_SWITCH_CAMERA_2 : Constants.TBAR_SWITCH_CAMERA_1);
+				
+			}
+		});
+		switchCameraBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
+		switchCameraBtn.setEnabled(TwoCamsRedPadDetector.this.isDebugMode);
+		toolbar.add(switchCameraBtn);
+
 		return toolbar;
 	}
 	
@@ -618,6 +665,11 @@ public class TwoCamsRedPadDetector extends Thread {
 				ROSUtils.execute(graphCameraName, new CameraNode(new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
+						// if the camera #1 is disabled, no further process is necessary
+						if (!isCamera1Load) {
+							return;
+						}
+						
 						// using image processing to detect the pad 
 						long start = System.currentTimeMillis();
 						Object[] results = ObjectDetectorRed.processImage(image);
@@ -699,6 +751,7 @@ public class TwoCamsRedPadDetector extends Thread {
 									MoveInstructor.move(vel, 0);
 								} else {
 									MoveInstructor.moveForward(vel, objectDistance);
+									TwoCamsRedPadDetector.this.isAutoRotate = true;
 									setFindingPadStatus(false);
 								}
 								
@@ -717,6 +770,11 @@ public class TwoCamsRedPadDetector extends Thread {
 				ROSUtils.execute(graphCameraName2, new CameraNode(cameraTitle2, new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
+						// if the camera #2 is disabled, no further process is necessary
+						if (!isCamera2Load) {
+							return;
+						}
+						
 						long start = System.currentTimeMillis();
 						BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
 						long loadImageTime = System.currentTimeMillis() - start;
@@ -827,8 +885,13 @@ public class TwoCamsRedPadDetector extends Thread {
 		
 	}
 	
-	private void setFindingPadStatus(boolean isAuto) {
-		TwoCamsRedPadDetector.this.isAuto = isAuto;
+	/**
+	 * set status of the controls when initiating and stopping the AUTO mode 
+	 * 
+	 * @param setIsAuto
+	 */
+	private void setFindingPadStatus(boolean setIsAuto) {
+		TwoCamsRedPadDetector.this.isAuto = setIsAuto;
 		controlInfoText.setText("AUTOMATION IS " + (TwoCamsRedPadDetector.this.isAuto ? "SET" : "CLEARED"));
 		findPadBtn.setText(TwoCamsRedPadDetector.this.isAuto ? "Stop Finding" : "Find Pad");
 
