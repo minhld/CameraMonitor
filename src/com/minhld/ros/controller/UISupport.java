@@ -59,6 +59,16 @@ public class UISupport {
 	}
 	
 	/**
+	 * clear the panel area when there is no image loaded on it
+	 *  
+	 * @param panel
+	 */
+	public static void cleanPanel(JPanel panel) {
+		Graphics g = panel.getGraphics();
+		g.clearRect(0, 0, panel.getWidth(), panel.getHeight());
+	}
+	
+	/**
 	 * draw an image to fit the canvas with respect to the image's ratio
 	 * 
 	 * @param panel

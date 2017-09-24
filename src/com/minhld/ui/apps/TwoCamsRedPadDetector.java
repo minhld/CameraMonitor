@@ -112,6 +112,8 @@ public class TwoCamsRedPadDetector extends Thread {
 	// on the right panel has currently been used or not
 	boolean isServerInUsed = false;
 	
+	String settingProfile = Settings.SETTING_2_RED;
+	
 	public void run() {
 		mainFrame = new JFrame("Red Pad Automatic Detector v1.1");
 		ImageIcon mainIcon = new ImageIcon("images/monitor2.png");
@@ -124,7 +126,7 @@ public class TwoCamsRedPadDetector extends Thread {
 		UISupport.loadUIProps("2-others");
 		
 		// load settings (for RED OBJECT configuration)
-		Settings.init(Settings.SETTING_2_RED);
+		Settings.init(settingProfile);
 		
 		// ------ set Tool-bar and Buttons ------ 
 		contentPane.add(buildToolBar(), BorderLayout.NORTH);
@@ -287,9 +289,7 @@ public class TwoCamsRedPadDetector extends Thread {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// flip the camera usage flags
-				TwoCamsRedPadDetector.this.isCamera1Load = !TwoCamsRedPadDetector.this.isCamera1Load;
-				TwoCamsRedPadDetector.this.isCamera2Load = !TwoCamsRedPadDetector.this.isCamera2Load;
-				switchCameraBtn.setText(TwoCamsRedPadDetector.this.isCamera1Load ? Constants.TBAR_SWITCH_CAMERA_2 : Constants.TBAR_SWITCH_CAMERA_1);
+				switchCamera();
 				
 			}
 		});
@@ -677,7 +677,6 @@ public class TwoCamsRedPadDetector extends Thread {
 					public void imageArrived(Image image) {
 						// if the camera #1 is disabled, no further process is necessary
 						if (!isCamera1Load) {
-							TwoCamsRedPadDetector.this.topicInfoText.setText("");
 							return;
 						}
 						
@@ -783,7 +782,6 @@ public class TwoCamsRedPadDetector extends Thread {
 					public void imageArrived(Image image) {
 						// if the camera #2 is disabled, no further process is necessary
 						if (!isCamera2Load) {
-							TwoCamsRedPadDetector.this.topicInfoText2.setText("");
 							return;
 						}
 						
@@ -912,6 +910,43 @@ public class TwoCamsRedPadDetector extends Thread {
 		controlInfoText.setText("AUTOMATION IS " + (TwoCamsRedPadDetector.this.isAuto ? "SET" : "CLEARED"));
 		findPadBtn.setText(TwoCamsRedPadDetector.this.isAuto ? "Stop Finding" : "Find Pad");
 
+	}
+
+	/**
+	 * manually switch from camera #1 to camera #2 
+	 */
+	private void switchCamera() {
+		// flip the states of the two cameras
+		TwoCamsRedPadDetector.this.isCamera1Load = !TwoCamsRedPadDetector.this.isCamera1Load;
+		TwoCamsRedPadDetector.this.isCamera2Load = !TwoCamsRedPadDetector.this.isCamera2Load;
+		switchCameraBtn.setText(TwoCamsRedPadDetector.this.isCamera1Load ? Constants.TBAR_SWITCH_CAMERA_2 : Constants.TBAR_SWITCH_CAMERA_1);
+		
+		// remove unused camera and console views of camera #1
+		if (!TwoCamsRedPadDetector.this.isCamera1Load) {
+			TwoCamsRedPadDetector.this.topicInfoText.setText("");
+			
+			// clean the main video and filtered views
+			UISupport.cleanPanel(cameraPanel);
+			UISupport.cleanPanel(processPanel);
+			
+			// clean the captured panels
+			UISupport.cleanPanel(capturedPanel);
+			UISupport.cleanPanel(closedCapturedPanel);
+			UISupport.cleanPanel(transformedPanel);
+
+			System.out.print("cam1 unloaded, ");
+		}
+		
+		// remove unused camera and console views of camera #2
+		if (!TwoCamsRedPadDetector.this.isCamera2Load) {
+			TwoCamsRedPadDetector.this.topicInfoText2.setText("");
+			UISupport.cleanPanel(cameraPanel2);
+			UISupport.cleanPanel(processPanel2);
+			
+			System.out.print("cam2 unloaded, ");
+		}
+		
+		System.out.println("cam1: " + TwoCamsRedPadDetector.this.isCamera1Load + ", cam2: " + TwoCamsRedPadDetector.this.isCamera2Load);
 	}
 	
 	/**
@@ -1160,7 +1195,7 @@ public class TwoCamsRedPadDetector extends Thread {
 	 * as well as save to props file
 	 */
 	private void prepareCloseApp() {
-		Settings.saveProps(Settings.SETTING_RED);
+		Settings.saveProps(settingProfile);
 	}
 	
 	/**
