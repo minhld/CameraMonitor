@@ -95,16 +95,19 @@ public class TwoCamsRedPadDetector extends Thread {
 	// and move to the destination 
 	boolean isAuto = false;
 	boolean isCamera1Loaded = false;
+	
+	// switch the DEBUG mode on/off - to disable/enable cameras (for low speed computer)
+	// (this feature is temporarily disabled to avoid complexity)
 	boolean isDebugMode = false;
 	
-	// this flag is set when the controller docks on the charging pad 
-	// and it turns around to find the correct direction. This 
-	// process will be controlled by the camera at the bottom  
-	boolean isAutoRotate = false;
-	boolean isCamera2Loaded = false;
+//	// this flag is set when the controller docks on the charging pad 
+//	// and it turns around to find the correct direction. This 
+//	// process will be controlled by the camera at the bottom  
+//	boolean isAutoRotate = false;
+//	boolean isCamera2Loaded = false;
 	
 	// this indicates this app is a running node on the wheelchair
-	// (it is currently disabled)
+	// (it is currently disabled to avoid complexity)
 	boolean isMovingNode = false;
 	
 	// this indicates whether the server with IP (in the server IP textbox)
@@ -272,11 +275,11 @@ public class TwoCamsRedPadDetector extends Thread {
 				if (TwoCamsRedPadDetector.this.isDebugMode) {
 					// when DEBUG mode is enabled, camera #1 is enable and #2 is disabled
 					TwoCamsRedPadDetector.this.isCamera1Loaded = true;
-					TwoCamsRedPadDetector.this.isCamera2Loaded = false;
+					// TwoCamsRedPadDetector.this.isCamera2Loaded = false;
 				} else {
 					// when DEBUG mode is disabled, both cameras are disabled
 					TwoCamsRedPadDetector.this.isCamera1Loaded = false;
-					TwoCamsRedPadDetector.this.isCamera2Loaded = false;
+					// TwoCamsRedPadDetector.this.isCamera2Loaded = false;
 				}
 			}
 		});
@@ -286,7 +289,7 @@ public class TwoCamsRedPadDetector extends Thread {
 		// IMPORTANT: disable the DEBUG button
 		debugBtn.setEnabled(false);
 		TwoCamsRedPadDetector.this.isCamera1Loaded = true;
-		TwoCamsRedPadDetector.this.isCamera2Loaded = false;
+		// TwoCamsRedPadDetector.this.isCamera2Loaded = false;
 		
 		// this button switches back and forth camera usage
 		// - when the app starts, the camera #1 will be used first
@@ -772,8 +775,9 @@ public class TwoCamsRedPadDetector extends Thread {
 									MoveInstructor.move(vel, 0);
 								} else {
 									MoveInstructor.moveForward(vel, objectDistance);
-									TwoCamsRedPadDetector.this.isAutoRotate = true;
-									// switch to camera #2
+									// TwoCamsRedPadDetector.this.isAutoRotate = true;
+									
+									// switch to camera #2 and starting rotating if necessary
 									switchCamera(false);
 								}
 								
@@ -793,7 +797,8 @@ public class TwoCamsRedPadDetector extends Thread {
 					@Override
 					public void imageArrived(Image image) {
 						// if the camera #2 is disabled, no further process is necessary
-						if (!isCamera2Loaded) {
+						// if (!isCamera2Loaded) {
+						if (isCamera1Loaded) {
 							return;
 						}
 						
@@ -843,8 +848,8 @@ public class TwoCamsRedPadDetector extends Thread {
 															"Coutouring: " + timers[2] + "ms\n" + 
 															"Bitmap Converting: " + timers[3] + "ms");
 						
-//						if (TwoCamsRedPadDetector.this.isAuto) {
-						if (TwoCamsRedPadDetector.this.isAutoRotate) {
+//						if (TwoCamsRedPadDetector.this.isAutoRotate) {
+						if (TwoCamsRedPadDetector.this.isAuto) {
 							// only automatically moving when flag isAuto is set
 							double vel = (double) Settings.velocity / 10;
 							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
@@ -890,7 +895,7 @@ public class TwoCamsRedPadDetector extends Thread {
 	 */
 	private void setFindingPadStatus(boolean setIsAuto) {
 		TwoCamsRedPadDetector.this.isAuto = setIsAuto;
-		TwoCamsRedPadDetector.this.isAutoRotate = setIsAuto;
+		// TwoCamsRedPadDetector.this.isAutoRotate = setIsAuto;
 		controlInfoText.setText("AUTOMATION IS " + (TwoCamsRedPadDetector.this.isAuto ? "SET" : "CLEARED"));
 		findPadBtn.setText(TwoCamsRedPadDetector.this.isAuto ? "Stop Finding" : "Find Pad");
 
@@ -904,7 +909,7 @@ public class TwoCamsRedPadDetector extends Thread {
 	private void switchCamera() {
 		// flip the states of the two cameras
 		TwoCamsRedPadDetector.this.isCamera1Loaded = !TwoCamsRedPadDetector.this.isCamera1Loaded;
-		TwoCamsRedPadDetector.this.isCamera2Loaded = !TwoCamsRedPadDetector.this.isCamera2Loaded;
+		// TwoCamsRedPadDetector.this.isCamera2Loaded = !TwoCamsRedPadDetector.this.isCamera2Loaded;
 		switchCameraBtn.setText(TwoCamsRedPadDetector.this.isCamera1Loaded ? Constants.TBAR_SWITCH_CAMERA_2 : Constants.TBAR_SWITCH_CAMERA_1);
 		
 		// remove unused camera and console views of camera #1
@@ -920,19 +925,25 @@ public class TwoCamsRedPadDetector extends Thread {
 			UISupport.cleanPanel(closedCapturedPanel);
 			UISupport.cleanPanel(transformedPanel);
 
-			System.out.print("cam1 unloaded, ");
-		}
-		
-		// remove unused camera and console views of camera #2
-		if (!TwoCamsRedPadDetector.this.isCamera2Loaded) {
+//			System.out.print("cam1 unloaded, ");
+		} else {
 			TwoCamsRedPadDetector.this.topicInfoText2.setText("");
 			UISupport.cleanPanel(cameraPanel2);
 			UISupport.cleanPanel(processPanel2);
 			
-			System.out.print("cam2 unloaded, ");
+//			System.out.print("cam2 unloaded, ");
 		}
 		
-		System.out.println("cam1: " + TwoCamsRedPadDetector.this.isCamera1Loaded + ", cam2: " + TwoCamsRedPadDetector.this.isCamera2Loaded);
+//		// remove unused camera and console views of camera #2
+//		if (!TwoCamsRedPadDetector.this.isCamera2Loaded) {
+//			TwoCamsRedPadDetector.this.topicInfoText2.setText("");
+//			UISupport.cleanPanel(cameraPanel2);
+//			UISupport.cleanPanel(processPanel2);
+//			
+//			System.out.print("cam2 unloaded, ");
+//		}
+		
+//		System.out.println("cam1: " + TwoCamsRedPadDetector.this.isCamera1Loaded + ", cam2: " + TwoCamsRedPadDetector.this.isCamera2Loaded);
 	}
 	
 	/**
@@ -943,7 +954,7 @@ public class TwoCamsRedPadDetector extends Thread {
 	private void switchCamera(boolean switchCamera1) {
 		// flip the states of the two cameras
 		TwoCamsRedPadDetector.this.isCamera1Loaded = switchCamera1;
-		TwoCamsRedPadDetector.this.isCamera2Loaded = !switchCamera1;
+		// TwoCamsRedPadDetector.this.isCamera2Loaded = !switchCamera1;
 		switchCameraBtn.setText(TwoCamsRedPadDetector.this.isCamera1Loaded ? Constants.TBAR_SWITCH_CAMERA_2 : Constants.TBAR_SWITCH_CAMERA_1);
 		
 		// remove unused camera and console views of camera #1
@@ -959,19 +970,23 @@ public class TwoCamsRedPadDetector extends Thread {
 			UISupport.cleanPanel(closedCapturedPanel);
 			UISupport.cleanPanel(transformedPanel);
 	
-			System.out.print("cam1 unloaded, ");
-		}
-		
-		// remove unused camera and console views of camera #2
-		if (!TwoCamsRedPadDetector.this.isCamera2Loaded) {
+//			System.out.print("cam1 unloaded, ");
+		} else {
 			TwoCamsRedPadDetector.this.topicInfoText2.setText("");
 			UISupport.cleanPanel(cameraPanel2);
 			UISupport.cleanPanel(processPanel2);
-			
-			System.out.print("cam2 unloaded, ");
 		}
 		
-		System.out.println("cam1: " + TwoCamsRedPadDetector.this.isCamera1Loaded + ", cam2: " + TwoCamsRedPadDetector.this.isCamera2Loaded);
+//		// remove unused camera and console views of camera #2
+//		if (!TwoCamsRedPadDetector.this.isCamera2Loaded) {
+//			TwoCamsRedPadDetector.this.topicInfoText2.setText("");
+//			UISupport.cleanPanel(cameraPanel2);
+//			UISupport.cleanPanel(processPanel2);
+//			
+//			System.out.print("cam2 unloaded, ");
+//		}
+//		
+//		System.out.println("cam1: " + TwoCamsRedPadDetector.this.isCamera1Loaded + ", cam2: " + TwoCamsRedPadDetector.this.isCamera2Loaded);
 	}
 	
 	/**
