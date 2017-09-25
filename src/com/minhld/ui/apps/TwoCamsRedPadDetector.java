@@ -62,7 +62,6 @@ import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.Constants;
-import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
@@ -716,7 +715,8 @@ public class TwoCamsRedPadDetector extends Thread {
 						
 						long drawTime = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / findPadTime);
-						TwoCamsRedPadDetector.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
+						TwoCamsRedPadDetector.this.processTimeLabel.setText(Constants.CONSOLE_CAM_1 + 
+														"Displaying Time: " + drawTime + "ms | " +  
 														"Searching Pad Time: " + findPadTime + "ms | " + 
 														"Rate: " + rate + "fps");
 						
@@ -752,19 +752,19 @@ public class TwoCamsRedPadDetector extends Thread {
 							// only automatically moving when flag isAuto is set
 							double vel = (double) Settings.velocity / 10;
 							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
-								controlInfoText.setText("SEARCHING PAD...");
+								controlInfoText.setText(Constants.CONSOLE_CAM_1 + "SEARCHING PAD...");
 								MoveInstructor.move(0, vel);
 								// MoveInstructor2.moveRight(vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
-								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
+								controlInfoText.setText(Constants.CONSOLE_CAM_1 + "FOUND THE PAD ON THE LEFT. MOVING LEFT...");
 								MoveInstructor.move(0, vel);
 								// MoveInstructor2.moveLeft(vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
-								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
+								controlInfoText.setText(Constants.CONSOLE_CAM_1 + "FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
 								MoveInstructor.move(0, -1 * vel);
 								// MoveInstructor2.moveRight(-1 * vel);
 							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
-								controlInfoText.setText("MOVING FORWARD...");
+								controlInfoText.setText(Constants.CONSOLE_CAM_1 + "MOVING FORWARD...");
 								// MOVE FORWARD: this will move the wheelchair forward until it is
 								// 5 feet away from the pad. Then it will estimate the number of 
 								// seconds by velocity to move the wheelchair without controlling
@@ -798,16 +798,16 @@ public class TwoCamsRedPadDetector extends Thread {
 						
 						// using image processing to detect the pad 
 						long start = System.currentTimeMillis();
-						Object[] results = ObjectDetectorRed.processImage(image);
+						Object[] results = ObjectDetectorRed.processClosedImage(image);
 						long findPadTime = System.currentTimeMillis() - start;
 						
 						start = System.currentTimeMillis();
 						BufferedImage resultImage = (BufferedImage) results[0];
 						BufferedImage processImage = (BufferedImage) results[1];
-						BufferedImage capturedImage = (BufferedImage) results[2];
-						Rect objectRect = (Rect) results[3];
-						Mat padMat = (Mat) results[4];
-						double[] timers = (double[]) results[5];
+//						BufferedImage capturedImage = (BufferedImage) results[2];
+						Rect objectRect = (Rect) results[2];
+//						Mat padMat = (Mat) results[4];
+						double[] timers = (double[]) results[3];
 								
 						UISupport.drawImage(cameraPanel2, resultImage);
 						UISupport.drawImage(processPanel2, processImage);
@@ -818,15 +818,16 @@ public class TwoCamsRedPadDetector extends Thread {
 //						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
 //						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
 //						double[] extractTimers = (double[]) locs[2];
-//						
-//						long drawTime = System.currentTimeMillis() - start;
-//						long rate = (long) (1000 / findPadTime);
-//						TwoCamsRedPadDetector.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
-//														"Searching Pad Time: " + findPadTime + "ms | " + 
-//														"Rate: " + rate + "fps");
+						
+						long drawTime = System.currentTimeMillis() - start;
+						long rate = (long) (1000 / findPadTime);
+						TwoCamsRedPadDetector.this.processTimeLabel.setText(Constants.CONSOLE_CAM_2 + 
+														"Displaying Time: " + drawTime + "ms | " +  
+														"Searching Pad Time: " + findPadTime + "ms | " + 
+														"Rate: " + rate + "fps");
 //						
 //						// teach the wheel-chair how to move
-//						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
+						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
 //						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
 //						double objectAngle = extractTimers[0];
 //						
@@ -837,61 +838,29 @@ public class TwoCamsRedPadDetector extends Thread {
 															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
 															"------------------------------\n" + 
 															"Reading: " + timers[0] + "ms\n" + 
-															// "Gaussian Blur: " + timers[1] + "ms\n" +
-															"HSV Converting: " + timers[2] + "ms\n" +
-															"Dilating: " + timers[3] + "ms\n" + 
-															"Coutouring: " + timers[4] + "ms\n" + 
-															"Bitmap Converting: " + timers[5] + "ms\n" + 
-															"------------------------------\n");
+															"HSV Converting: " + timers[1] + "ms\n" +
+															"Coutouring: " + timers[2] + "ms\n" + 
+															"Bitmap Converting: " + timers[3] + "ms");
 						
-//						TwoCamsRedPadDetector.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-//															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
-//															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
-//															"------------------------------\n" + 
-//															"Reading: " + timers[0] + "ms\n" + 
-//															// "Gaussian Blur: " + timers[1] + "ms\n" +
-//															"HSV Converting: " + timers[2] + "ms\n" +
-//															"Dilating: " + timers[3] + "ms\n" + 
-//															"Coutouring: " + timers[4] + "ms\n" + 
-//															"Bitmap Converting: " + timers[5] + "ms\n" + 
-//															"------------------------------\n" +
-//															"Gray Converting: " + extractTimers[1] + "ms\n" + 
-//															"Threshold: " + extractTimers[2] + "ms\n" + 
-//															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
-//															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
-//															"Transformation: " + extractTimers[5] + "ms\n");
-//
-//						//
-//						// draw the current location of the wheel-chair on the map 
-//						drawWheelchairPoint(objectDistance, objectAngle);
-//						
-//						if (TwoCamsRedPadDetector.this.isAuto) {
-//							// only automatically moving when flag isAuto is set
-//							double vel = (double) Settings.velocity / 10;
-//							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
-//								controlInfoText.setText("SEARCHING PAD...");
-//								MoveInstructor.move(0, vel);
-//								// MoveInstructor2.moveRight(vel);
-//							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
-//								controlInfoText.setText("FOUND THE PAD ON THE LEFT. MOVING LEFT...");
-//								MoveInstructor.move(0, vel);
-//								// MoveInstructor2.moveLeft(vel);
-//							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
-//								controlInfoText.setText("FOUND THE PAD ON THE RIGHT. MOVING RIGHT...");
-//								MoveInstructor.move(0, -1 * vel);
-//								// MoveInstructor2.moveRight(-1 * vel);
-//							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
-//								controlInfoText.setText("MOVING FORWARD...");
-//								if (objectDistance > 5) {
-//									MoveInstructor.move(vel, 0);
-//								} else {
-//									MoveInstructor.moveForward(vel, objectDistance);
-//									setFindingPadStatus(false);
-//								}
-//								
-//								// MoveInstructor2.moveForward(vel);
-//							}
-//						}
+						
+						if (TwoCamsRedPadDetector.this.isAuto) {
+							// only automatically moving when flag isAuto is set
+							double vel = (double) Settings.velocity / 10;
+							if (moveInstructor == MoveInstructor.MOVE_SEARCH) {
+								controlInfoText.setText(Constants.CONSOLE_CAM_2 + "SEARCHING MARKER...");
+								MoveInstructor.move(0, vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_LEFT) {
+								controlInfoText.setText(Constants.CONSOLE_CAM_2 + "FOUND THE MARKER ON THE LEFT. MOVING LEFT...");
+								MoveInstructor.move(0, vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_RIGHT) {
+								controlInfoText.setText(Constants.CONSOLE_CAM_2 + "FOUND THE MARKER ON THE RIGHT. MOVING RIGHT...");
+								MoveInstructor.move(0, -1 * vel);
+							} else if (moveInstructor == MoveInstructor.MOVE_FORWARD) {
+								controlInfoText.setText(Constants.CONSOLE_CAM_2 + "DONE!");
+								MoveInstructor.move(0, 0);
+								setFindingPadStatus(false);
+							}
+						}
 					}
 				}));
 				
@@ -973,7 +942,6 @@ public class TwoCamsRedPadDetector extends Thread {
 		LocationDrawer.updateData(gpsPoint);
 		
 		// publish to our location channel
-		
 		// odomWriter.publish(pos);
 	}
 	

@@ -30,4 +30,8 @@ public class OdomWriter extends AbstractNodeMain {
 	public void publish(Odometry msg) {
 		publisher.publish(msg);
 	}
+	
+	public void publish() {
+		
+	}
 }

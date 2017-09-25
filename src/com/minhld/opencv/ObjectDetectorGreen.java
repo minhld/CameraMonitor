@@ -20,102 +20,12 @@ import com.minhld.utils.Settings;
 
 import sensor_msgs.Image;
 
-public class ObjectDetectorRed {
+public class ObjectDetectorGreen {
 	public static final int NUM_MAX_CONTOURS = 3;
 	
-	public static Object[] processClosedImage(Image source) {
-		// ------ 1. read the source to Mat ------
-		long start = System.currentTimeMillis();
-		Mat orgMat = OpenCVUtils.openImage(source);
-		long readImageTime = System.currentTimeMillis() - start;
-		
-		Mat modMat = new Mat();
-		// ------ 3. turns it to HSV color image ------
-		start = System.currentTimeMillis();
-		
-		// 3.1. convert the image to HSV color template
-		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2HSV);
-		
-		// 3.2. filter out the red color in a wide range 
-		Mat lowMask = new Mat(), highMask = new Mat();
-		Core.inRange(modMat, new Scalar(Settings.lowHColor, Settings.lowSColor, Settings.lowVColor), new Scalar(Settings.lowHColor + 10, 255, 255), lowMask);
-		Core.inRange(modMat, new Scalar(Settings.highHColor, Settings.highSColor, Settings.highVColor), new Scalar(Settings.highHColor + 10, 255, 255), highMask);
-		
-		// 3.3 merge the two masks
-		Mat finalMask = new Mat();
-		Core.addWeighted(lowMask, 1, highMask, 1, 0, finalMask);
-		
-		long convertHSVTime = System.currentTimeMillis() - start;
-		
-		// ------ 5. find the contour of the pad ------ 
-		start = System.currentTimeMillis();
-		
-		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		Mat hierarchy = new Mat();
-		Imgproc.findContours(finalMask, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-		hierarchy.release();
-
-		Point locStartMax = new Point(), locEndMax = new Point();
-		
-		if (contours.size() > 0) {
-			MatOfPoint contour;
-			double maxContourSize = 0, contourSize;
-			Point locStart = new Point(), locEnd = new Point();
-			Rect rect;
-				
-			// fetch through the list of contours
-			for(int i = 0; i < contours.size(); i++) {
-				contour = contours.get(i);
-				
-				// get rid of the small objects found in the camera area
-				contourSize = Imgproc.contourArea(contour);
-				if (contourSize > Settings.contourAreaMin) {
-					rect = Imgproc.boundingRect(contour);
-					locStart = new Point(rect.x, rect.y);
-					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
-					
-					
-				}
-				// define the max area
-				if (maxContourSize < contourSize) {
-					maxContourSize = contourSize;
-					locStartMax = locStart;
-					locEndMax = locEnd;
-				}
-			}
-		}
-		
-		long coutourTime = System.currentTimeMillis() - start;
-		
-		// ------ 6. draw the rectangle surrounding the object ------ 
-		Mat rectMat = new Mat();
-		orgMat.copyTo(rectMat);
-		Imgproc.rectangle(rectMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
-
-		
-		// ------ 8. prepare to flush out the output results ------ 
-		start = System.currentTimeMillis();
-
-		BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
-        BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
-        // BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
-
-        long bufferImageTime = System.currentTimeMillis() - start;
-
-		return new Object[] { 	resultImage, 
-								processImage, 
-								new Rect(locStartMax, locEndMax), 
-								new double[] {	readImageTime, 
-												convertHSVTime,
-												coutourTime,
-												bufferImageTime
-							}
-		};
-	}
-	
 	/**
-	 * process image by applying Gaussian operations, filtering red color particles
-	 * dilating, find   
+	 * comparing with a known template
+	 * using matchTemplate function 
 	 * 
 	 * @param source
 	 * @return
