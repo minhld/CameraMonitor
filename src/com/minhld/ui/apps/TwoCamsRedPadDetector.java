@@ -115,7 +115,7 @@ public class TwoCamsRedPadDetector extends Thread {
 	// on the right panel has currently been used or not
 	boolean isServerInUsed = false;
 	
-	// whether app is searching for a dock
+	// whether app is searching for a dock (default is FALSE)
 	boolean isFindingDock = false;
 	
 	String settingProfile = Settings.SETTING_2_RED;
@@ -319,7 +319,20 @@ public class TwoCamsRedPadDetector extends Thread {
 
 		// IMPORTANT: for the test, the switch camera button is always on
 		// switchCameraBtn.setEnabled(TwoCamsRedPadDetector.this.isDebugMode);
-				
+		
+		final JButton switchColorBtn = new JButton(Constants.TBAR_SWITCH_GREEN);
+		switchColorBtn.setIcon(new ImageIcon("images/dock.png"));
+		switchColorBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// flip the color usage (red/green)
+				TwoCamsRedPadDetector.this.isFindingDock = !TwoCamsRedPadDetector.this.isFindingDock;
+				switchColorBtn.setText(TwoCamsRedPadDetector.this.isFindingDock ? 
+						Constants.TBAR_SWITCH_RED : Constants.TBAR_SWITCH_GREEN);
+			}
+		});
+		switchColorBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
+		toolbar.add(switchColorBtn);
 		
 		return toolbar;
 	}

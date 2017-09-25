@@ -10,4 +10,6 @@ public class Constants {
 	public static final String TBAR_FIND_PAD = "Find Pad";
 	public static final String TBAR_FIND_DOCK = "Find Dock";
 	public static final String TBAR_STOP_FINDING = "Stop Finding";
+	public static final String TBAR_SWITCH_RED = "Switch Red";
+	public static final String TBAR_SWITCH_GREEN = "Switch Green";
 }
