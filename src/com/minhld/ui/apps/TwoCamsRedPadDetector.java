@@ -1195,7 +1195,7 @@ public class TwoCamsRedPadDetector extends Thread {
 			String serverIP = ipText.getText();
 			// initiate server
 			ROSUtils.startWithServer(serverIP);
-			
+
 			// start listening to the camera topic
 			startListening();
 			
@@ -1209,8 +1209,14 @@ public class TwoCamsRedPadDetector extends Thread {
 			stopROSButton.setEnabled(true);
 			TwoCamsRedPadDetector.this.buttonPanel.requestFocusInWindow();
 			
+		} catch (java.net.ConnectException cEx) {
+			controlInfoText.setText("Error @ Server Initiation (" + cEx.getClass().getName() + ": " + cEx.getMessage() + ")");
+			JOptionPane.showMessageDialog(mainFrame, "ROS Server is unable to connect [\"" + cEx.getMessage() + "\"]");
 		} catch (Exception e) {
-			topicInfoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
+			controlInfoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
+			JOptionPane.showMessageDialog(mainFrame, "ROS Server is unable to connect [\"" + e.getMessage() + "\"]");
+		} finally {
+			
 		}
 	}
 	
