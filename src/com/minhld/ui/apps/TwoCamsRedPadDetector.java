@@ -844,7 +844,7 @@ public class TwoCamsRedPadDetector extends Thread {
 															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
 															"------------------------------\n" + 
 															"Reading: " + timers[0] + "ms\n" + 
-															"HSV Converting: " + timers[1] + "ms\n" +
+															"Thresholding: " + timers[1] + "ms\n" +
 															"Coutouring: " + timers[2] + "ms\n" + 
 															"Bitmap Converting: " + timers[3] + "ms");
 						

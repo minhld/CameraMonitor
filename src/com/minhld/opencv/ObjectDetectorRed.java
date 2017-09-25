@@ -30,29 +30,20 @@ public class ObjectDetectorRed {
 		long readImageTime = System.currentTimeMillis() - start;
 		
 		Mat modMat = new Mat();
-		// ------ 3. turns it to HSV color image ------
+		
+		// ------ 3. filter out dark pixels ------
 		start = System.currentTimeMillis();
-		
-		// 3.1. convert the image to HSV color template
-		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2HSV);
-		
-		// 3.2. filter out the red color in a wide range 
-		Mat lowMask = new Mat(), highMask = new Mat();
-		Core.inRange(modMat, new Scalar(Settings.lowHColor, Settings.lowSColor, Settings.lowVColor), new Scalar(Settings.lowHColor + 10, 255, 255), lowMask);
-		Core.inRange(modMat, new Scalar(Settings.highHColor, Settings.highSColor, Settings.highVColor), new Scalar(Settings.highHColor + 10, 255, 255), highMask);
-		
-		// 3.3 merge the two masks
-		Mat finalMask = new Mat();
-		Core.addWeighted(lowMask, 1, highMask, 1, 0, finalMask);
-		
-		long convertHSVTime = System.currentTimeMillis() - start;
-		
+		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2GRAY);
+		Imgproc.threshold(modMat, modMat, Settings.threshold, 255, Imgproc.THRESH_BINARY);
+		long convertThresTime = System.currentTimeMillis() - start;
+				
 		// ------ 5. find the contour of the pad ------ 
 		start = System.currentTimeMillis();
 		
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
-		Imgproc.findContours(finalMask, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+		// Imgproc.findContours(finalMask, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+		Imgproc.findContours(modMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 		hierarchy.release();
 
 		Point locStartMax = new Point(), locEndMax = new Point();
@@ -97,7 +88,7 @@ public class ObjectDetectorRed {
 		start = System.currentTimeMillis();
 
 		BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
-        BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
+        BufferedImage processImage = OpenCVUtils.createAwtImage(modMat);
         // BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
 
         long bufferImageTime = System.currentTimeMillis() - start;
@@ -106,7 +97,7 @@ public class ObjectDetectorRed {
 								processImage, 
 								new Rect(locStartMax, locEndMax), 
 								new double[] {	readImageTime, 
-												convertHSVTime,
+												convertThresTime,
 												coutourTime,
 												bufferImageTime
 							}
