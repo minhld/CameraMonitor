@@ -49,6 +49,7 @@ import org.opencv.core.Rect;
 import com.birosoft.liquid.LiquidLookAndFeel;
 import com.minhld.opencv.DistanceEstimator;
 import com.minhld.opencv.FeatureExtractorRed;
+import com.minhld.opencv.ObjectDetectorGreen;
 import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.LocationInstructor;
@@ -114,8 +115,8 @@ public class TwoCamsRedPadDetector extends Thread {
 	// on the right panel has currently been used or not
 	boolean isServerInUsed = false;
 	
-	// flag 
-	boolean isFindingPad = true;
+	// whether app is searching for a dock
+	boolean isFindingDock = false;
 	
 	String settingProfile = Settings.SETTING_2_RED;
 	
@@ -702,7 +703,9 @@ public class TwoCamsRedPadDetector extends Thread {
 						
 						// using image processing to detect the pad 
 						long start = System.currentTimeMillis();
-						Object[] results = ObjectDetectorRed.processImage(image);
+						Object[] results = !TwoCamsRedPadDetector.this.isFindingDock ? 
+														ObjectDetectorRed.processImage(image) : 
+														ObjectDetectorGreen.processImage(image);
 						long findPadTime = System.currentTimeMillis() - start;
 						
 						start = System.currentTimeMillis();
@@ -785,7 +788,12 @@ public class TwoCamsRedPadDetector extends Thread {
 									// TwoCamsRedPadDetector.this.isAutoRotate = true;
 									
 									// switch to camera #2 and starting rotating if necessary
-									switchCamera(false);
+									if (!TwoCamsRedPadDetector.this.isFindingDock) {
+										switchCamera(false);
+									} else {
+										// stop searching for Dock
+										setFindingDockStatus(false);
+									}
 								}
 								
 								// MoveInstructor2.moveForward(vel);
@@ -901,7 +909,11 @@ public class TwoCamsRedPadDetector extends Thread {
 	 * @param setIsAuto
 	 */
 	private void setFindingPadStatus(boolean setIsAuto) {
+		// set flag on/off AUTO mode
 		TwoCamsRedPadDetector.this.isAuto = setIsAuto;
+		// disable the Dock Searching function
+		TwoCamsRedPadDetector.this.isFindingDock = false;
+		
 		// TwoCamsRedPadDetector.this.isAutoRotate = setIsAuto;
 		controlInfoText.setText("AUTOMATION IS " + (TwoCamsRedPadDetector.this.isAuto ? "SET" : "CLEARED"));
 		findPadBtn.setText(TwoCamsRedPadDetector.this.isAuto ? Constants.TBAR_STOP_FINDING : Constants.TBAR_FIND_PAD);
@@ -916,7 +928,11 @@ public class TwoCamsRedPadDetector extends Thread {
 	 * @param setIsAuto
 	 */
 	private void setFindingDockStatus(boolean setIsAuto) {
+		// set flag on/off AUTO mode
 		TwoCamsRedPadDetector.this.isAuto = setIsAuto;
+		// switch on/off the Dock Searching function
+		TwoCamsRedPadDetector.this.isFindingDock = setIsAuto;
+		
 		// TwoCamsRedPadDetector.this.isAutoRotate = setIsAuto;
 		controlInfoText.setText("AUTOMATION IS " + (TwoCamsRedPadDetector.this.isAuto ? "SET" : "CLEARED"));
 		findDockBtn.setText(TwoCamsRedPadDetector.this.isAuto ? Constants.TBAR_STOP_FINDING : Constants.TBAR_FIND_DOCK);

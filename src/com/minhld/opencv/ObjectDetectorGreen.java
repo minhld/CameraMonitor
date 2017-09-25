@@ -60,8 +60,8 @@ public class ObjectDetectorGreen {
 		
 		// 3.2. filter out the red color in a wide range 
 		Mat lowMask = new Mat(), highMask = new Mat();
-		Core.inRange(modMat, new Scalar(Settings.lowHColor, Settings.lowSColor, Settings.lowVColor), new Scalar(Settings.lowHColor + 10, 255, 255), lowMask);
-		Core.inRange(modMat, new Scalar(Settings.highHColor, Settings.highSColor, Settings.highVColor), new Scalar(Settings.highHColor + 10, 255, 255), highMask);
+		Core.inRange(modMat, new Scalar(Settings.lowGreenHColor, Settings.lowGreenSColor, Settings.lowGreenVColor), new Scalar(Settings.lowGreenHColor + 10, 255, 255), lowMask);
+		Core.inRange(modMat, new Scalar(Settings.highGreenHColor, Settings.highGreenSColor, Settings.highGreenVColor), new Scalar(Settings.highGreenHColor + 10, 255, 255), highMask);
 		
 		// 3.3 merge the two masks
 		Mat finalMask = new Mat();
