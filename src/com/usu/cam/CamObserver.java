@@ -1,4 +1,4 @@
-package com.minhld.ui.apps;
+package com.usu.cam;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -18,6 +19,7 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -26,17 +28,24 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
 
 import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.videoio.VideoCapture;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
+import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.OdomWriter;
 import com.minhld.ros.controller.UISupport;
-import com.minhld.ui.supports.AdjustSlider;
+import com.minhld.ros.movements.MoveInstructor;
+import com.minhld.ui.apps.RosAutoRed;
+import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
@@ -60,18 +69,21 @@ public class CamObserver extends Thread {
 	boolean isServerInUsed = false;
 	
 	public void run() {
-		mainFrame = new JFrame("Gazebo Monitor v1.1");
+		mainFrame = new JFrame("Camera Monitor v2.1");
 		ImageIcon mainIcon = new ImageIcon("images/monitor2.png");
 		mainFrame.setIconImage(mainIcon.getImage());
 		
 		Container contentPane = mainFrame.getContentPane();
 		
 		// load UI properties
-		UISupport.loadUIProps("gaz");
+		UISupport.loadUIProps("cam");
 		
 		// load settings
 		Settings.init(Settings.SETTING_GAZ);
 		
+		// ------ set Tool-bar and Buttons ------ 
+		contentPane.add(buildToolBar(), BorderLayout.NORTH);
+
 	    // ------ set the View panel ------ 
 	    contentPane.add(buildViewPanel(), BorderLayout.CENTER);
 
@@ -115,6 +127,40 @@ public class CamObserver extends Thread {
 
 	}
 	
+	/**
+	 * add a tool-bar with buttons are on it
+	 * @return
+	 */
+	private JToolBar buildToolBar() {
+		JToolBar toolbar = new JToolBar(JToolBar.HORIZONTAL);
+		toolbar.setFloatable(false);
+
+		JButton settingsBtn = new JButton("Settings");
+		settingsBtn.setIcon(new ImageIcon("images/settings.png"));
+		settingsBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showSettingsDialog();
+			}
+		});
+		settingsBtn.setBorder(new EmptyBorder(6, 10, 6, 10));
+		toolbar.add(settingsBtn);
+		
+		return toolbar;
+	}
+	
+	/**
+	 * open Settings dialog
+	 */
+	private void showSettingsDialog() {
+	    JDialog settingsDialog = new JDialog(mainFrame, "Settings", ModalityType.APPLICATION_MODAL);
+	    settingsDialog.add(new SettingsPanel());
+	    settingsDialog.setSize(660, 660);
+	    settingsDialog.setResizable(false);
+	    settingsDialog.setLocationRelativeTo(mainFrame);
+	    settingsDialog.setVisible(true);
+	}
+
 	
 	/**
 	 * build the container to contain the inner frames
@@ -138,19 +184,6 @@ public class CamObserver extends Thread {
 		
 		mainView.add(viewer);
 
-		// ------ add Location panel ------ 
-		JPanel locationPanel = new JPanel();
-		locationPanel.setBorder(BorderFactory.createTitledBorder("Location"));
-		
-		JPanel coordPanel = new JPanel(new BorderLayout()); 
-		coordPanel.setPreferredSize(new Dimension(UISupport.getUIProp("location-width"), 
-		 											UISupport.getUIProp("location-height")));
-		// coordPanel.add(LocationDrawer.createLocationSystem());
-		
-		locationPanel.add(coordPanel, BorderLayout.CENTER);
-		mainView.add(locationPanel);
-		
-		
 		totalView.add(mainView, BorderLayout.NORTH);
 		
 		
@@ -158,18 +191,11 @@ public class CamObserver extends Thread {
 		JPanel control = new JPanel(new BorderLayout()); 
 		
 		
-		
 		// Control Main Information panel
 		JPanel controlInfo = new JPanel(new BorderLayout());
 		controlInfo.setBorder(BorderFactory.createTitledBorder("Control Info"));
 		
-		JPanel velocityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		AdjustSlider velSlider = new AdjustSlider(Settings.LABEL_VELOCITY, 3, 15);
-		velocityPanel.add(velSlider, BorderLayout.NORTH);
-		velocityPanel.setPreferredSize(new Dimension(200, 60));
-		controlInfo.add(velocityPanel, BorderLayout.NORTH);
-		
-		controlInfoText = new JTextArea(10, 63);
+		controlInfoText = new JTextArea(9, 63);
 		controlInfoText.setBorder(BorderFactory.createLineBorder(Color.gray));
 		controlInfoText.setFont(new Font("courier", Font.PLAIN, 11));
 		controlInfoText.setEditable(false);
@@ -191,6 +217,22 @@ public class CamObserver extends Thread {
 		return totalView;
 	}
 	
+	private void startListening2() {
+		String file = "/home/lee/Downloads/walk.mp4";
+		VideoCapture vc = new VideoCapture();
+		vc.open(file);
+		Mat m = new Mat();
+		while (vc.read(m)) {
+//			Object[] a = CamObjectDetector.processImage6(m);
+//			UISupport.drawImage(cameraPanel, (BufferedImage) a[0]);
+			BufferedImage a = OpenCVUtils.createAwtImage(m);
+			UISupport.drawImage(cameraPanel, a);
+			try {
+				Thread.sleep(30);
+			} catch (Exception e) { }
+		}
+	}
+	
 	/**
 	 * call this to start listening to the ROS server
 	 */
@@ -206,12 +248,19 @@ public class CamObserver extends Thread {
 					@Override
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
-						// BufferedImage bImage = ROSUtils.messageToBufferedImage(image);
-						BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
+						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
+//						 Object[] results = CamObjectDetector.processImage2();
+//						Object[] results = CamObjectDetector.processImage(image);
+						Object[] results = CamObjectDetector.processImage3(image); 
+						
+						if (results[0] == null) return;
+						
+						BufferedImage resultImage = (BufferedImage) results[0];
+						
 						long loadImageTime = System.currentTimeMillis() - start;
 						if (loadImageTime == 0) loadImageTime = 1;	// too fast!
 							
-						UISupport.drawImage(cameraPanel, bImage);
+						UISupport.drawImage(cameraPanel, resultImage);
 
 						long drawTime = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / loadImageTime);
@@ -233,12 +282,6 @@ public class CamObserver extends Thread {
 	}
 	
 	
-//	private void drawWheelchairPoint(double distance, double angle) {
-//		Point wcPoint = FeatureExtractorRed.findPointByAngle(distance, angle);
-//		LocationDrawer.updateData(wcPoint, 0);
-//	}
-	
-	
 	/**
 	 * build the right controller panel
 	 * 
@@ -255,8 +298,8 @@ public class CamObserver extends Thread {
 		p1.add(new JLabel("Server IP: "), BorderLayout.WEST);
 		ipText = new JTextField(UISupport.getUIProp("host-text-columns"));
 		ipText.grabFocus();
-		// String currentIP = "129.123.7.100";
-		String currentIP = AppUtils.getCurrentIP();
+		String currentIP = "129.123.7.41";
+		// String currentIP = AppUtils.getCurrentIP();
 		ipText.setText(currentIP);
 		p1.add(ipText);
 		networkConfig.add(p1, BorderLayout.NORTH);
@@ -362,7 +405,7 @@ public class CamObserver extends Thread {
 			ROSUtils.startWithServer(serverIP);
 			
 			// start listening to the camera topic
-			startListening();
+			startListening2();
 			
 			// add topics to the list
 			addTopicsToList();
@@ -372,7 +415,7 @@ public class CamObserver extends Thread {
 			ipText.setEditable(false);
 			connectROSButton.setEnabled(false);
 			stopROSButton.setEnabled(true);
-			CamObserver.this.buttonPanel.requestFocusInWindow();
+//			CamObserver.this.buttonPanel.requestFocusInWindow();
 			
 		} catch (Exception e) {
 			topicInfoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
@@ -415,10 +458,10 @@ public class CamObserver extends Thread {
 		topicList.setListData(topics);
 	}
 	
-	private void switchKeyFocus(boolean isFocused) {
-		keyFocusLabel.setIcon(isFocused ? new ImageIcon("images/smile-yellow.png") : 
-										new ImageIcon("images/smile-gray.png"));
-	}
+//	private void switchKeyFocus(boolean isFocused) {
+//		keyFocusLabel.setIcon(isFocused ? new ImageIcon("images/smile-yellow.png") : 
+//										new ImageIcon("images/smile-gray.png"));
+//	}
 	
 	public static void main(String args[]) {
 		new CamObserver().start();
