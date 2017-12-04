@@ -39,15 +39,11 @@ import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
-import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ros.controller.CameraNode;
 import com.minhld.ros.controller.OdomWriter;
 import com.minhld.ros.controller.UISupport;
-import com.minhld.ros.movements.MoveInstructor;
-import com.minhld.ui.apps.RosAutoRed;
 import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
-import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
@@ -79,7 +75,7 @@ public class CamObserver extends Thread {
 		UISupport.loadUIProps("cam");
 		
 		// load settings
-		Settings.init(Settings.SETTING_GAZ);
+		Settings.init(Settings.SETTING_CAM);
 		
 		// ------ set Tool-bar and Buttons ------ 
 		contentPane.add(buildToolBar(), BorderLayout.NORTH);
@@ -217,20 +213,32 @@ public class CamObserver extends Thread {
 		return totalView;
 	}
 	
+	
+	
 	private void startListening2() {
-		String file = "/home/lee/Downloads/walk.mp4";
-		VideoCapture vc = new VideoCapture();
-		vc.open(file);
-		Mat m = new Mat();
-		while (vc.read(m)) {
-//			Object[] a = CamObjectDetector.processImage6(m);
-//			UISupport.drawImage(cameraPanel, (BufferedImage) a[0]);
-			BufferedImage a = OpenCVUtils.createAwtImage(m);
-			UISupport.drawImage(cameraPanel, a);
-			try {
-				Thread.sleep(30);
-			} catch (Exception e) { }
-		}
+		new Runnable() {
+			
+			@Override
+			public void run() {
+				String file = "/home/lee/Downloads/walk.mp4";
+				VideoCapture vc = new VideoCapture();
+				vc.open(file);
+				Mat m = new Mat();
+				while (vc.read(m)) {
+					Object[] a = CamObjectDetector.processImage(m);
+					if (a[0] != null) {
+						UISupport.drawImage(cameraPanel, (BufferedImage) a[0]);
+					}
+					
+					// BufferedImage a = OpenCVUtils.createAwtImage(m);
+					// UISupport.drawImage(cameraPanel, a);
+					try {
+						Thread.sleep(30);
+					} catch (Exception e) { }
+				}
+			}
+		}.run();
+		
 	}
 	
 	/**
@@ -251,7 +259,8 @@ public class CamObserver extends Thread {
 						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
 //						 Object[] results = CamObjectDetector.processImage2();
 //						Object[] results = CamObjectDetector.processImage(image);
-						Object[] results = CamObjectDetector.processImage3(image); 
+						// Object[] results = CamObjectDetector.processImage3(image); 
+						Object[] results = CamObjectDetector.processImage(image);
 						
 						if (results[0] == null) return;
 						
@@ -405,6 +414,7 @@ public class CamObserver extends Thread {
 			ROSUtils.startWithServer(serverIP);
 			
 			// start listening to the camera topic
+			// startListening();
 			startListening2();
 			
 			// add topics to the list

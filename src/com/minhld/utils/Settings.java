@@ -11,6 +11,7 @@ public class Settings {
 	public static final String SETTING_RED = "settings-red";
 	public static final String SETTING_2_RED = "settings-2-red";
 	public static final String SETTING_GAZ = "settings-gaz";
+	public static final String SETTING_CAM = "settings-cam";
 	
 	public static final String LABEL_THRESHOLD = "threshold";
 	public static final String LABEL_COLOR_THRESHOLD = "color-threshold";
