@@ -18,7 +18,8 @@ import com.minhld.utils.Settings;
 import sensor_msgs.Image;
 
 public class CamObjectDetector {
-	private static Size sz640 = new Size(640, 480);
+	static Size sz640 = new Size(640, 480);
+	static Size sz320 = new Size(320, 240);
 	
 	// https://ratiler.wordpress.com/2014/09/08/detection-de-mouvement-avec-javacv/	
 	/*
@@ -35,16 +36,24 @@ public class CamObjectDetector {
 
 	public static Object[] processImage(Image source) {
 		Mat orgMat = OpenCVUtils.openImage(source);
-		Mat movMat = detectMotion(orgMat);
-		BufferedImage resultImage = movMat != null ? OpenCVUtils.createAwtImage(movMat) : null;
-		return new Object[] { resultImage };
+		Object[] rets = detectMotion(orgMat);
+		BufferedImage resultImage = rets != null ? OpenCVUtils.createAwtImage((Mat) rets[0]) : null;
+		if (resultImage != null) {
+			rets[0] = resultImage;
+			return rets;
+		}
+		return null;
 	}
 
 	
 	public static Object[] processImage(Mat orgMat) {
-		Mat movMat = detectMotion(orgMat);
-		BufferedImage resultImage = movMat != null ? OpenCVUtils.createAwtImage(movMat) : null;
-		return new Object[] { resultImage };
+		Object[] rets = detectMotion(orgMat);
+		BufferedImage resultImage = rets != null ? OpenCVUtils.createAwtImage((Mat) rets[0]) : null;
+		if (resultImage != null) {
+			rets[0] = resultImage;
+			return rets;
+		}
+		return null;
 	}
 	
 	/*
@@ -66,36 +75,65 @@ public class CamObjectDetector {
 	*/
 	
 	
-	public static Mat detectMotion(Mat frame) {
+	public static Object[] detectMotion(Mat frame) {
 		Imgproc.resize(frame, frame, sz640);
 		Mat orgMat = frame.clone();
+		
+		long start = System.currentTimeMillis();
 		
 		mats[count] = new Mat(orgMat.size(), CvType.CV_8UC1);
 		Imgproc.cvtColor(orgMat, mats[count], Imgproc.COLOR_RGB2GRAY);
 		Imgproc.GaussianBlur(mats[count], mats[count], new Size(3, 3), 0);
-
+		
+		long gaussianTime = System.currentTimeMillis() - start;
+		
 		// enough 3 images
 		if (count < 1) {
 			count++;
 		} else {
 			Mat diff = new Mat(orgMat.size(), CvType.CV_8UC1);
+			
+			start = System.currentTimeMillis();
+			
 			Core.subtract(mats[1], mats[0], diff);
 			Imgproc.adaptiveThreshold(diff, diff, 255,
 		                  Imgproc.ADAPTIVE_THRESH_MEAN_C,
 		                  Imgproc.THRESH_BINARY_INV, 5, 2);
+			
+			long diffTime = System.currentTimeMillis() - start;
+			
+			Object[] cons = getContours(frame, diff);
+			
 			count = 0;
-			return getContours(frame, diff);
+			
+			return new Object[] { cons[0],
+								  gaussianTime, 
+								  diffTime, 
+								  cons[1], cons[2] }; 
 		}
 		
 		return null;
 	}
 	
-	private static Mat getContours(Mat frame, Mat diff) {
+	/**
+	 * get contours of the different parts 
+	 * 
+	 * @param frame
+	 * @param diff
+	 * @return
+	 */
+	private static Object[] getContours(Mat frame, Mat diff) {
+		long start = System.currentTimeMillis();
+		
 		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		Mat hierarchy = new Mat();
 		Imgproc.findContours(diff, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 		hierarchy.release();
-
+		
+		long findContourTime = System.currentTimeMillis() - start;
+		
+		start = System.currentTimeMillis();
+		
 		if (contours.size() > 0) {
 			MatOfPoint contour;
 			double contourSize;
@@ -109,7 +147,6 @@ public class CamObjectDetector {
 				// get rid of the small objects found in the camera area
 				contourSize = Imgproc.contourArea(contour);
 				
-				// if (contourSize > Settings.contourAreaMin) {
 				if (contourSize > Settings.contourAreaMin) {
 					rect = Imgproc.boundingRect(contour);
 					locStart = new Point(rect.x, rect.y);
@@ -119,7 +156,9 @@ public class CamObjectDetector {
 			}
 		}
 		
-		return frame;
+		long drawContourTime = System.currentTimeMillis() - start;
+		
+		return new Object[] { frame, findContourTime, drawContourTime };
 	}
 	
 	/*

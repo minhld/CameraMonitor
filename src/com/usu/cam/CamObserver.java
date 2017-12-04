@@ -214,8 +214,10 @@ public class CamObserver extends Thread {
 	}
 	
 	
-	
-	private void startListening2() {
+	/**
+	 * extract movements from the video file 
+	 */
+	void startListening2() {
 		new Runnable() {
 			
 			@Override
@@ -230,8 +232,6 @@ public class CamObserver extends Thread {
 						UISupport.drawImage(cameraPanel, (BufferedImage) a[0]);
 					}
 					
-					// BufferedImage a = OpenCVUtils.createAwtImage(m);
-					// UISupport.drawImage(cameraPanel, a);
 					try {
 						Thread.sleep(30);
 					} catch (Exception e) { }
@@ -256,13 +256,9 @@ public class CamObserver extends Thread {
 					@Override
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
-						// BufferedImage bImage = OpenCVUtils.getBufferedImage(image);
-//						 Object[] results = CamObjectDetector.processImage2();
-//						Object[] results = CamObjectDetector.processImage(image);
-						// Object[] results = CamObjectDetector.processImage3(image); 
 						Object[] results = CamObjectDetector.processImage(image);
 						
-						if (results[0] == null) return;
+						if (results == null) return;
 						
 						BufferedImage resultImage = (BufferedImage) results[0];
 						
@@ -275,7 +271,14 @@ public class CamObserver extends Thread {
 						long rate = (long) (1000 / loadImageTime);
 						CamObserver.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
 														"Rate: " + rate + "fps");
-						
+
+						CamObserver.this.controlInfoText.setText(
+										"Total Time: " + drawTime + "ms\n" +
+										"Gaussian Time: " + results[1] + "ms\n" +
+										"Different Time: " + results[2] + "ms\n" +
+										"Contour Time: " + results[3] + "ms\n" +
+										"Drawing Time: " + results[4] + "ms\n");
+
 					}
 				}));
 
@@ -414,8 +417,8 @@ public class CamObserver extends Thread {
 			ROSUtils.startWithServer(serverIP);
 			
 			// start listening to the camera topic
-			// startListening();
-			startListening2();
+			startListening();
+			// startListening2();
 			
 			// add topics to the list
 			addTopicsToList();
@@ -425,7 +428,6 @@ public class CamObserver extends Thread {
 			ipText.setEditable(false);
 			connectROSButton.setEnabled(false);
 			stopROSButton.setEnabled(true);
-//			CamObserver.this.buttonPanel.requestFocusInWindow();
 			
 		} catch (Exception e) {
 			topicInfoText.setText("Error @ Server Initiation (" + e.getClass().getName() + ": " + e.getMessage() + ")");
@@ -468,11 +470,7 @@ public class CamObserver extends Thread {
 		topicList.setListData(topics);
 	}
 	
-//	private void switchKeyFocus(boolean isFocused) {
-//		keyFocusLabel.setIcon(isFocused ? new ImageIcon("images/smile-yellow.png") : 
-//										new ImageIcon("images/smile-gray.png"));
-//	}
-	
+
 	public static void main(String args[]) {
 		new CamObserver().start();
 	}
