@@ -278,7 +278,8 @@ public class CamObserver extends Thread {
 										"Gaussian: " + results[1] + "ms\n" +
 										"Differentiate: " + results[2] + "ms\n" +
 										"Contouring: " + results[3] + "ms\n" +
-										"Drawing: " + results[4] + "ms\n");
+										"Drawing: " + results[4] + "ms\n" + 
+										"Areas Found: " + (int) results[5]);
 
 					}
 				}));

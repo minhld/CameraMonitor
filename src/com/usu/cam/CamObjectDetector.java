@@ -109,7 +109,7 @@ public class CamObjectDetector {
 			return new Object[] { cons[0],
 								  gaussianTime, 
 								  diffTime, 
-								  cons[1], cons[2] }; 
+								  cons[1], cons[2], cons[3] }; 
 		}
 		
 		return null;
@@ -134,6 +134,8 @@ public class CamObjectDetector {
 		
 		start = System.currentTimeMillis();
 		
+		int contourCount = 0;
+		
 		if (contours.size() > 0) {
 			MatOfPoint contour;
 			double contourSize;
@@ -152,13 +154,17 @@ public class CamObjectDetector {
 					locStart = new Point(rect.x, rect.y);
 					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
 					Imgproc.rectangle(frame, locStart, locEnd, OpenCVUtils.BORDER_COLOR);
+					contourCount++;
 				}
 			}
 		}
 		
 		long drawContourTime = System.currentTimeMillis() - start;
 		
-		return new Object[] { frame, findContourTime, drawContourTime };
+		return new Object[] { frame, 
+							  findContourTime, 
+							  drawContourTime, 
+							  contourCount };
 	}
 	
 	/*

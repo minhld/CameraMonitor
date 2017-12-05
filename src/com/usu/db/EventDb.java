@@ -38,7 +38,7 @@ public class EventDb {
 	 * 
 	 * @param e
 	 */
-	public static void addEvent(Event e) {
+	public static void addEvent(final Event e) {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
