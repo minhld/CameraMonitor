@@ -46,7 +46,7 @@ import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
-import com.usu.db.EventDb;
+import com.usu.db.EventHandler;
 
 import sensor_msgs.Image;
 
@@ -273,14 +273,17 @@ public class CamObserver extends Thread {
 						CamObserver.this.processTimeLabel.setText("Displaying Time: " + drawTime + "ms | " +  
 														"Rate: " + rate + "fps");
 
+						int contourCount = (int) results[5];
+						
 						CamObserver.this.controlInfoText.setText(
 										"Total Time: " + drawTime + "ms\n" +
 										"Gaussian: " + results[1] + "ms\n" +
 										"Differentiate: " + results[2] + "ms\n" +
 										"Contouring: " + results[3] + "ms\n" +
 										"Drawing: " + results[4] + "ms\n" + 
-										"Areas Found: " + (int) results[5]);
+										"Areas Found: " + contourCount);
 
+						EventHandler.raiseEvent(1, contourCount);
 					}
 				}));
 
@@ -426,7 +429,7 @@ public class CamObserver extends Thread {
 			addTopicsToList();
 			
 			// init db
-			EventDb.init(serverIP);					
+			EventHandler.init(serverIP);					
 			
 			// update the controls & variables
 			this.isServerInUsed = true;
@@ -446,8 +449,8 @@ public class CamObserver extends Thread {
 		// disable current server 
 		ROSUtils.shutdownAllNodes();
 		
-		// shutdown db
-		EventDb.close();
+		// shutdown the event handler
+		EventHandler.close();
 		
 		// update the controls & variables
 		this.isServerInUsed = false;
