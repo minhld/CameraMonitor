@@ -10,19 +10,27 @@ public class Event {
 		LightOff,	// light off, no move
 	}
 	
-	public Date time;
-	public Type type;
+	public long time;
+	public String type;
 	public String info;
 	
 	public Event(Type type) {
-		this.time = new Date();
-		this.type = type;
+		this.time = new Date().getTime();
+		this.type = type.toString();
 		this.info = "";
 	}
 	
 	public Event(Type type, String info) {
-		this.time = new Date();
-		this.type = type;
+		this.time = new Date().getTime();
+		this.type = type.toString();
 		this.info = info;
+	}
+	
+	/**
+	 * returns the enum type
+	 * @return
+	 */
+	public Type getType() {
+		return Type.valueOf(this.type);
 	}
 }
