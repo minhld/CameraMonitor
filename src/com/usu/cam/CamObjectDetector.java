@@ -34,6 +34,17 @@ public class CamObjectDetector {
 	static Mat[] mats = new Mat[3];
 	static int count = 0;
 
+	public static Object[] processReduceImage(Image source) {
+		Mat orgMat = OpenCVUtils.openImage(source);
+		Object[] rets = detectMotion(orgMat);
+		BufferedImage resultImage = rets != null ? OpenCVUtils.reduceAwtImage((Mat) rets[0]) : null;
+		if (resultImage != null) {
+			rets[0] = resultImage;
+			return rets;
+		}
+		return null;
+	}
+	
 	public static Object[] processImage(Image source) {
 		Mat orgMat = OpenCVUtils.openImage(source);
 		Object[] rets = detectMotion(orgMat);

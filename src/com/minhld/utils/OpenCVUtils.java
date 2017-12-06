@@ -23,7 +23,8 @@ import sensor_msgs.Image;
 public class OpenCVUtils {
 	public static Scalar BORDER_COLOR = new Scalar(0, 255, 0);
 	public static Scalar BORDER_RED_COLOR = new Scalar(0, 0, 255);
-	
+	static Size sz320 = new Size(320, 240);
+
 	private static ArrayList<MatOfPoint> tplContours;
 	
 	private static Mat srcTpl;
@@ -307,6 +308,11 @@ public class OpenCVUtils {
 //		
 //		return new Object[] { resultImage, isCenter };
 //	}
+	
+	public static BufferedImage reduceAwtImage(Mat mat) {
+		Imgproc.resize(mat, mat, sz320);
+	    return createAwtImage(mat);
+	}
 	
 	public static BufferedImage createAwtImage(Mat mat) {
 

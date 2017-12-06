@@ -257,7 +257,8 @@ public class CamObserver extends Thread {
 					@Override
 					public void imageArrived(Image image) {
 						long start = System.currentTimeMillis();
-						Object[] results = CamObjectDetector.processImage(image);
+						// Object[] results = CamObjectDetector.processImage(image);
+						Object[] results = CamObjectDetector.processReduceImage(image);
 						
 						if (results == null) return;
 						
@@ -283,7 +284,7 @@ public class CamObserver extends Thread {
 										"Drawing: " + results[4] + "ms\n" + 
 										"Areas Found: " + contourCount);
 
-						EventHandler.raiseEvent(contourCount);
+						EventHandler.raiseEvent(contourCount, resultImage);
 					}
 				}));
 
