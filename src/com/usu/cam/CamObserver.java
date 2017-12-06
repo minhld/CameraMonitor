@@ -428,8 +428,8 @@ public class CamObserver extends Thread {
 			// add topics to the list
 			addTopicsToList();
 			
-			// init db
-			EventHandler.init(serverIP);					
+			// initiate database
+			// EventHandler.init(serverIP);					
 			
 			// update the controls & variables
 			this.isServerInUsed = true;

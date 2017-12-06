@@ -17,22 +17,28 @@ public class EventHandler {
 	 * @param light
 	 * @param contours
 	 */
-	public static void raiseEvent(int light, int contours) {
-		if (contours == 0 && light == 0) {
+	public static void raiseEvent(int contours) {
+		if (!EventDb.isDbAvail()) return;
+		
+		Event e = new Event(Event.Type.Moving);
+		handle(e);
+		prev = e;
+
+		/*
+		if (contours == 0) {
 			prev = new Event(Event.Type.Nothing);
-		} else if (contours == 0 && light == 1) {
-			Event e = new Event(Event.Type.LightOn);
-			handle(e);
-			prev = e;
 		} else if (contours > 0) {
 			Event e = new Event(Event.Type.Moving);
 			handle(e);
 			prev = e;
 		}
+		*/
 	}
 	
 	private static void handle(Event e) {
+		// if (prev != null && prev.type == e.type) return;
 		if (prev != null && prev.type == e.type) return;
+		
 		EventDb.addEvent(e);
 	}
 }

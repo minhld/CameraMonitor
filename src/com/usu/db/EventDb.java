@@ -59,4 +59,8 @@ public class EventDb {
 			}
 		}).start();
 	}
+	
+	public static boolean isDbAvail() {
+		return mongoClient != null;
+	}
 }
