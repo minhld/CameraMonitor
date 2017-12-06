@@ -283,7 +283,7 @@ public class CamObserver extends Thread {
 										"Drawing: " + results[4] + "ms\n" + 
 										"Areas Found: " + contourCount);
 
-						EventHandler.raiseEvent(1, contourCount);
+						EventHandler.raiseEvent(contourCount);
 					}
 				}));
 
@@ -429,7 +429,7 @@ public class CamObserver extends Thread {
 			addTopicsToList();
 			
 			// initiate database
-			// EventHandler.init(serverIP);					
+			EventHandler.init(serverIP);					
 			
 			// update the controls & variables
 			this.isServerInUsed = true;

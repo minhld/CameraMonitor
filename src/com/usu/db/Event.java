@@ -10,17 +10,20 @@ public class Event {
 		LightOff,	// light off, no move
 	}
 	
+	public long currentTime;
 	public long time;
 	public String type;
 	public String info;
 	
 	public Event(Type type) {
+		this.currentTime = System.currentTimeMillis();
 		this.time = new Date().getTime();
 		this.type = type.toString();
 		this.info = "";
 	}
 	
 	public Event(Type type, String info) {
+		this.currentTime = System.currentTimeMillis();
 		this.time = new Date().getTime();
 		this.type = type.toString();
 		this.info = info;

@@ -37,7 +37,11 @@ public class EventHandler {
 	
 	private static void handle(Event e) {
 		// if (prev != null && prev.type == e.type) return;
-		if (prev != null && prev.type == e.type) return;
+		
+		// if the messages are in the same type and 
+		// are consecutive, then it shouldn't be added
+		if (prev != null && prev.type == e.type && 
+				e.currentTime - prev.currentTime <= 1000) return;
 		
 		EventDb.addEvent(e);
 	}
