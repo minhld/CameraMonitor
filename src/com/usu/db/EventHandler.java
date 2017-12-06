@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 public class EventHandler {
 	static SimpleDateFormat sdf = new SimpleDateFormat("MMddyyyy_hhmmss");
 	static String IMAGE_FOLDER = "/tmp/imgs";
+	static String IMAGE_EXT = "jpg";
 	
 	static Event prev;
 	
@@ -44,10 +45,10 @@ public class EventHandler {
 	
 		try {
 			// save the image to the file
-			String file = "/tmp/imgs/cam_" + sdf.format(new Date(e.time)) + ".png";
-			ImageIO.write(image, "png", new File(file));
+			String file = "/tmp/imgs/cam_" + sdf.format(new Date(e.time)) + "." + IMAGE_EXT;
+			ImageIO.write(image, IMAGE_EXT, new File(file));
 			
-			e.info = "{ file: '" + file + "' }";
+			e.info = "{ \"file\": \"" + file + "\" }";
 			
 			// save to database
 			EventDb.addEvent(e);
