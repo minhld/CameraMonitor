@@ -8,7 +8,7 @@ import java.util.Date;
 import javax.imageio.ImageIO;
 
 public class EventHandler {
-	static SimpleDateFormat sdf = new SimpleDateFormat("MMddyyyy_hhmmss");
+	static SimpleDateFormat sdf = new SimpleDateFormat("MMddyyyy_hhmmssa");
 	static String IMAGE_FOLDER = "/tmp/imgs";
 	static String IMAGE_EXT = "jpg";
 	
