@@ -22,13 +22,17 @@ public class EventDb {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				mongoClient = new MongoClient(dbIp, 27017);
-				
-				// create db name cam-event
-				db = mongoClient.getDatabase("camevent");
-				
-				// create table events
-				eventTable = db.getCollection("events");
+				try {
+					mongoClient = new MongoClient(dbIp, 27017);
+					
+					// create db name cam-event
+					db = mongoClient.getDatabase("camevent");
+					
+					// create table events
+					eventTable = db.getCollection("events");
+				} catch (Exception e) {
+					System.err.println(e.getMessage());
+				}
 			}
 		}).start();
 	}
