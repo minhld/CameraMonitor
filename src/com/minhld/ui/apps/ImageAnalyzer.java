@@ -12,7 +12,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -51,6 +53,7 @@ import com.minhld.ui.supports.LocationDrawer;
 import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.Constants;
+import com.minhld.utils.OpenCVUtils;
 import com.minhld.utils.ROSUtils;
 import com.minhld.utils.Settings;
 
@@ -78,13 +81,13 @@ public class ImageAnalyzer extends Thread {
 	
 	OdomWriter odomWriter;
 	
-	boolean isCamera1Loaded = true;
-	
 	// this indicates whether the server with IP (in the server IP textbox)
 	// on the right panel has currently been used or not
 	boolean isServerInUsed = false;
 	
 	String settingProfile = Settings.SETTING_2_RED;
+	
+	Mat buffMat;
 	
 	public void run() {
 		mainFrame = new JFrame("Line Detection Analyzer");
@@ -281,14 +284,11 @@ public class ImageAnalyzer extends Thread {
 				ROSUtils.execute(graphCameraName, new CameraNode(new CameraNode.ImageListener() {
 					@Override
 					public void imageArrived(Image image) {
-						// if the camera #1 is disabled, no further process is necessary
-						if (!isCamera1Loaded) {
-							return;
-						}
-						
+					
 						// using image processing to detect the pad 
 						long start = System.currentTimeMillis();
-						Object[] results = ObjectDetectorRed.processImage(image);
+						// Object[] results = ObjectDetectorRed.processImage(image);
+						Object[] results = ObjectDetectorRed.processImage2(buffMat);
 						
 						long findPadTime = System.currentTimeMillis() - start;
 						
@@ -492,6 +492,9 @@ public class ImageAnalyzer extends Thread {
 			connectROSButton.setEnabled(false);
 			stopROSButton.setEnabled(true);
 			
+			// load sample iamge
+			loadSampleImage();
+			
 		} catch (java.net.ConnectException cEx) {
 			controlInfoText.setText("Error @ Server Initiation (" + cEx.getClass().getName() + ": " + cEx.getMessage() + ")");
 			JOptionPane.showMessageDialog(mainFrame, "ROS Server is unable to connect [\"" + cEx.getMessage() + "\"]");
@@ -516,6 +519,15 @@ public class ImageAnalyzer extends Thread {
 		connectROSButton.setEnabled(true);
 		stopROSButton.setEnabled(false);
 		
+	}
+	
+	private void loadSampleImage() throws Exception {
+		// String imgPath = "/home/lee/Documents/images/samples2/1523668544109.png";
+		// String imgPath = "/home/lee/Documents/images/samples1/1523677482625.png";
+		// String imgPath = "/home/lee/Documents/images/samples1/1523677447782.png";
+		String imgPath = "/home/lee/Documents/images/samples1/1523677497634.png";
+		BufferedImage buffImage = ImageIO.read(new File(imgPath));
+		buffMat = OpenCVUtils.openImage(buffImage);
 	}
 	
 	/**

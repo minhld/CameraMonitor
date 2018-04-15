@@ -339,12 +339,12 @@ public class OpenCVUtils {
 		return createAwtImage(matImg);
 	}
 	
-//	public static Mat openImage(BufferedImage source) {
-//		byte[] pixels = ((DataBufferByte) source.getRaster().getDataBuffer()).getData();
-//        Mat cvImage = new Mat(source.getHeight(),source.getWidth(), CvType.CV_8UC3);
-//        cvImage.put(0, 0, pixels);
-//        return cvImage;
-//	}
+	public static Mat openImage(BufferedImage source) {
+		byte[] pixels = ((DataBufferByte) source.getRaster().getDataBuffer()).getData();
+        Mat cvImage = new Mat(source.getHeight(),source.getWidth(), CvType.CV_8UC3);
+        cvImage.put(0, 0, pixels);
+        return cvImage;
+	}
 	
 	public static Mat openImage(Image source) {
 		byte[] imageInBytes = source.getData().array();
