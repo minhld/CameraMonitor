@@ -104,6 +104,12 @@ public class ObjectDetectorRed {
 		};
 	}
 	
+	/**
+	 * some params: low(102,32,73), high(81,9,56)
+	 * 
+	 * @param orgMat
+	 * @return
+	 */
 	public static Object[] processImage2(Mat orgMat) {
 		// ------ 1. read the source to Mat ------
 		long start = System.currentTimeMillis();
@@ -153,91 +159,145 @@ public class ObjectDetectorRed {
 		
 		// ------ 5. find the contour of the pad ------ 
 		start = System.currentTimeMillis();
-		
-		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		Mat hierarchy = new Mat();
-		Imgproc.findContours(finalMask, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-		hierarchy.release();
 
-		Point locStartMax = new Point(), locEndMax = new Point();
+		// canny
+		Mat cannyMat = new Mat();
+		Imgproc.Canny(finalMask, cannyMat, Settings.cannyThres1, Settings.cannyThres2);
 		
-		if (contours.size() > 0) {
-			MatOfPoint contour;
-			double maxContourSize = 0, contourSize;
-			Point locStart = new Point(), locEnd = new Point();
-			Rect rect;
-				
-			// fetch through the list of contours
-			for(int i = 0; i < contours.size(); i++) {
-				contour = contours.get(i);
-				
-				// get rid of the small objects found in the camera area
-				contourSize = Imgproc.contourArea(contour);
-				if (contourSize > Settings.contourAreaMin) {
-					rect = Imgproc.boundingRect(contour);
-					locStart = new Point(rect.x, rect.y);
-					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
-					
-					
-				}
-				// define the max area
-				if (maxContourSize < contourSize) {
-					maxContourSize = contourSize;
-					locStartMax = locStart;
-					locEndMax = locEnd;
-				}
+		// get line matrix
+		Mat rectMat = new Mat();
+		orgMat.copyTo(rectMat);
+		Mat linesMat = new Mat();
+		Imgproc.HoughLinesP(cannyMat, 
+							linesMat, 
+							Settings.houghRho, 
+							Math.PI / 180, 
+							Settings.houghThres, 
+							Settings.houghMinLineLength, 
+							Settings.houghMaxLineGap);
+		
+		int numLines = linesMat.cols();
+		Point[] curLocs = new Point[2];
+		curLocs[0] = new Point(Double.MAX_VALUE, Double.MAX_VALUE);
+		curLocs[1] = new Point(Double.MIN_VALUE, Double.MIN_VALUE);
+		for (int i = 0; i < linesMat.cols(); i++) {
+			double[] vec = linesMat.get(0, i);
+
+			if (vec != null) {
+				curLocs = getStartEndPoints(vec, curLocs);
+			    
+			    Point pt1 = new Point(vec[0],vec[1]);
+			    Point pt2 = new Point(vec[2],vec[3]);
+			    
+			    Imgproc.line(rectMat, pt1, pt2, new Scalar(0, 255, 0), 1, Core.LINE_AA,0);
 			}
 		}
+		
+		// draw the boundary rectangle 
+		Imgproc.rectangle(rectMat, curLocs[0], curLocs[1], OpenCVUtils.BORDER_BLUE_COLOR);
+		
+//		ArrayList<MatOfPoint> contours = new ArrayList<MatOfPoint>();
+//		Mat hierarchy = new Mat();
+//		Imgproc.findContours(linesMat, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+//		hierarchy.release();
+//
+//		Point locStartMax = new Point(), locEndMax = new Point();
+//		
+//		if (contours.size() > 0) {
+//			MatOfPoint contour;
+//			double maxContourSize = 0, contourSize;
+//			Point locStart = new Point(), locEnd = new Point();
+//			Rect rect;
+//				
+//			// fetch through the list of contours
+//			for(int i = 0; i < contours.size(); i++) {
+//				contour = contours.get(i);
+//				
+//				// get rid of the small objects found in the camera area
+//				contourSize = Imgproc.contourArea(contour);
+//				if (contourSize > Settings.contourAreaMin) {
+//					rect = Imgproc.boundingRect(contour);
+//					locStart = new Point(rect.x, rect.y);
+//					locEnd = new Point(rect.x + rect.width, rect.y + rect.height);
+//					
+//					
+//				}
+//				// define the max area
+//				if (maxContourSize < contourSize) {
+//					maxContourSize = contourSize;
+//					locStartMax = locStart;
+//					locEndMax = locEnd;
+//				}
+//			}
+//		}
 		
 		long coutourTime = System.currentTimeMillis() - start;
 
 		// ------ 6. draw the rectangle surrounding the object ------ 
-		Mat rectMat = new Mat();
-		orgMat.copyTo(rectMat);
-		Imgproc.rectangle(rectMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
-		
-		// ------ 7. capture the image containing the object ------ 
-		Mat capturedMat = new Mat(1, 1, orgMat.type());
-		if (locEndMax.x > 0 && locEndMax.y > 0) {
-			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
-			int centerY = (int) (locStartMax.y + locEndMax.y) / 2;
-
-			// redefine the capture screen
-			int startPointX = (centerX - Settings.TEMPLATE_WIDTH >= 0) ? centerX - Settings.TEMPLATE_WIDTH : 0;
-			int startPointY = (centerY - Settings.TEMPLATE_HEIGHT >= 0) ? centerY - Settings.TEMPLATE_HEIGHT : 0;
-			int endPointX = (centerX + Settings.TEMPLATE_WIDTH <= orgMat.cols()) ? centerX + Settings.TEMPLATE_WIDTH : orgMat.cols(); 
-			int endPointY = (centerY + Settings.TEMPLATE_HEIGHT <= orgMat.rows()) ? centerY + Settings.TEMPLATE_HEIGHT : orgMat.rows();
-		
-			capturedMat = new Mat(orgMat, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
-			// capturedMat = new Mat(finalMask, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
-		}
+//		Mat rectMat = new Mat();
+//		orgMat.copyTo(rectMat);
+//		Imgproc.rectangle(rectMat, locStartMax, locEndMax, OpenCVUtils.BORDER_COLOR);
+//		
+//		// ------ 7. capture the image containing the object ------ 
+//		Mat capturedMat = new Mat(1, 1, orgMat.type());
+//		if (locEndMax.x > 0 && locEndMax.y > 0) {
+//			int centerX = (int) (locStartMax.x + locEndMax.x) / 2;
+//			int centerY = (int) (locStartMax.y + locEndMax.y) / 2;
+//
+//			// redefine the capture screen
+//			int startPointX = (centerX - Settings.TEMPLATE_WIDTH >= 0) ? centerX - Settings.TEMPLATE_WIDTH : 0;
+//			int startPointY = (centerY - Settings.TEMPLATE_HEIGHT >= 0) ? centerY - Settings.TEMPLATE_HEIGHT : 0;
+//			int endPointX = (centerX + Settings.TEMPLATE_WIDTH <= orgMat.cols()) ? centerX + Settings.TEMPLATE_WIDTH : orgMat.cols(); 
+//			int endPointY = (centerY + Settings.TEMPLATE_HEIGHT <= orgMat.rows()) ? centerY + Settings.TEMPLATE_HEIGHT : orgMat.rows();
+//		
+//			capturedMat = new Mat(orgMat, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
+//			// capturedMat = new Mat(finalMask, new Rect(startPointX, startPointY, endPointX - startPointX, endPointY - startPointY));
+//		}
 
 		// ------ 8. prepare to flush out the output results ------ 
 		start = System.currentTimeMillis();
 
 		BufferedImage resultImage = OpenCVUtils.createAwtImage(rectMat);
         BufferedImage processImage = OpenCVUtils.createAwtImage(finalMask);
-        BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
+//        BufferedImage capturedImage = OpenCVUtils.createAwtImage(capturedMat);
 
         long bufferImageTime = System.currentTimeMillis() - start;
         
         // ------ 9. get the matrix containing the pad ------ 
-        Mat padMat = (locEndMax.x > 0 && locEndMax.y > 0) ? new Mat(orgMat, new Rect(locStartMax, locEndMax)) : null;
+//        Mat padMat = (locEndMax.x > 0 && locEndMax.y > 0) ? new Mat(orgMat, new Rect(locStartMax, locEndMax)) : null;
 
         return new Object[] { 	resultImage, 
         						processImage, 
-        						capturedImage, 
-        						new Rect(locStartMax, locEndMax), 
-        						padMat, 
+//        						capturedImage, 
+        						new Rect(curLocs[0], curLocs[1]), 
+//        						padMat, 
         						new double[] {	readImageTime, 
         										gaussianTime,
         										convertHSVTime,
         										dilateTime,
         										coutourTime,
-        										bufferImageTime
+        										bufferImageTime,
+        										numLines
         									} };
         
 	}
+	
+	static Point[] getStartEndPoints(double[] vec, Point[] curLocs) {
+		// get the top-left point
+	    if (curLocs[0].x > vec[0]) curLocs[0].x = vec[0];
+	    if (curLocs[0].x > vec[2]) curLocs[0].x = vec[2];
+	    if (curLocs[0].y > vec[1]) curLocs[0].y = vec[1];
+	    if (curLocs[0].y > vec[3]) curLocs[0].y = vec[3];
+
+	    // get the bottom-right point
+	    if (curLocs[1].x < vec[0]) curLocs[1].x = vec[0];
+	    if (curLocs[1].x < vec[2]) curLocs[1].x = vec[2];
+	    if (curLocs[1].y < vec[1]) curLocs[1].y = vec[1];
+	    if (curLocs[1].y < vec[3]) curLocs[1].y = vec[3];
+	    
+	    return curLocs;
+	}
+	
 	
 	/**
 	 * process image by applying Gaussian operations, filtering red color particles

@@ -12,6 +12,7 @@ public class Settings {
 	public static final String SETTING_2_RED = "settings-2-red";
 	public static final String SETTING_GAZ = "settings-gaz";
 	public static final String SETTING_CAM = "settings-cam";
+	public static final String SETTING_ANALYZER = "settings-analyzer";
 	
 	public static final String LABEL_THRESHOLD = "threshold";
 	public static final String LABEL_COLOR_THRESHOLD = "color-threshold";
@@ -47,6 +48,15 @@ public class Settings {
 	public static final String LABEL_COLOR_HIGH_GREEN_S = "high-green-s-color";
 	public static final String LABEL_COLOR_HIGH_GREEN_V = "high-green-v-color";
 
+	
+	public static final String LABEL_CANNY_THRES1 = "canny-threshold-1";
+	public static final String LABEL_CANNY_THRES2 = "canny-threshold-2";
+	public static final String LABEL_HOUGHLINES_RHO = "houghlines-rho";
+	public static final String LABEL_HOUGHLINES_THETA = "houghlines-theta";
+	public static final String LABEL_HOUGHLINES_THRES = "houghlines-threshold";
+	public static final String LABEL_HOUGHLINES_MIN_LINE_LENGTH = "min-line-length";
+	public static final String LABEL_HOUGHLINES_MAX_LINE_GAP = "max-line-gap";
+	
 	public static int threshold = 235;
 	public static int colorThreshold = 100;
 	
@@ -77,6 +87,16 @@ public class Settings {
 	public static int highGreenSColor = 300;
 	public static int highGreenVColor = 3;
 
+	// ------ HOUGH LINES ------
+	public static int cannyThres1 = 50;
+	public static int cannyThres2 = 100;
+	public static int houghRho = 1;
+	public static int houghTheta = 1;
+	public static int houghThres = 20;
+	public static int houghMinLineLength = 20;
+	public static int houghMaxLineGap = 100;
+
+	
 	public static int standardDistance = 50;			// any measurements (cm, m, in etc.)
 	public static int standardPixelWidth = 200;
 	public static int actualWidth = 15;				// any measurements (cm, m, in etc.)
@@ -144,6 +164,18 @@ public class Settings {
 			Settings.highGreenSColor = value;
 		} else if (key.equals(Settings.LABEL_COLOR_HIGH_GREEN_V)) {
 			Settings.highGreenVColor = value;
+		} else if (key.equals(Settings.LABEL_CANNY_THRES1)) {
+			Settings.cannyThres1 = value;
+		} else if (key.equals(Settings.LABEL_CANNY_THRES2)) {
+			Settings.cannyThres2 = value;
+		} else if (key.equals(Settings.LABEL_HOUGHLINES_RHO)) {
+			Settings.houghRho = value;
+		} else if (key.equals(Settings.LABEL_HOUGHLINES_THRES)) {
+			Settings.houghThres = value;
+		} else if (key.equals(Settings.LABEL_HOUGHLINES_MIN_LINE_LENGTH)) {
+			Settings.houghMinLineLength = value;
+		} else if (key.equals(Settings.LABEL_HOUGHLINES_MAX_LINE_GAP)) {
+			Settings.houghMaxLineGap = value;
 		} else if (key.equals(Settings.LABEL_STD_DISTANCE)) {
 			Settings.standardDistance = value;
 		} else if (key.equals(Settings.LABEL_STD_PIXEL_WIDTH)) {
@@ -152,7 +184,14 @@ public class Settings {
 			Settings.actualWidth = value;
 		} 
 	}
-	
+//	public static final String LABEL_CANNY_THRES1 = "canny-threshold-1";
+//	public static final String  = "canny-threshold-2";
+//	public static final String  = "houghlines-rho";
+//	public static final String  = "houghlines-theta";
+//	public static final String  = "houghlines-threshold";
+//	public static final String  = "min-line-length";
+//	public static final String  = "max-line-gap";
+
 	/**
 	 * get integer value from setting parameter list
 	 *  

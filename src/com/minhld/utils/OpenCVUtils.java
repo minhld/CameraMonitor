@@ -22,6 +22,7 @@ import sensor_msgs.Image;
 
 public class OpenCVUtils {
 	public static Scalar BORDER_COLOR = new Scalar(0, 255, 0);
+	public static Scalar BORDER_BLUE_COLOR = new Scalar(255, 0, 0);
 	public static Scalar BORDER_RED_COLOR = new Scalar(0, 0, 255);
 	static Size sz320 = new Size(320, 240);
 

@@ -39,7 +39,6 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 
 import com.birosoft.liquid.LiquidLookAndFeel;
-import com.minhld.opencv.DistanceEstimator;
 import com.minhld.opencv.FeatureExtractorRed;
 import com.minhld.opencv.ObjectDetectorRed;
 import com.minhld.ros.controller.CameraNode;
@@ -49,8 +48,8 @@ import com.minhld.ros.movements.MoveInstructor;
 import com.minhld.ros.controller.OdomWriter;
 import com.minhld.ros.controller.UISupport;
 import com.minhld.ros.controller.WheelVelocityListener;
+import com.minhld.ui.supports.AnalyzerSettingsPanel;
 import com.minhld.ui.supports.LocationDrawer;
-import com.minhld.ui.supports.SettingsPanel;
 import com.minhld.utils.AppUtils;
 import com.minhld.utils.Constants;
 import com.minhld.utils.OpenCVUtils;
@@ -85,7 +84,7 @@ public class ImageAnalyzer extends Thread {
 	// on the right panel has currently been used or not
 	boolean isServerInUsed = false;
 	
-	String settingProfile = Settings.SETTING_2_RED;
+	String settingProfile = Settings.SETTING_ANALYZER;
 	
 	Mat buffMat;
 	
@@ -295,20 +294,21 @@ public class ImageAnalyzer extends Thread {
 						start = System.currentTimeMillis();
 						BufferedImage resultImage = (BufferedImage) results[0];
 						BufferedImage processImage = (BufferedImage) results[1];
-						BufferedImage capturedImage = (BufferedImage) results[2];
-						Rect objectRect = (Rect) results[3];
-						Mat padMat = (Mat) results[4];
-						double[] timers = (double[]) results[5];
+//						BufferedImage capturedImage = (BufferedImage) results[2];
+						Rect objectRect = (Rect) results[2];
+//						Mat padMat = (Mat) results[4];
+//						double[] timers = (double[]) results[5];
+						double[] timers = (double[]) results[3];
 								
 						UISupport.drawImage(cameraPanel, resultImage);
 						UISupport.drawImage(processPanel, processImage);
-						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
+//						UISupport.drawClearImage(capturedPanel, capturedImage, capturedImage.getWidth(), capturedImage.getHeight());
 						
 						// using feature detection to find the location of the pad
-						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
-						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
+//						Object[] locs = FeatureExtractorRed.detectLocation(padMat);
+//						UISupport.drawImage(closedCapturedPanel, (BufferedImage) locs[0]);
 //						UISupport.drawRatioImage(transformedPanel, (BufferedImage) locs[1]);
-						double[] extractTimers = (double[]) locs[2];
+//						double[] extractTimers = (double[]) locs[2];
 						
 						long drawTime = System.currentTimeMillis() - start;
 						long rate = (long) (1000 / findPadTime);
@@ -318,14 +318,15 @@ public class ImageAnalyzer extends Thread {
 														"Rate: " + rate + "fps");
 						
 						// teach the wheel-chair how to move
-						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
-						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
-						double objectAngle = extractTimers[0];
+//						int moveInstructor = (Integer) MoveInstructor.instruct(resultImage.getWidth(), objectRect);
+//						double objectDistance = DistanceEstimator.estimateDistance(objectRect);
+//						double objectAngle = extractTimers[0];
 						
 						// RosAutoRed.this.controlInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
 						// 										"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg");
-						ImageAnalyzer.this.topicInfoText.setText("Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
-															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
+						ImageAnalyzer.this.topicInfoText.setText("" +
+//															"Distance: " + AppUtils.getNumberFormat(objectDistance) + "ft(s)\n" + 
+//															"Angle: " + AppUtils.getNumberFormat(objectAngle) + "deg(s)\n" + 
 															"Wheel Velocity: " + WheelVelocityListener.velocity + "\n" +
 															"------------------------------\n" + 
 															"Reading: " + timers[0] + "ms\n" + 
@@ -335,15 +336,20 @@ public class ImageAnalyzer extends Thread {
 															"Coutouring: " + timers[4] + "ms\n" + 
 															"Bitmap Converting: " + timers[5] + "ms\n" + 
 															"------------------------------\n" +
-															"Gray Converting: " + extractTimers[1] + "ms\n" + 
-															"Threshold: " + extractTimers[2] + "ms\n" + 
-															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
-															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
-															"Transformation: " + extractTimers[5] + "ms\n");
+															"Number of Lines: " + timers[6] + "\n" +
+															"Top (" + objectRect.x + "," + objectRect.y + ") - " +
+															"Size (" + objectRect.width + "," + objectRect.height + ")\n" + 
+//															"Gray Converting: " + extractTimers[1] + "ms\n" + 
+//															"Threshold: " + extractTimers[2] + "ms\n" + 
+//															"Contouring Detecting: " + extractTimers[3] + "ms\n" + 
+//															"Contouring Analysis: " + extractTimers[4] + "ms\n" + 
+//															"Transformation: " + extractTimers[5] + "ms\n" +
+															"");
+						
 
 						//
 						// draw the current location of the wheel-chair on the map 
-						drawWheelchairPoint(objectDistance, objectAngle);
+//						drawWheelchairPoint(objectDistance, objectAngle);
 					}
 				}));
 				
@@ -385,7 +391,7 @@ public class ImageAnalyzer extends Thread {
 	 */
 	private void showSettingsDialog() {
 	    JDialog settingsDialog = new JDialog(mainFrame, "Settings", ModalityType.APPLICATION_MODAL);
-	    settingsDialog.add(new SettingsPanel());
+	    settingsDialog.add(new AnalyzerSettingsPanel());
 	    settingsDialog.setSize(660, 660);
 	    settingsDialog.setResizable(false);
 	    settingsDialog.setLocationRelativeTo(mainFrame);
@@ -522,10 +528,10 @@ public class ImageAnalyzer extends Thread {
 	}
 	
 	private void loadSampleImage() throws Exception {
-		// String imgPath = "/home/lee/Documents/images/samples2/1523668544109.png";
+		String imgPath = "/home/lee/Documents/images/samples2/1523668544109.png";
 		// String imgPath = "/home/lee/Documents/images/samples1/1523677482625.png";
 		// String imgPath = "/home/lee/Documents/images/samples1/1523677447782.png";
-		String imgPath = "/home/lee/Documents/images/samples1/1523677497634.png";
+		// String imgPath = "/home/lee/Documents/images/samples1/1523677497634.png";
 		BufferedImage buffImage = ImageIO.read(new File(imgPath));
 		buffMat = OpenCVUtils.openImage(buffImage);
 	}
