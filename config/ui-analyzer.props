@@ -1,0 +1,15 @@
+main-window-width=1330
+main-window-height=675
+single-view-width=500
+single-view-height=375
+controller-width=1000
+controller-height=260
+button-margin-left=10
+button-margin-top=30
+host-text-columns=15
+topic-list-width=265
+topic-list-height=150
+location-width=250
+location-height=260
+topic-text-columns=30
+topic-text-rows=10

@@ -1,29 +1,29 @@
 #ROS CONTROLLER SETTINGS
-#Sun Apr 15 23:09:34 MDT 2018
+#Mon Apr 16 00:39:42 MDT 2018
 dilate-enable=1
-low-h-color=92
+low-h-color=115
 color-threshold=100
-low-v-color=73
+low-v-color=36
 threshold=150
 contour-enable=1
-high-s-color=9
+high-s-color=77
 contour-sides=1
 houghlines-theta=1
 dilate-size=5
 contour-area-min=200
 velocity=5
-high-h-color=119
+high-h-color=96
 standard-distance=130
-high-v-color=19
-houghlines-threshold=51
-gaussian-standard-deviation=0
-canny-threshold-2=97
-canny-threshold-1=51
-houghlines-rho=1
+high-v-color=46
+houghlines-threshold=88
+canny-threshold-2=118
+gaussian-standard-deviation=6
+canny-threshold-1=36
+houghlines-rho=6
 gaussian-size=1
 gaussian-enable=0
 standard-pixel-width=200
-low-s-color=39
+low-s-color=9
 actual-width=38
-max-line-gap=101
-min-line-length=48
+max-line-gap=15
+min-line-length=56

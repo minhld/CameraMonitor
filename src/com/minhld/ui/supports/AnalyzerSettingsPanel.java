@@ -63,7 +63,7 @@ public class AnalyzerSettingsPanel extends JPanel {
 		JPanel gaussianPanel = new JPanel(new GridLayout(1, 3));
 		gaussianPanel.setPreferredSize(new Dimension(650, 70));
 		gaussianPanel.setBorder(BorderFactory.createTitledBorder("Gaussian"));
-		gaussianPanel.add(new AdjustChecker(Settings.LABEL_GAUSSIAN_ENABLE, 0, false));
+		gaussianPanel.add(new AdjustChecker(Settings.LABEL_GAUSSIAN_ENABLE, 0, true));
 		gaussianPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_SIZE, 1, 15, 2));
 		gaussianPanel.add(new AdjustSlider(Settings.LABEL_GAUSSIAN_STANDARD_DEVIATION, 0, 10));
 		add(gaussianPanel);

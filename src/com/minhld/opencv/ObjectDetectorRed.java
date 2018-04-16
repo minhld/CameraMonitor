@@ -117,13 +117,14 @@ public class ObjectDetectorRed {
 		long readImageTime = System.currentTimeMillis() - start;
 		
 		Mat modMat = new Mat();
+		orgMat.copyTo(modMat);
 		
 		// ------ 2. apply gaussian convolution ------ 
 		start = System.currentTimeMillis();
 		
 		// set it blur (to remove noise)
 		if (Settings.gaussianEnable == 1) {
-			Imgproc.GaussianBlur(orgMat, orgMat, new Size(Settings.gaussianSize, Settings.gaussianSize), Settings.gaussianStandardDeviation);
+			Imgproc.GaussianBlur(modMat, modMat, new Size(Settings.gaussianSize, Settings.gaussianSize), Settings.gaussianStandardDeviation);
 		}
 		// Imgproc.GaussianBlur(orgMat, orgMat, new Size(3, 3), 1);
 		
@@ -133,7 +134,7 @@ public class ObjectDetectorRed {
 		start = System.currentTimeMillis();
 		
 		// 3.1. convert the image to HSV color template
-		Imgproc.cvtColor(orgMat, modMat, Imgproc.COLOR_BGR2HSV);
+		Imgproc.cvtColor(modMat, modMat, Imgproc.COLOR_BGR2HSV);
 		
 		// 3.2. filter out the red color in a wide range 
 		Mat lowMask = new Mat(), highMask = new Mat();
@@ -176,20 +177,22 @@ public class ObjectDetectorRed {
 							Settings.houghMinLineLength, 
 							Settings.houghMaxLineGap);
 		
-		int numLines = linesMat.cols();
+		int numLines = linesMat.rows() * linesMat.cols();
 		Point[] curLocs = new Point[2];
 		curLocs[0] = new Point(Double.MAX_VALUE, Double.MAX_VALUE);
 		curLocs[1] = new Point(Double.MIN_VALUE, Double.MIN_VALUE);
-		for (int i = 0; i < linesMat.cols(); i++) {
-			double[] vec = linesMat.get(0, i);
-
-			if (vec != null) {
-				curLocs = getStartEndPoints(vec, curLocs);
-			    
-			    Point pt1 = new Point(vec[0],vec[1]);
-			    Point pt2 = new Point(vec[2],vec[3]);
-			    
-			    Imgproc.line(rectMat, pt1, pt2, new Scalar(0, 255, 0), 1, Core.LINE_AA,0);
+		for (int i = 0; i < linesMat.rows(); i++) {
+			for (int j = 0; j < linesMat.cols(); j++) {
+				double[] vec = linesMat.get(i, j);
+	
+				if (vec != null) {
+					curLocs = getStartEndPoints(vec, curLocs);
+				    
+				    Point pt1 = new Point(vec[0],vec[1]);
+				    Point pt2 = new Point(vec[2],vec[3]);
+				    
+				    Imgproc.line(rectMat, pt1, pt2, new Scalar(0, 255, 0), 1, Core.LINE_AA,0);
+				}
 			}
 		}
 		

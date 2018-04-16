@@ -9,6 +9,8 @@ import java.awt.Font;
 import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -22,15 +24,18 @@ import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 import org.opencv.core.Core;
@@ -77,6 +82,7 @@ public class ImageAnalyzer extends Thread {
 	JPanel capturedPanel, closedCapturedPanel;
 	JLabel processTimeLabel;
 	Thread nodeThread;
+	JList<String> topicList;
 	
 	OdomWriter odomWriter;
 	
@@ -97,7 +103,7 @@ public class ImageAnalyzer extends Thread {
 		
 		// load UI properties
 		// UISupport.loadUIProps();
-		UISupport.loadUIProps("2-others");
+		UISupport.loadUIProps("analyzer");
 		
 		// load settings (for RED OBJECT configuration)
 		Settings.init(settingProfile);
@@ -218,7 +224,36 @@ public class ImageAnalyzer extends Thread {
 		JScrollPane infoScroller = new JScrollPane(controlInfoText, 
 							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		controlInfo.add(infoScroller, BorderLayout.CENTER);
+		controlInfo.add(infoScroller, BorderLayout.WEST);
+		
+		topicList = new JList<String>(); 
+		topicList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		topicList.setLayoutOrientation(JList.VERTICAL);
+		topicList.setVisibleRowCount(-1);
+		topicList.setFont(new Font("", Font.PLAIN, 10));
+		topicList.addMouseListener(new MouseAdapter() {
+			@SuppressWarnings("rawtypes")
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JList list = (JList) e.getSource();
+	            String selectedImgPath = (String) list.getSelectedValue();
+	            try {
+					BufferedImage buffImage = ImageIO.read(new File(selectedImgPath));
+					buffMat = OpenCVUtils.openImage(buffImage);
+	            } catch (Exception ex) {
+	            	ex.printStackTrace();
+	            }
+			}
+		});
+		JScrollPane listScroller = new JScrollPane(topicList, 
+							JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+							JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		listScroller.setPreferredSize(new Dimension(UISupport.getUIProp("topic-list-width"), 
+												UISupport.getUIProp("topic-list-height")));
+		listScroller.setBorder(new LineBorder(Color.gray));
+		controlInfo.add(listScroller, BorderLayout.EAST);
+
+		
 
 		processTimeLabel = new JLabel("Processing Time");
 		processTimeLabel.setIcon(new ImageIcon("images/settings.png"));
@@ -528,11 +563,25 @@ public class ImageAnalyzer extends Thread {
 	}
 	
 	private void loadSampleImage() throws Exception {
-		String imgPath = "/home/lee/Documents/images/samples2/1523668544109.png";
-		// String imgPath = "/home/lee/Documents/images/samples1/1523677482625.png";
-		// String imgPath = "/home/lee/Documents/images/samples1/1523677447782.png";
-		// String imgPath = "/home/lee/Documents/images/samples1/1523677497634.png";
-		BufferedImage buffImage = ImageIO.read(new File(imgPath));
+
+		// String imgParentPath = "/home/lee/Documents/images/samples1/";
+		String imgParentPath = "/home/lee/Documents/images/samples2/";
+		// String imgParentPath = "/home/lee/Documents/images/samples3/";
+		
+		File[] imgFiles = new File(imgParentPath).listFiles();
+		
+		String[] topics = new String[imgFiles.length];
+		for (int i = 0; i < imgFiles.length; i++) {
+			topics[i] = imgFiles[i].getAbsolutePath();
+		}
+		
+		if (topics.length == 0) {
+			JOptionPane.showMessageDialog(mainFrame, "ROS Server is unable to connect.");
+		} 
+		topicList.removeAll();
+		topicList.setListData(topics);
+		
+		BufferedImage buffImage = ImageIO.read(new File(topics[0]));
 		buffMat = OpenCVUtils.openImage(buffImage);
 	}
 	
