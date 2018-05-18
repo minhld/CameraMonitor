@@ -6,6 +6,8 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.UUID;
@@ -13,7 +15,8 @@ import java.util.UUID;
 public class AppUtils {
 	static final DecimalFormat formatter = new DecimalFormat("#,##0.00");
 	static final DecimalFormat smallFormatter = new DecimalFormat("#,##0.0000");
-
+	static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); 
+	
 	/**
 	 * hold the application ID
 	 */
@@ -34,6 +37,9 @@ public class AppUtils {
 		return Long.toString(l, Character.MAX_RADIX);
 	}
 	
+	public static String getCurrentDate() {
+		return sdf.format(new Date());
+	}
 	
 	/**
 	 * this function searches for available static IP of the being-used network
